@@ -188,62 +188,9 @@ def upload_episode(request, episode_id):
     else:
         form = EpisodeUploadForm()
 
-    return render(request, 'episode_upload2.html', {'form': form, 'episode': episode})      
+    return render(request, 'episode_upload.html', {'form': form, 'episode': episode})      
 
 
 def upload_success(request):
     return render(request, 'upload_success.html')
 
-
-# ch24/ch24app/views.py
-# from django.shortcuts import render, redirect, get_object_or_404
-# from django.http import HttpResponse
-# from django.contrib import messages
-# from .forms import EpisodeUploadForm
-# from .models import Episode
-# from .utils import create_presigned_url  # AWS pre-signed URL utility
-# import requests
-
-# def upload_episode2(request, episode_id):
-#     episode = get_object_or_404(Episode, custom_id=episode_id)
-
-#     # Security check: Ensure the user is the creator of the episode
-#     if episode.created_by != request.user:
-#         return HttpResponse("Unauthorized", status=401)
-
-#     if request.method == 'POST':
-#         form = EpisodeUploadForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             file = form.cleaned_data['file']
-#             file_name = file.name
-#             bucket_name = 'channel24-3dbcad81-2747-4a18-acdd-68ae14b4fa71'  # Replace with your actual S3 bucket name
-
-#             # Generate a unique file name/path
-#             unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
-
-#             # Generate the pre-signed URL
-#             presigned_url = create_presigned_url(bucket_name, unique_file_name)
-
-#             if presigned_url:
-#                 # Upload the file to S3 using the pre-signed URL
-#                 response = requests.put(presigned_url, data=file)
-#                 if response.status_code == 200:
-#                     # Update the episode with the file name
-#                     episode.file_name = unique_file_name
-#                     episode.save()
-#                     messages.success(request, "File uploaded successfully.")
-#                     return redirect('upload_success')
-#                 else:
-#                     print(f"Failed to upload: {response.content}")
-#                     messages.error(request, "Upload failed.")
-#             else:
-#                 print("Unable to generate upload URL.")
-#                 messages.error(request, "Unable to generate upload URL.")
-#         else:
-#             print("Form is invalid")
-#             print(form.errors)
-#             messages.error(request, "Form is invalid.")
-#     else:
-#         form = EpisodeUploadForm()
-
-#     return render(request, 'episode_upload2.html', {'form': form, 'episode': episode})         
