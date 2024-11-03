@@ -1,0 +1,38 @@
+{% extends "base.html" %} {% block title %} Home Page {% endblock %} 
+{% block content %}
+
+<br/><br/>
+<div class="shadow p-4 mb-5 bg-body rounded">    
+<h1>My Creators</h1>
+{% if user.is_authenticated %}
+    {% if creator_list %}
+        <ul>
+        {% for creator in creator_list %}
+
+            <br/>
+            <div class="card">
+                <div class="card-header"">
+                    <h5 class="card-title">{{ creator.first_name }} {{ creator.last_name }}</h5>
+                </div>
+                <div class="card-body">
+                  <p class="card-text">Company: {{ creator.company }}</p>
+                  <p class="card-text">Email: {{ creator.email }}</p>
+                  <p class="card-text">Phone: {{ creator.phone }}</p>
+                  <p class="card-text">Created by: {{ creator.created_by }}</p>
+                  <a href="{% url 'update-creator' creator.custom_id %}" class="btn btn-outline-secondary">Update</a>
+                </div>
+              </div>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No creators are available.</p>
+
+    {% endif %}
+{% else %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        You must be logged in to view this page
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+</div>
+{% endblock %}

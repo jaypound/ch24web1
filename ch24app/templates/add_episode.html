@@ -1,0 +1,31 @@
+{% extends "base.html" %} {% block title %} Add Episode {% endblock %} 
+{% block content %}
+<br/><br/>
+<div class="shadow p-4 mb-5 bg-body rounded">
+<h1>Add Episode</h1>
+<br/>
+{% if submitted %}
+
+    Episode Added Successfully!
+    <br/><br/><br/>
+    <a href="{% url 'add-episode' %}" class="btn btn-secondary">Add Another Episode</a>
+    <br/><br/>
+    <a href="{% url 'add-program' %}" class="btn btn-secondary">Add Another Program</a>
+
+    {% else %}
+    {% if user.is_authenticated %}
+    <form action="" method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Submit" class="btn btn-secondary">
+    </form>
+    {% else %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        You must be logged in to view this page
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+

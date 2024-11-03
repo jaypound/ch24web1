@@ -1,0 +1,42 @@
+{% extends "base.html" %} {% block title %} Add Episode {% endblock %} 
+{% block content %}
+<br/><br/>
+<div class="shadow p-4 mb-5 bg-body rounded">
+<h1>Update Episode</h1>
+<br/><br/>
+{% if submitted %}
+    Episode Updated Successfully!
+{% else %}
+    {% if user.is_authenticated %}
+    <form action="" method="POST">
+        {% csrf_token %}
+        {# Override the default datetime rendering with date-only input #}
+
+        {% for field in form %}
+
+            {% if field.name == 'start_date' or field.name == 'end_date' %}
+                <br/>
+                    <input type="date" name="{{ field.name }}" value="{{ field.value|date:'Y-m-d' }}" id="{{ field.id_for_label }}" class="form-control">
+
+            {% else %}
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        <br/>
+
+        <input type="submit" value="Submit" class="btn btn-secondary">
+    </form>
+    {% else %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        You must be logged in to view this page
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+

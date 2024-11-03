@@ -1,0 +1,39 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="{% url 'home' %}">Atlanta 24</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+
+        {% if user.is_authenticated and user.is_superuser %}
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'list-creators' %}">List Creators</a>
+        </li>
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'list-programs' %}">List Programs</a>
+        </li>
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'list-episodes' %}">List Episodes</a>
+        </li>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'my-programs' %}">My Programs</a>
+        </li>
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'my-episodes' %}">My Episodes</a>
+        </li> 
+        <li class="nav-item active"></li>
+            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+        </li>        
+        {% else %}
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'register_user' %}">Register</a>
+        </li>
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'login' %}">Login</a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>

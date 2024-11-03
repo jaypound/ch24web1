@@ -1,0 +1,42 @@
+{% extends "base.html" %} {% block title %} Home Page {% endblock %} 
+{% block content %}
+<br/><br/>
+<div class="shadow p-4 mb-5 bg-body rounded">
+    <h1>All Episodes</h1>
+    {% if user.is_authenticated %}
+    {% if episode_list %}
+        <ul>
+        {% for episode in episode_list %}
+
+        <br/>
+        <div class="card">
+            <div class="card-header"">
+                <h5 class="card-title">Episode Title: {{ episode.title }}</h5>
+            </div>
+            <div class="card-body">
+              <p class="card-text">ID: {{ episode.custom_id }}</p>
+              <p class="card-text">Creator: {{ episode.program.creator.first_name }} {{ episode.program.creator.last_name }}</p>
+              <p class="card-text"> Program Name: {{ episode.program.program_name }}</p>
+              <p class="card-text">Episode Number: {{ episode.episode_number }}</p>
+              <p class="card-text">Episode Description: {{ episode.description }}</p>
+              <p class="card-text">Created by: {{ episode.created_by }}</p>
+              <p class="card-text">File Name: {{ episode.file_name }}</p>
+              <a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update</a>
+            </div>
+          </div>
+
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No episodes are available.</p>
+    {% endif %}
+
+{% else %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        You must be logged in to view this page
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+</div>
+    {% endblock %}
