@@ -23,7 +23,7 @@
               {% if episode.file_name %}
                 <p class="card-text">File Name: {{ episode.file_name }}</p>
               {% endif %}
-              <p><form method="post" action="{% url 'upload_episode2' episode.custom_id %}">
+              <p><form method="post" action="{% url 'upload_episode' episode.custom_id %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-primary">Upload Episode</button>
             </form></p>

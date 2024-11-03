@@ -112,8 +112,8 @@ class EpisodeForm(ModelForm):
 
 
 
-class UploadFileForm(forms.Form):
-    file = forms.FileField()
+# class UploadFileForm(forms.Form):
+#     file = forms.FileField()
 
 
 class EpisodeUploadForm(forms.Form):
@@ -121,8 +121,7 @@ class EpisodeUploadForm(forms.Form):
         # label='Select episode to upload',
         label='',
         widget=forms.ClearableFileInput(attrs={
-            'class': 'form-control form-control-lg',
-            'id': 'formFileLg',
+            'class': 'form-control',
         })
     )
 
