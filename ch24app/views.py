@@ -1,7 +1,7 @@
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Creator, Program, Episode
-from .forms import CreatorForm, ProgramForm, EpisodeForm, EpisodeUploadForm
+from .forms import CreatorForm, ProgramForm, EpisodeForm, EpisodeUploadForm, EpisodeUpdateForm
 from django.http import HttpResponseRedirect, HttpResponse
 from .utils import create_presigned_url  # Assuming the function is in utils.py
 from django.contrib import messages
@@ -130,7 +130,7 @@ def update_program(request, program_id):
 def update_episode(request, episode_id):
     episode = Episode.objects.get(custom_id=episode_id)  # Changed from id to custom_id
     if request.method == "POST":
-        form = EpisodeForm(request.POST, instance=episode)
+        form = EpisodeUpdateForm(request.POST, instance=episode)
         if form.is_valid():
             form.save()
             return render(request, 'update_episode.html', {
@@ -138,7 +138,7 @@ def update_episode(request, episode_id):
                 'submitted': True
             })
     else:
-        form = EpisodeForm(instance=episode)
+        form = EpisodeUpdateForm(instance=episode)
     
     return render(request, 'update_episode.html', {
         'form': form,

@@ -112,8 +112,44 @@ class EpisodeForm(ModelForm):
 
 
 
-# class UploadFileForm(forms.Form):
-#     file = forms.FileField()
+class EpisodeUpdateForm(ModelForm):
+    class Meta:
+        model = Episode
+        fields = ['program', 'episode_number', 'title', 'description', 'repeat_preferences', 'start_date', 'end_date']
+        labels = {
+            'program': '',
+            'episode_number': '',
+            'title': '',
+            'description': '',
+            'repeat_preferences': '',
+            'start_date': '',
+            'end_date': '',
+        }
+        widgets = {
+            'program': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Program'}),
+            'episode_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Episode Number'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Title'}),
+            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+            'repeat_preferences': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Repeat Preferences'}),
+            'start_date': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'Start Date'}),
+            'end_date': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'End Date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(EpisodeUpdateForm, self).__init__(*args, **kwargs)
+        if user:
+            print('User:', user)
+            # Filter creators by the current user
+            self.fields['program'].queryset = Program.objects.filter(created_by=user)
+            # Debugging line to check the queryset
+            print("Filtered programs for user:", user, self.fields['program'].queryset)
+            # Set default to the first creator
+            programs = self.fields['program'].queryset
+            if programs.exists():
+                self.fields['program'].initial = programs.first()
+            else:
+                print('No programs found')
 
 
 class EpisodeUploadForm(forms.Form):

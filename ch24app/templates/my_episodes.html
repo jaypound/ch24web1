@@ -20,14 +20,17 @@
               <p class="card-text">Episode Number: {{ episode.episode_number }}</p>
               <p class="card-text">Episode Description: {{ episode.description }}</p>
               <p class="card-text">Created by: {{ episode.created_by }}</p>
-              {% if episode.file_name %}
-                <p class="card-text">File Name: {{ episode.file_name }}</p>
-              {% endif %}
+              <p class="card-text">File Name: {{ episode.file_name }}</p>
+
               <p><form method="post" action="{% url 'upload_episode' episode.custom_id %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">Upload Episode</button>
+                {% if not episode.file_name %}
+                <button type="submit" class="btn btn-primary">Upload Media</button>
+                {% else %}
+                <button type="submit" class="btn  btn-outline-secondary">Upload Media</button>
+                {% endif %}
             </form></p>
-              <p><a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update Episode</a></p>
+              <p><a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update Metadata</a></p>
             </div>
           </div>
 
