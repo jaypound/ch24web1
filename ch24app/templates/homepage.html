@@ -164,9 +164,15 @@
               <a href="{% url 'add-program' %}">
                   <button type="button" class="btn btn-primary btn-lg px-3 gpt-3">Add Program</button>
               </a>
-              <a href="{% url 'add-episode' %}">
-                  <button type="button" class="btn btn-primary btn-lg px-3 gap-3">Add Episode</button>
-              </a>
+              {% if not user_has_programs %}
+                <a href="{% url 'add-episode' %}">
+                    <button type="button" class="btn btn-outline-secondary btn-lg px-3 gap-3">Add Episode</button>
+                </a>
+                {% else %}
+                <a href="{% url 'add-episode' %}">
+                    <button type="button" class="btn btn-primary btn-lg px-3 gap-3">Add Episode</button>
+                </a>
+                {% endif %}
               {% else %}
                 <button type="button" class="btn btn-outline-secondary btn-lg px-3 gpt-3">Add Creator</button>
                 <button type="button" class="btn btn-outline-secondary btn-lg px-3 gpt-3">Add Program</button>

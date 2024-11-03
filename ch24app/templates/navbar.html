@@ -18,6 +18,12 @@
 
         {% if user.is_authenticated %}
         <li class="nav-item active">
+            <a class="nav-link" href="{% url 'add-program' %}">Add Program</a>
+        </li>
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'add-episode' %}">Add Episode</a>
+        </li>         
+        <li class="nav-item active">
             <a class="nav-link" href="{% url 'my-programs' %}">My Programs</a>
         </li>
         <li class="nav-item active">

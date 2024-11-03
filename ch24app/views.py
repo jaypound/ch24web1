@@ -16,6 +16,13 @@ def home(request):
     user_has_creator = Creator.objects.filter(created_by=request.user).exists() if request.user.is_authenticated else False
     return render(request, 'home.html', {'user_has_creator': user_has_creator})
 
+def homepage(request):
+    user_has_programs = False
+    if request.user.is_authenticated:
+        # Check if the user has any programs
+        user_has_programs = Program.objects.filter(created_by=request.user).exists()
+    return render(request, 'homepage.html', {'user_has_programs': user_has_programs})
+
 def all_creators(request):
     creator_list = Creator.objects.all()
     return render(request, 'creator_list.html', {'creator_list': creator_list})
@@ -71,21 +78,51 @@ def add_program(request):
             submitted = True
     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
 
+
 def add_episode(request):
     submitted = False
-    form = EpisodeForm()
     if request.method == 'POST':
-        form = EpisodeForm(request.POST, user=request.user)  # Pass user to the form
+        form = EpisodeForm(request.POST, user=request.user)
         if form.is_valid():
-            instance = form.save(commit=False)  # Create an instance without saving to the database
-            instance.created_by = request.user  # Set the created_by field to the current user
-            instance.save()  # Now save the instance to the database
+            instance = form.save(commit=False)
+            instance.created_by = request.user
+            instance.save()
             return HttpResponseRedirect('/add_episode?submitted=True')
     else:
-        form = EpisodeForm(user=request.user)
+        # Get the last program added by the current user using 'created_at'
+        # Prepare initial data for the form
+        initial_data = {}
+        last_program = Program.objects.filter(created_by=request.user).order_by('-created_at').first()
+        if not last_program:
+            messages.error(request, "You need to add a program before adding episodes.")
+            program_form = ProgramForm(user=request.user)
+            submitted = False
+            return render(request, 'add_program.html', {'form': program_form, 'submitted': submitted})        
+
+        if last_program:
+            initial_data['program'] = last_program  # Pre-fill the 'program' field
+
+        form = EpisodeForm(user=request.user, initial=initial_data)
         if 'submitted' in request.GET:
             submitted = True
     return render(request, 'add_episode.html', {'form': form, 'submitted': submitted})
+
+
+# def add_episode(request):
+#     submitted = False
+#     form = EpisodeForm()
+#     if request.method == 'POST':
+#         form = EpisodeForm(request.POST, user=request.user)  # Pass user to the form
+#         if form.is_valid():
+#             instance = form.save(commit=False)  # Create an instance without saving to the database
+#             instance.created_by = request.user  # Set the created_by field to the current user
+#             instance.save()  # Now save the instance to the database
+#             return HttpResponseRedirect('/add_episode?submitted=True')
+#     else:
+#         form = EpisodeForm(user=request.user)
+#         if 'submitted' in request.GET:
+#             submitted = True
+#     return render(request, 'add_episode.html', {'form': form, 'submitted': submitted})
 
 
 

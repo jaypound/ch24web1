@@ -8,16 +8,18 @@
 
     Episode Added Successfully!
     <br/><br/><br/>
-    <a href="{% url 'add-episode' %}" class="btn btn-secondary">Add Another Episode</a>
+    <a href="{% url 'add-episode' %}" class="btn btn-primary">Add Another Episode</a>
     <br/><br/>
-    <a href="{% url 'add-program' %}" class="btn btn-secondary">Add Another Program</a>
+    <a href="{% url 'add-program' %}" class="btn btn-primary">Add Another Program</a>
 
     {% else %}
+
     {% if user.is_authenticated %}
     <form action="" method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <input type="submit" value="Submit" class="btn btn-secondary">
+        <br/>
+        <input type="submit" value="Submit" class="btn btn-primary">
     </form>
     {% else %}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">

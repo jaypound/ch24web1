@@ -7,7 +7,7 @@
 {% if submitted %}
     Creator Added Successfully!
     <br/><br/>
-    <a href="{% url 'add-program' %}" class="btn btn-secondary">Add Program</a>
+    <a href="{% url 'add-program' %}" class="btn btn-primary">Add Program</a>
 {% else %}
     {% if user.is_authenticated %}
     <form action="" method="POST">
