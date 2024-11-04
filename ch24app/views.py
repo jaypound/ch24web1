@@ -21,10 +21,15 @@ def home(request):
         print(f"user_has_creator: {user_has_creator}")
         print(f"user_has_programs: {user_has_programs}")
 
-    return render(request, 'home.html', {'user_has_creator': user_has_creator,'user_has_programs': user_has_programs})
+    return render(request, 'home.html', {'user_has_creator': user_has_creator, 'user_has_programs': user_has_programs})
 
 def homepage(request):
-    return render(request, 'homepage.html')
+    user_has_programs = False
+    if request.user.is_authenticated:
+        # Check if the user has any programs
+        user_has_programs = Program.objects.filter(created_by=request.user).exists()
+        print(f"user_has_programs: {user_has_programs}")
+    return render(request, 'homepage.html', {'user_has_programs': user_has_programs})
 
 def all_creators(request):
     creator_list = Creator.objects.all()
