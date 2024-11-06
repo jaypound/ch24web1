@@ -72,7 +72,7 @@ class ProgramForm(ModelForm):
 class EpisodeForm(ModelForm):
     class Meta:
         model = Episode
-        fields = ['program', 'episode_number', 'title', 'description', 'repeat_preferences', 'start_date', 'end_date', 'file_name']
+        fields = ['program', 'episode_number', 'title', 'description', 'repeat_preferences', 'start_date', 'end_date']
         labels = {
             'program': '',
             'episode_number': '',
@@ -81,7 +81,6 @@ class EpisodeForm(ModelForm):
             'repeat_preferences': '',
             'start_date': '',
             'end_date': '',
-            'file_name': '',
         }
         widgets = {
             'program': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Program'}),
@@ -91,7 +90,6 @@ class EpisodeForm(ModelForm):
             'repeat_preferences': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Repeat Preferences'}),
             'start_date': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'Start Date'}),
             'end_date': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'End Date'}),
-            'file_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'File Name'}),
         }
 
     def __init__(self, *args, **kwargs):
