@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', '3.80.106.246']
 
-
+TIME_ZONE = 'America/New_York'
 
 LOGGING = {
     'version': 1,
@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ch24app',
     'creators',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
 ]
 
 MIDDLEWARE = [
@@ -72,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_otp.middleware.OTPMiddleware',
 ]
 
 ROOT_URLCONF = 'ch24.urls'
