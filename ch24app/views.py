@@ -239,3 +239,12 @@ def upload_episode(request, episode_id):
 def upload_success(request):
     return render(request, 'upload_success.html')
 
+
+def adobe_premiere(request):
+    return render(request, 'adobe_premiere.html')
+
+def davinci_resolve(request):
+    return render(request, 'davinci_resolve.html')
+
+def getting_started(request):
+    return render(request, 'getting_started.html')
