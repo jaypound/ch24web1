@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Program, Episode, Creator
+from .models import Program, Episode, Creator, EpisodeMediaInfo
 
 class CreatorForm(ModelForm):
     class Meta:
@@ -168,3 +168,8 @@ class EpisodeUploadForm2(forms.Form):
             'class': 'form-control',
         })
     )
+
+class EpisodeMediaInfoForm(ModelForm):
+    class Meta:
+        model = EpisodeMediaInfo
+        fields = ['episode', 'track_id', 'metadata']

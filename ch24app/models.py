@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 import uuid
+# from django.contrib.postgres.fields import JSONField
+import json
 
 # Create your models here.class Creator()
 class Creator(models.Model):
@@ -83,3 +85,30 @@ class Episode(models.Model):
 
     def __str__(self):
         return f"{self.program.program_name} - Episode {self.episode_number}: {self.title}"
+    
+# class MediaInfo(models.Model):
+#     episode = models.ForeignKey('Episode', on_delete=models.CASCADE, related_name='media_infos')
+#     track_id = models.IntegerField()
+#     metadata = models.JSONField()  # Use JSONField if supported
+
+    # def __str__(self):
+    #     return f"MediaInfo for {self.episode.custom_id}, Track {self.track_id}"
+    
+    # If JSONField is not supported, use this method to handle JSON serialization
+    # metadata = models.TextField()
+
+    # def save(self, *args, **kwargs):
+    #     self.metadata = json.dumps(self.metadata)
+    #     super().save(*args, **kwargs)
+
+    # def get_metadata(self):
+    #     return json.loads(self.metadata)
+
+
+class EpisodeMediaInfo(models.Model):
+    episode = models.ForeignKey('Episode', on_delete=models.CASCADE, related_name='media_infos')
+    track_id = models.IntegerField()
+    metadata = models.JSONField()  # Use JSONField if supported
+
+    def __str__(self):
+        return f"MediaInfo for {self.episode.custom_id}, Track {self.track_id}"

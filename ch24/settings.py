@@ -30,23 +30,23 @@ ALLOWED_HOSTS = ['127.0.0.1', '3.80.106.246']
 
 TIME_ZONE = 'America/New_York'
 
+MEDIA_ROOT = '/tmp'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'media_info.log'),
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
     'loggers': {
-        'ch24app': {
-            'handlers': ['console'],
+        'django': {
+            'handlers': ['file'],
             'level': 'DEBUG',
-            'propagate': False,
+            'propagate': True,
         },
     },
 }

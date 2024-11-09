@@ -1,15 +1,23 @@
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Creator, Program, Episode
+from .models import Creator, Program, Episode, EpisodeMediaInfo
 from .forms import CreatorForm, ProgramForm, EpisodeForm, EpisodeUploadForm, EpisodeUpdateForm
 from django.http import HttpResponseRedirect, HttpResponse
 from .utils import create_presigned_url  # Assuming the function is in utils.py
 from django.contrib import messages
 from pprint import pprint
 import requests
+import boto3
+from pymediainfo import MediaInfo
 
+import os
+from django.conf import settings
+
+# from .models import MediaInfo
+
+logger = logging.getLogger('django')
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 # Create your views here.
 def home(request):
@@ -22,14 +30,6 @@ def home(request):
         print(f"user_has_programs: {user_has_programs}")
 
     return render(request, 'home.html', {'user_has_creator': user_has_creator, 'user_has_programs': user_has_programs})
-
-# def homepage(request):
-#     user_has_programs = False
-#     if request.user.is_authenticated:
-#         # Check if the user has any programs
-#         user_has_programs = Program.objects.filter(created_by=request.user).exists()
-#         print(f"user_has_programs: {user_has_programs}")
-#     return render(request, 'homepage.html', {'user_has_programs': user_has_programs})
 
 def all_creators(request):
     creator_list = Creator.objects.all()
@@ -115,25 +115,6 @@ def add_episode(request):
             submitted = True
     return render(request, 'add_episode.html', {'form': form, 'submitted': submitted})
 
-
-# def add_episode(request):
-#     submitted = False
-#     form = EpisodeForm()
-#     if request.method == 'POST':
-#         form = EpisodeForm(request.POST, user=request.user)  # Pass user to the form
-#         if form.is_valid():
-#             instance = form.save(commit=False)  # Create an instance without saving to the database
-#             instance.created_by = request.user  # Set the created_by field to the current user
-#             instance.save()  # Now save the instance to the database
-#             return HttpResponseRedirect('/add_episode?submitted=True')
-#     else:
-#         form = EpisodeForm(user=request.user)
-#         if 'submitted' in request.GET:
-#             submitted = True
-#     return render(request, 'add_episode.html', {'form': form, 'submitted': submitted})
-
-
-
 def update_creator(request, creator_id):
     creator = Creator.objects.get(custom_id=creator_id)  # Changed from id to custom_id
     if request.method == "POST":
@@ -151,7 +132,6 @@ def update_creator(request, creator_id):
         'form': form,
         'submitted': False
     })
-
 
 def update_program(request, program_id):
     program = Program.objects.get(custom_id=program_id)  # Changed from id to custom_id
@@ -171,7 +151,6 @@ def update_program(request, program_id):
         'submitted': False
     })
 
-
 def update_episode(request, episode_id):
     episode = Episode.objects.get(custom_id=episode_id)  # Changed from id to custom_id
     if request.method == "POST":
@@ -189,6 +168,27 @@ def update_episode(request, episode_id):
         'form': form,
         'submitted': False
     })
+
+def get_mediainfo_from_s3(bucket_name, s3_key):
+    # Initialize a session using Amazon S3
+    s3 = boto3.client('s3')
+
+    # Define a temporary file path
+    temp_file_path = os.path.join(settings.MEDIA_ROOT, 'temp', os.path.basename(s3_key))
+
+    print('Temp file path: ', temp_file_path)
+
+    # Download the file from S3
+    s3.download_file(bucket_name, s3_key, temp_file_path)
+
+    # Use pymediainfo to get media information
+    media_info = MediaInfo.parse(temp_file_path)
+    # pprint(media_info)
+
+    # Clean up the temporary file
+    os.remove(temp_file_path)
+
+    return media_info
 
 
 def upload_episode(request, episode_id):
@@ -215,6 +215,24 @@ def upload_episode(request, episode_id):
                 # Upload the file to S3 using the pre-signed URL
                 response = requests.put(presigned_url, data=file)
                 if response.status_code == 200:
+                    # Get media info from the uploaded file
+                    media_info = get_mediainfo_from_s3(bucket_name, unique_file_name)
+                    
+                    # Log and save media info for each track
+                    track_id = 0
+                    for track in media_info.tracks:
+                        track_id += 1
+                        pprint(track.to_data())
+                        track_metadata = {key: value for key, value in track.to_data().items() if value is not None}
+                        logger.debug(f"Track {track_id}: {track_metadata}")
+
+                        # Save media info to the database
+                        EpisodeMediaInfo.objects.create(
+                            episode=episode,
+                            track_id=track_id,
+                            metadata=track_metadata
+                        )
+
                     # Update the episode with the file name
                     episode.file_name = unique_file_name
                     episode.save()
@@ -233,7 +251,101 @@ def upload_episode(request, episode_id):
     else:
         form = EpisodeUploadForm()
 
-    return render(request, 'episode_upload.html', {'form': form, 'episode': episode})      
+    return render(request, 'episode_upload.html', {'form': form, 'episode': episode})
+
+# def upload_episode(request, episode_id):
+#     episode = get_object_or_404(Episode, custom_id=episode_id)
+
+#     # Security check: Ensure the user is the creator of the episode
+#     if episode.created_by != request.user:
+#         return HttpResponse("Unauthorized", status=401)
+
+#     if request.method == 'POST':
+#         form = EpisodeUploadForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             file = form.cleaned_data['file']
+#             file_name = file.name
+#             bucket_name = 'channel24-3dbcad81-2747-4a18-acdd-68ae14b4fa71'  # Replace with your actual S3 bucket name
+
+#             # Generate a unique file name/path
+#             unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
+
+#             # Generate the pre-signed URL
+#             presigned_url = create_presigned_url(bucket_name, unique_file_name)
+
+#             if presigned_url:
+#                 # Upload the file to S3 using the pre-signed URL
+#                 response = requests.put(presigned_url, data=file)
+#                 if response.status_code == 200:
+#                     # Get media info from the uploaded file
+#                     media_info = get_mediainfo_from_s3(bucket_name, unique_file_name)
+#                     pprint(media_info.to_data())  # Print or process the media info as needed
+
+#                     # Update the episode with the file name
+#                     episode.file_name = unique_file_name
+#                     episode.save()
+#                     messages.success(request, "File uploaded successfully.")
+#                     return redirect('upload_success')
+#                 else:
+#                     print(f"Failed to upload: {response.content}")
+#                     messages.error(request, "Upload failed.")
+#             else:
+#                 print("Unable to generate upload URL.")
+#                 messages.error(request, "Unable to generate upload URL.")
+#         else:
+#             print("Form is invalid")
+#             print(form.errors)
+#             messages.error(request, "Form is invalid.")
+#     else:
+#         form = EpisodeUploadForm()
+
+#     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})
+
+
+# def upload_episode(request, episode_id):
+#     episode = get_object_or_404(Episode, custom_id=episode_id)
+
+#     # Security check: Ensure the user is the creator of the episode
+#     if episode.created_by != request.user:
+#         return HttpResponse("Unauthorized", status=401)
+
+#     if request.method == 'POST':
+#         form = EpisodeUploadForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             file = form.cleaned_data['file']
+#             file_name = file.name
+#             get_medininfo(file_name)
+#             bucket_name = 'channel24-3dbcad81-2747-4a18-acdd-68ae14b4fa71'  # Replace with your actual S3 bucket name
+
+#             # Generate a unique file name/path
+#             unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
+
+#             # Generate the pre-signed URL
+#             presigned_url = create_presigned_url(bucket_name, unique_file_name)
+
+#             if presigned_url:
+#                 # Upload the file to S3 using the pre-signed URL
+#                 response = requests.put(presigned_url, data=file)
+#                 if response.status_code == 200:
+#                     # Update the episode with the file name
+#                     episode.file_name = unique_file_name
+#                     episode.save()
+#                     messages.success(request, "File uploaded successfully.")
+#                     return redirect('upload_success')
+#                 else:
+#                     print(f"Failed to upload: {response.content}")
+#                     messages.error(request, "Upload failed.")
+#             else:
+#                 print("Unable to generate upload URL.")
+#                 messages.error(request, "Unable to generate upload URL.")
+#         else:
+#             print("Form is invalid")
+#             print(form.errors)
+#             messages.error(request, "Form is invalid.")
+#     else:
+#         form = EpisodeUploadForm()
+
+#     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})      
 
 
 def upload_success(request):
@@ -248,3 +360,11 @@ def davinci_resolve(request):
 
 def getting_started(request):
     return render(request, 'getting_started.html')
+
+def episode_media_info(request, episode_id):
+    episode = get_object_or_404(Episode, custom_id=episode_id)
+    media_infos = episode.media_infos.all()  # Assuming 'media_infos' is the related_name in your model
+    return render(request, 'episode_media_info.html', {
+        'episode': episode,
+        'media_infos': media_infos
+    })

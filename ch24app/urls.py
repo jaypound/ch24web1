@@ -21,6 +21,7 @@ urlpatterns = [
     path('adobe_premiere/', views.adobe_premiere, name='adobe_premiere'),
     path('davinci_resolve/', views.davinci_resolve, name='davinci_resolve'),
     path('getting_started/', views.getting_started, name='getting_started'),
+    path('episode/<str:episode_id>/media_info/', views.episode_media_info, name='episode_media_info'),
 
 ]
 
