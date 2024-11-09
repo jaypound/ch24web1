@@ -29,9 +29,14 @@
                 {% else %}
                 <button type="submit" class="btn  btn-outline-secondary">Upload Media</button>
                 {% endif %}
+                
             </form></p>
               <p><a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update Metadata</a></p>
-            </div>
+            </p>
+            {% if episode.file_name %}
+            <p><a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary">View Media Info</a></p>
+            {% endif %}    
+        </div>
           </div>
 
         {% endfor %}

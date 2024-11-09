@@ -15,7 +15,8 @@
             </div>
         {% endfor %}
     {% endif %} -->
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" onsubmit="changeButtonText(this)">
+
         {% csrf_token %}
         <div class="mb-3">
             {{ form.file.label_tag }}
@@ -31,4 +32,11 @@
         <button type="submit" class="btn btn-primary">Upload</button>
     </form>
 </div>
+<script>
+    function changeButtonText(form) {
+        const button = form.querySelector('button[type="submit"]');
+        button.textContent = 'Uploading...';
+        button.disabled = true; // Optionally disable the button to prevent multiple submissions
+    }
+</script>
 {% endblock %}
