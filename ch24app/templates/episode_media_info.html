@@ -3,9 +3,11 @@
 <br/><br/>
 <div class="shadow p-4 mb-5 bg-body rounded">
     <h1>Episode Media Information</h1>
+    <h3>Program: {{ episode.program.program_name }}</h3>
+    <h4>Episode: {{ episode.title }}</h4>
 
     {% for media_info in media_infos %}
-        <h3>Track ID: {{ media_info.track_id }}</h3>
+        <h5>Track ID: {{ media_info.track_id }}</h5>
         <ul class="metadata">
             {% for key, value in media_info.metadata.items %}
                 <li><strong>{{ key }}:</strong> {{ value }}</li>
