@@ -1,7 +1,22 @@
-{% extends "base.html" %} {% block title %} Add Program {% endblock %} 
+{% extends "base.html" %}
+{% block title %}Episode Media Information{% endblock %}
+
 {% block content %}
 <br/><br/>
 <div class="shadow p-4 mb-5 bg-body rounded">
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
     <h1>Episode Media Information</h1>
     <h3>Program: {{ episode.program.program_name }}</h3>
     <h4>Episode: {{ episode.title }}</h4>
@@ -9,8 +24,15 @@
     {% for media_info in media_infos %}
         <h5>Track ID: {{ media_info.track_id }}</h5>
         <ul class="metadata">
+            <!-- Display the track type if available -->
+            {% if 'track_type' in media_info.metadata %}
+                <li><strong>Track Type:</strong> {{ media_info.metadata.track_type }}</li>
+            {% endif %}
+
             {% for key, value in media_info.metadata.items %}
-                <li><strong>{{ key }}:</strong> {{ value }}</li>
+
+                    <li><strong>{{ key }}:</strong> {{ value }}</li>
+
             {% endfor %}
         </ul>
     {% endfor %}
