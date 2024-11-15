@@ -32,7 +32,7 @@ DEBUG = env('DEBUG')
 # Raises Django's ImproperlyConfigured
 # exception if SECRET_KEY not in os.environ
 AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
-# print('AWS_STORAGE_BUCKET_NAME', AWS_STORAGE_BUCKET_NAME)
+print('AWS_STORAGE_BUCKET_NAME', AWS_STORAGE_BUCKET_NAME)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/

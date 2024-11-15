@@ -207,6 +207,7 @@ def upload_episode(request, episode_id):
             file_name = file.name
             
             bucket_name = AWS_STORAGE_BUCKET_NAME
+            print(f"bucket_name: {bucket_name}")
 
             # Generate a unique file name/path
             unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
