@@ -7,3 +7,4 @@ __pycache__/
 nohup.out
 test.mp4
 upload2.sh
+.env

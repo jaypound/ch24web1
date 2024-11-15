@@ -13,6 +13,8 @@ from pymediainfo import MediaInfo
 import os
 from django.conf import settings
 
+AWS_STORAGE_BUCKET_NAME = settings.AWS_STORAGE_BUCKET_NAME
+
 # from .models import MediaInfo
 
 logger = logging.getLogger('django')
@@ -203,7 +205,8 @@ def upload_episode(request, episode_id):
         if form.is_valid():
             file = form.cleaned_data['file']
             file_name = file.name
-            bucket_name = 'channel24-3dbcad81-2747-4a18-acdd-68ae14b4fa71'  # Replace with your actual S3 bucket name
+            
+            bucket_name = AWS_STORAGE_BUCKET_NAME
 
             # Generate a unique file name/path
             unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
