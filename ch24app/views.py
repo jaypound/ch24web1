@@ -214,6 +214,7 @@ def upload_episode(request, episode_id):
             if presigned_url:
                 # Upload the file to S3 using the pre-signed URL
                 response = requests.put(presigned_url, data=file)
+                print(f"Response: {response}")
                 if response.status_code == 200:
                     # Get media info from the uploaded file
                     media_info = get_mediainfo_from_s3(bucket_name, unique_file_name)

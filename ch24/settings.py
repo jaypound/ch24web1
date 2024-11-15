@@ -16,7 +16,6 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -31,6 +30,17 @@ ALLOWED_HOSTS = ['127.0.0.1', '3.80.106.246', '3.88.237.43', '0.0.0.0']
 TIME_ZONE = 'America/New_York'
 
 MEDIA_ROOT = '/tmp'
+
+# Add STATIC_ROOT setting
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# URL to use when referring to static files located in STATIC_ROOT
+STATIC_URL = '/staticfiles/'
+
+# Additional directories to look for static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 LOGGING = {
     'version': 1,
@@ -101,13 +111,19 @@ WSGI_APPLICATION = 'ch24.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# 
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'channel24',
+        'USER': 'system',
+        'PASSWORD': 'MANAGER',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

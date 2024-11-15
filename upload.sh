@@ -1,1 +1,1 @@
-curl -X PUT -T "1GB_file.bin" "https://channel24-3dbcad81-2747-4a18-acdd-68ae14b4fa71.s3.amazonaws.com/1GB_file.bin?AWSAccessKeyId=AKIAVYV5Z3AV6MT6QZXQ&Signature=ZIG%2FTqq0mW%2BTe8%2F4oCChXC8YKs4%3D&Expires=1730474329"
+curl -X PUT -T "test.mp4" "https://channel24-3dbcad81-2747-4a18-acdd-68ae14b4fa71.s3.amazonaws.com/test.mp4?AWSAccessKeyId=AKIAVYV5Z3AV6MT6QZXQ&Signature=ZIG%2FTqq0mW%2BTe8%2F4oCChXC8YKs4%3D&Expires=1730474329"

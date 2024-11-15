@@ -29,8 +29,8 @@ admin_site.register(User)
 admin_site.register(TOTPDevice, TOTPDeviceAdmin)
 
 urlpatterns = [
-    # path('admin/', admin.site.urls),
-    path('admin/', admin_site.urls),
+    path('admin/', admin.site.urls),
+    # path('admin/', admin_site.urls),
     path('', include('ch24app.urls')),
     path('creators/', include('django.contrib.auth.urls')),
     path('creators/', include('creators.urls')),
