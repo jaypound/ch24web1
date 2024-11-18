@@ -176,9 +176,9 @@ def get_mediainfo_from_s3(bucket_name, s3_key):
     s3 = boto3.client('s3')
 
     # Define a temporary file path
-    temp_file_path = os.path.join(settings.MEDIA_ROOT, 'temp', os.path.basename(s3_key))
+    temp_file_path = os.path.join(settings.MEDIA_ROOT, '', os.path.basename(s3_key))
 
-    print('Temp file path: ', temp_file_path)
+    # print('Temp file path: ', temp_file_path)
 
     # Download the file from S3
     s3.download_file(bucket_name, s3_key, temp_file_path)
@@ -203,6 +203,9 @@ def upload_episode(request, episode_id):
     if request.method == 'POST':
         form = EpisodeUploadForm(request.POST, request.FILES)
         if form.is_valid():
+            # Delete previous EpisodeMediaInfo instances
+            EpisodeMediaInfo.objects.filter(episode=episode).delete()
+
             file = form.cleaned_data['file']
             file_name = file.name
             
@@ -425,6 +428,7 @@ def episode_media_info(request, episode_id):
                 duration = None
 
             if duration is not None:
+                duration = duration / 1000  # Convert to seconds
                 max_duration = media_checks[track_type]['max_duration']
                 if duration > max_duration:
                     duration_minutes = duration / 60  # Convert to minutes for display

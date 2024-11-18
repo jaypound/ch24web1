@@ -38,12 +38,14 @@ AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-cuull-)qb=75#bl4pp7ov=9&)3poli9m)z3jfxijz%@376c*b#'
+# SECRET_KEY = 'django-inseZcure-cuull-)qb=75#bl4pp7ov=9&)3poli9m)z3jfxijz%@376c*b#'
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', '3.80.106.246', '3.88.237.43', '0.0.0.0']
+
 
 TIME_ZONE = 'America/New_York'
 
@@ -60,24 +62,76 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+# settings.py
+
+import logging
+
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': False,  # This keeps the existing loggers active
+    'formatters': {
+        'standard': {
+            'format': '[%(levelname)s] %(name)s: %(message)s'
+        },
+    },
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'media_info.log'),
+        'console': {
+            'level': 'WARNING',  # Set this to WARNING or ERROR to reduce output
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
         },
     },
     'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
+        '': {  # Root logger
+            'handlers': ['console'],
+            'level': 'WARNING',  # Set root logger level
             'propagate': True,
         },
-    },
+        'django': {
+            'handlers': ['console'],
+            'level': 'ERROR',  # Only log errors from Django
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',  # Only log errors from requests
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'ERROR',  # Suppress SQL logs unless they are errors
+            'propagate': False,
+        },
+        # Suppress other third-party loggers if needed
+        'urllib3': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    }
 }
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'ERROR',
+#             'class': 'logging.FileHandler',
+#             'filename': os.path.join(BASE_DIR, 'media_info.log'),
+#         },
+
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+        
+#     },
+    
+# }
 
 # Application definition
 
