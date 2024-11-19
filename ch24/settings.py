@@ -185,15 +185,22 @@ WSGI_APPLICATION = 'ch24.wsgi.application'
 
 # 
 
+DATABASE_ENGINE = env('DATABASE_ENGINE')
+DATABASE_NAME = env('DATABASE_NAME')
+DATABASE_USER = env('DATABASE_USER')
+DATABASE_PASSWORD = env('DATABASE_PASSWORD')
+DATABASE_HOST = env('DATABASE_HOST')
+DATABASE_PORT = env('DATABASE_PORT')
+
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'channel24',
-        'USER': 'system',
-        'PASSWORD': 'MANAGER',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+    'default': {    
+        'ENGINE': DATABASE_ENGINE,
+        'NAME': DATABASE_NAME,
+        'USER': DATABASE_USER,
+        'PASSWORD': DATABASE_PASSWORD,
+        'HOST': DATABASE_HOST,
+        'PORT': DATABASE_PORT,
     }
 }
 
