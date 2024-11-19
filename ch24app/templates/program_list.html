@@ -16,7 +16,9 @@
             <div class="card-body">
               <p class="card-text">Creator: {{ program.creator.first_name }} {{ program.creator.last_name }}</p>
               <p class="card-text"> Program Name: {{ program.program_name }}</p>
-              <p class="card-text">Program Description: {{ program.description }}</p>
+              <p class="card-text">Description: {{ program.description }}</p>
+              <p class="card-text">Genre: {{ program.genre }}</p>
+              <p class="card-text">Rating: {{ program.age_rating }}</p>
               <p class="card-text">Created by: {{ program.created_by }}</p>
               <a href="{% url 'update-program' program.custom_id %}" class="btn btn-outline-secondary">Update</a>
             </div>

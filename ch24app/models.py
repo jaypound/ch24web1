@@ -4,6 +4,42 @@ import uuid
 # from django.contrib.postgres.fields import JSONField
 import json
 
+AGE_RATING_CHOICES = [
+    ('TV-Y', 'TV-Y: All Children'),
+    ('TV-Y7', 'TV-Y7: Directed to Older Children'),
+    ('TV-G', 'TV-G: General Audience'),
+    ('TV-PG', 'TV-PG: Parental Guidance Suggested'),
+    ('TV-14', 'TV-14: Parents Strongly Cautioned'),
+    ('TV-MA', 'TV-MA: Mature Audience Only'),
+]
+
+GENRE_CHOICES = [
+    ('News/Weather Report', 'News/Weather Report'),
+    ('News Magazine', 'News Magazine'),
+    ('Documentary', 'Documentary'),
+    ('Discussion/Interview/Debate', 'Discussion/Interview/Debate'),
+    ('Talk Show', 'Talk Show'),
+    ('Performing Arts', 'Performing Arts'),
+    ('Fine Arts', 'Fine Arts'),
+    ('Religion', 'Religion'),
+    ('Popular Culture/Traditional Arts', 'Popular Culture/Traditional Arts'),
+    ('Rock/Pop', 'Rock/Pop'),
+    ('Folk/Traditional Music', 'Folk/Traditional Music'),
+    ('Sports Magazine', 'Sports Magazine'),
+    ('Team Sports', 'Team Sports'),
+    ('Entertainment Programmes for 6-14', 'Entertainment Programmes for 6-14'),
+    ('Informational/Educational/School Programmes', 'Informational/Educational/School Programmes'),
+    ('Nature/Animals/Environment', 'Nature/Animals/Environment'),
+    ('Technology/Natural Sciences', 'Technology/Natural Sciences'),
+    ('Medicine/Physiology/Psychology', 'Medicine/Physiology/Psychology'),
+    ('Magazines/Reports/Documentary', 'Magazines/Reports/Documentary'),
+    ('Economics/Social Advisory', 'Economics/Social Advisory'),
+    ('Tourism/Travel', 'Tourism/Travel'),
+    ('Handicraft', 'Handicraft'),
+    ('Fitness and Health', 'Fitness and Health'),
+    ('Cooking', 'Cooking'),
+]
+
 # Create your models here.class Creator()
 class Creator(models.Model):
     custom_id = models.CharField(
@@ -34,17 +70,43 @@ class Creator(models.Model):
         return f"{self.first_name} {self.last_name}"
     
 
+# class Program(models.Model):
+#     custom_id = models.CharField(
+#         max_length=36, 
+#         primary_key=True,
+#         default=uuid.uuid4,  # Generates a unique UUID for each instance
+#         editable=False)
+#     creator = models.ForeignKey(Creator, on_delete=models.CASCADE)
+#     program_name = models.CharField('Program Name', max_length=255)
+#     description = models.TextField('Description', blank=True)
+#     genre = models.CharField('Genre (e.g.News, Comedy, Talk Show)', max_length=255, blank=True)
+#     age_rating = models.CharField('Age Rating (e.g. TV-14, TV-MA)', max_length=255, blank=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+#     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+
 class Program(models.Model):
     custom_id = models.CharField(
-        max_length=36, 
+        max_length=36,
         primary_key=True,
         default=uuid.uuid4,  # Generates a unique UUID for each instance
-        editable=False)
-    creator = models.ForeignKey(Creator, on_delete=models.CASCADE)
+        editable=False
+    )
+    creator = models.ForeignKey('Creator', on_delete=models.CASCADE)
     program_name = models.CharField('Program Name', max_length=255)
     description = models.TextField('Description', blank=True)
-    genre = models.CharField('Genre (e.g.News, Comedy, Talk Show)', max_length=255, blank=True)
-    age_rating = models.CharField('Age Rating (e.g. TV-14, TV-MA)', max_length=255, blank=True)
+    genre = models.CharField(
+        'Genre',
+        max_length=50,  # Adjusted to accommodate the longest genre name
+        choices=GENRE_CHOICES,
+        blank=True
+    )
+    age_rating = models.CharField(
+        'Age Rating',
+        max_length=10,
+        choices=AGE_RATING_CHOICES,
+        blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)

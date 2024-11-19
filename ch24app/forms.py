@@ -49,8 +49,8 @@ class ProgramForm(ModelForm):
         widgets = {
             'program_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Program Name'}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}),
-            'genre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Genre'}),
-            'age_rating': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Age Rating'}),
+            'genre': forms.Select(attrs={'class': 'form-control'}),
+            'age_rating': forms.Select(attrs={'class': 'form-control'}),
             'creator': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Creator'}),  # Added this
         }
 
