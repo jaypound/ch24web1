@@ -22,7 +22,9 @@ urlpatterns = [
     path('davinci_resolve/', views.davinci_resolve, name='davinci_resolve'),
     path('getting_started/', views.getting_started, name='getting_started'),
     path('episode/<str:episode_id>/media_info/', views.episode_media_info, name='episode_media_info'),
-
+    path('support/submit/', views.submit_ticket, name='submit_ticket'),
+    path('support/submitted/<int:ticket_no>/', views.ticket_submitted, name='ticket_submitted'),
+    path('support/ticket/<int:ticket_no>/', views.ticket_detail, name='ticket_detail'),
 ]
 
 

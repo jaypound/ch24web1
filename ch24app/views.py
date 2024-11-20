@@ -261,104 +261,8 @@ def upload_episode(request, episode_id):
 
     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})
 
-# def upload_episode(request, episode_id):
-#     episode = get_object_or_404(Episode, custom_id=episode_id)
-
-#     # Security check: Ensure the user is the creator of the episode
-#     if episode.created_by != request.user:
-#         return HttpResponse("Unauthorized", status=401)
-
-#     if request.method == 'POST':
-#         form = EpisodeUploadForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             file = form.cleaned_data['file']
-#             file_name = file.name
-#             bucket_name = 'channel24-3dbcad81-2747-4a18-acdd-68ae14b4fa71'  # Replace with your actual S3 bucket name
-
-#             # Generate a unique file name/path
-#             unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
-
-#             # Generate the pre-signed URL
-#             presigned_url = create_presigned_url(bucket_name, unique_file_name)
-
-#             if presigned_url:
-#                 # Upload the file to S3 using the pre-signed URL
-#                 response = requests.put(presigned_url, data=file)
-#                 if response.status_code == 200:
-#                     # Get media info from the uploaded file
-#                     media_info = get_mediainfo_from_s3(bucket_name, unique_file_name)
-#                     pprint(media_info.to_data())  # Print or process the media info as needed
-
-#                     # Update the episode with the file name
-#                     episode.file_name = unique_file_name
-#                     episode.save()
-#                     messages.success(request, "File uploaded successfully.")
-#                     return redirect('upload_success')
-#                 else:
-#                     print(f"Failed to upload: {response.content}")
-#                     messages.error(request, "Upload failed.")
-#             else:
-#                 print("Unable to generate upload URL.")
-#                 messages.error(request, "Unable to generate upload URL.")
-#         else:
-#             print("Form is invalid")
-#             print(form.errors)
-#             messages.error(request, "Form is invalid.")
-#     else:
-#         form = EpisodeUploadForm()
-
-#     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})
-
-
-# def upload_episode(request, episode_id):
-#     episode = get_object_or_404(Episode, custom_id=episode_id)
-
-#     # Security check: Ensure the user is the creator of the episode
-#     if episode.created_by != request.user:
-#         return HttpResponse("Unauthorized", status=401)
-
-#     if request.method == 'POST':
-#         form = EpisodeUploadForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             file = form.cleaned_data['file']
-#             file_name = file.name
-#             get_medininfo(file_name)
-#             bucket_name = 'channel24-3dbcad81-2747-4a18-acdd-68ae14b4fa71'  # Replace with your actual S3 bucket name
-
-#             # Generate a unique file name/path
-#             unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
-
-#             # Generate the pre-signed URL
-#             presigned_url = create_presigned_url(bucket_name, unique_file_name)
-
-#             if presigned_url:
-#                 # Upload the file to S3 using the pre-signed URL
-#                 response = requests.put(presigned_url, data=file)
-#                 if response.status_code == 200:
-#                     # Update the episode with the file name
-#                     episode.file_name = unique_file_name
-#                     episode.save()
-#                     messages.success(request, "File uploaded successfully.")
-#                     return redirect('upload_success')
-#                 else:
-#                     print(f"Failed to upload: {response.content}")
-#                     messages.error(request, "Upload failed.")
-#             else:
-#                 print("Unable to generate upload URL.")
-#                 messages.error(request, "Unable to generate upload URL.")
-#         else:
-#             print("Form is invalid")
-#             print(form.errors)
-#             messages.error(request, "Form is invalid.")
-#     else:
-#         form = EpisodeUploadForm()
-
-#     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})      
-
-
 def upload_success(request):
     return render(request, 'upload_success.html')
-
 
 def adobe_premiere(request):
     return render(request, 'adobe_premiere.html')
@@ -368,8 +272,6 @@ def davinci_resolve(request):
 
 def getting_started(request):
     return render(request, 'getting_started.html')
-
-import os
 
 def episode_media_info(request, episode_id):
     print("episode_media_info")
@@ -590,4 +492,67 @@ def episode_media_info(request, episode_id):
     return render(request, 'episode_media_info.html', {
         'episode': episode,
         'media_infos': media_infos
+    })
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from .forms import SupportTicketForm, SupportTicketStatusForm, TicketResponseForm
+from .models import SupportTicket, TicketResponse
+
+def submit_ticket(request):
+    if request.method == 'POST':
+        form = SupportTicketForm(request.POST, user=request.user)
+        if form.is_valid():
+            ticket = form.save(commit=False)
+            if request.user.is_authenticated:
+                creator = Creator.objects.filter(created_by=request.user).first()
+                if creator:
+                    ticket.creator = creator
+                ticket.created_by = request.user  # Assign 'created_by'
+                print(f"request.user: {request.user}")  # Debugging statement
+                print(f"ticket.created_by: {ticket.created_by}")  # Debugging statement
+            else:
+                print("User is not authenticated.")
+            ticket.save()
+            return redirect('ticket_submitted', ticket_no=ticket.ticket_no)
+    else:
+        form = SupportTicketForm(user=request.user)
+    return render(request, 'support/submit_ticket.html', {'form': form})
+
+
+def ticket_submitted(request, ticket_no):
+    ticket = get_object_or_404(SupportTicket, ticket_no=ticket_no)
+    return render(request, 'support/ticket_submitted.html', {'ticket': ticket})
+
+def ticket_detail(request, ticket_no):
+    ticket = get_object_or_404(SupportTicket, ticket_no=ticket_no)
+    responses = ticket.responses.all().order_by('response_no')
+    status_form = None
+    response_form = TicketResponseForm()
+
+    if request.method == 'POST':
+        if 'status_form' in request.POST and request.user.is_staff:
+            status_form = SupportTicketStatusForm(request.POST, instance=ticket)
+            if status_form.is_valid():
+                status_form.save()
+                return redirect('ticket_detail', ticket_no=ticket_no)
+        elif 'response_form' in request.POST:
+            response_form = TicketResponseForm(request.POST)
+            if response_form.is_valid():
+                response = response_form.save(commit=False)
+                response.ticket = ticket
+                if request.user.is_authenticated:
+                    response.responder = request.user
+                response.save()
+                return redirect('ticket_detail', ticket_no=ticket_no)
+    else:
+        if request.user.is_staff:
+            status_form = SupportTicketStatusForm(instance=ticket)
+
+    return render(request, 'support/ticket_detail.html', {
+        'ticket': ticket,
+        'responses': responses,
+        'response_form': response_form,
+        'status_form': status_form,
     })

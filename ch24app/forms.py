@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Program, Episode, Creator, EpisodeMediaInfo
+from .models import Program, Episode, Creator, EpisodeMediaInfo, SupportTicket, TicketResponse
 
 class CreatorForm(ModelForm):
     class Meta:
@@ -173,3 +173,39 @@ class EpisodeMediaInfoForm(ModelForm):
     class Meta:
         model = EpisodeMediaInfo
         fields = ['episode', 'track_id', 'metadata']
+
+
+class SupportTicketForm(forms.ModelForm):
+    class Meta:
+        model = SupportTicket
+        fields = ['name', 'contact_info', 'category', 'subject', 'description', 'urgency', 'program', 'episode']
+        widgets = {
+            'description': forms.Textarea(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(SupportTicketForm, self).__init__(*args, **kwargs)
+        if user and user.is_authenticated:
+            creator = Creator.objects.filter(created_by=user).first()
+            if creator:
+                self.fields['name'].initial = f"{creator.first_name} {creator.last_name}"
+                self.fields['contact_info'].initial = creator.email
+            else:
+                self.fields['contact_info'].initial = user.email
+
+
+class SupportTicketStatusForm(forms.ModelForm):
+    class Meta:
+        model = SupportTicket
+        fields = ['ticket_status']
+
+
+class TicketResponseForm(forms.ModelForm):
+    class Meta:
+        model = TicketResponse
+        fields = ['message']
+        widgets = {
+            'message': forms.Textarea(attrs={'rows': 4}),
+        }
+

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Support Ticket Submitted Successfully</h2>
+  <p>Thank you for contacting support. Your ticket has been submitted successfully.</p>
+
+  <h3>Ticket Details</h3>
+  <p><strong>Ticket Number:</strong> {{ ticket.ticket_no }}</p>
+  <p><strong>Subject:</strong> {{ ticket.subject }}</p>
+  <p><strong>Category:</strong> {{ ticket.get_category_display }}</p>
+  <p><strong>Urgency:</strong> {{ ticket.get_urgency_display }}</p>
+  <p><strong>Description:</strong></p>
+  <p>{{ ticket.description }}</p>
+
+  <p>A member of our support team will review your ticket and get back to you shortly.</p>
+
+  <a href="{% url 'ticket_detail' ticket_no=ticket.ticket_no %}">View Your Ticket</a>
+{% endblock %}

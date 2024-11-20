@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Ticket #{{ ticket.ticket_no }} - {{ ticket.subject }}</h2>
+  <p><strong>Status:</strong> {{ ticket.get_ticket_status_display }}</p>
+  <p><strong>Category:</strong> {{ ticket.get_category_display }}</p>
+  <p><strong>Description:</strong> {{ ticket.description }}</p>
+  <p><strong>Submitted on:</strong> {{ ticket.time_received }}</p>
+
+  <!-- Staff Status Update Form -->
+  {% if request.user.is_staff %}
+    <h3>Update Ticket Status</h3>
+    <form method="post">
+      {% csrf_token %}
+      {{ status_form.as_p }}
+      <input type="hidden" name="status_form" value="1">
+      <button type="submit">Update Status</button>
+    </form>
+  {% endif %}
+
+  <!-- Responses -->
+  <h3>Responses</h3>
+  {% for response in responses %}
+    <div>
+      <p><strong>Response #{{ response.response_no }} by 
+        {% if response.responder %}
+          {{ response.responder }}
+        {% else %}
+          Anonymous
+        {% endif %}
+       on {{ response.timestamp }}:</strong></p>
+      <p>{{ response.message }}</p>
+    </div>
+  {% empty %}
+    <p>No responses yet.</p>
+  {% endfor %}
+
+  <!-- Add Response Form -->
+  <h3>Add a Response</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ response_form.as_p }}
+    <input type="hidden" name="response_form" value="1">
+    <button type="submit">Submit Response</button>
+  </form>
+{% endblock %}
