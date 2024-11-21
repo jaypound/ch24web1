@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>My Support Tickets</h2>
+
+  {% if tickets %}
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket #</th>
+          <th>Subject</th>
+          <th>Status</th>
+          <th>Category</th>
+          <th>Urgency</th>
+          <th>Submitted On</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in tickets %}
+          <tr>
+            <td>{{ ticket.ticket_no }}</td>
+            <td>{{ ticket.subject }}</td>
+            <td>{{ ticket.get_ticket_status_display }}</td>
+            <td>{{ ticket.get_category_display }}</td>
+            <td>{{ ticket.get_urgency_display }}</td>
+            <td>{{ ticket.time_received|date:"M d, Y H:i" }}</td>
+            <td>
+              <a href="{% url 'ticket_detail' ticket_no=ticket.ticket_no %}">View</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>You have not submitted any support tickets.</p>
+  {% endif %}
+
+  <p><a href="{% url 'submit_ticket' %}">Submit a New Ticket</a></p>
+{% endblock %}

@@ -556,3 +556,15 @@ def ticket_detail(request, ticket_no):
         'response_form': response_form,
         'status_form': status_form,
     })
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import SupportTicket
+
+@login_required
+def my_tickets(request):
+    tickets = SupportTicket.objects.filter(created_by=request.user).order_by('-time_received')
+    return render(request, 'support/my_tickets.html', {'tickets': tickets})
+
+

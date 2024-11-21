@@ -209,6 +209,7 @@ class SupportTicket(models.Model):
         choices=STATUS_CHOICES,
         default='SUBMITTED',
     )
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     creator = models.ForeignKey('Creator', on_delete=models.SET_NULL, null=True, blank=True)
     program = models.ForeignKey('Program', on_delete=models.SET_NULL, null=True, blank=True)
     episode = models.ForeignKey('Episode', on_delete=models.SET_NULL, null=True, blank=True)
