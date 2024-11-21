@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<br/><br/>
+<div class="shadow p-4 mb-5 bg-body rounded">
   <h2>Support Ticket Submitted Successfully</h2>
   <p>Thank you for contacting support. Your ticket has been submitted successfully.</p>
 
@@ -15,4 +17,5 @@
   <p>A member of our support team will review your ticket and get back to you shortly.</p>
 
   <a href="{% url 'ticket_detail' ticket_no=ticket.ticket_no %}">View Your Ticket</a>
+</div>
 {% endblock %}

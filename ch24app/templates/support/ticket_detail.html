@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<br/><br/>
+<div class="shadow p-4 mb-5 bg-body rounded">
   <h2>Ticket #{{ ticket.ticket_no }} - {{ ticket.subject }}</h2>
   <p><strong>Status:</strong> {{ ticket.get_ticket_status_display }}</p>
   <p><strong>Category:</strong> {{ ticket.get_category_display }}</p>
@@ -17,8 +19,11 @@
       <button type="submit">Update Status</button>
     </form>
   {% endif %}
+</div>
 
   <!-- Responses -->
+  
+  <div class="shadow p-4 mb-5 bg-body rounded">
   <h3>Responses</h3>
   {% for response in responses %}
     <div>
@@ -34,13 +39,17 @@
   {% empty %}
     <p>No responses yet.</p>
   {% endfor %}
-
+</div>
   <!-- Add Response Form -->
+  
+  <div class="shadow p-4 mb-5 bg-body rounded">
   <h3>Add a Response</h3>
   <form method="post">
     {% csrf_token %}
     {{ response_form.as_p }}
     <input type="hidden" name="response_form" value="1">
-    <button type="submit">Submit Response</button>
+    <button type="submit" class="btn btn-outline-secondary">Submit Response</button>
   </form>
+
+</div>
 {% endblock %}

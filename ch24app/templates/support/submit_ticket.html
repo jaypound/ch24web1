@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
+<br/><br/>
+<div class="shadow p-4 mb-5 bg-body rounded">
   <h2>Submit a Support Ticket</h2>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Submit Ticket</button>
+    <br/>
+    <button type="submit" class="btn btn-secondary">Submit Ticket</button>
   </form>
+</div>
 {% endblock %}
