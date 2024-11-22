@@ -249,9 +249,11 @@ def upload_episode(request, episode_id):
                 else:
                     print(f"Failed to upload: {response.content}")
                     messages.error(request, "Upload failed.")
+                    return redirect('upload_failed')
             else:
                 print("Unable to generate upload URL.")
                 messages.error(request, "Unable to generate upload URL.")
+                return redirect('upload_failed')
         else:
             print("Form is invalid")
             print(form.errors)
@@ -263,6 +265,9 @@ def upload_episode(request, episode_id):
 
 def upload_success(request):
     return render(request, 'upload_success.html')
+
+def upload_failed(request):
+    return render(request, 'upload_failed.html')
 
 def adobe_premiere(request):
     return render(request, 'adobe_premiere.html')
