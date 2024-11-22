@@ -7,6 +7,27 @@
 <br/><br/>
 Episode Uploaded Successfully!
 <br/><br/><br/>
+
+{% if episode and episode.file_name %}
+    {% if mediainfo_errors %}
+        <!-- Button turns red when there are MediaInfo errors -->
+
+            <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-danger btn-lg px-3 gap-3">
+                Media Info
+            </a>
+
+    {% else %}
+        <!-- Default button appearance -->
+
+            <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary">
+                View Media Info
+            </a>
+
+    {% endif %}
+    <br/>
+{% endif %}
+
+<br/>
 <a href="{% url 'my-episodes' %}">
     <button type="button" class="btn btn-primary btn-lg px-3 gap-3">My Episodes</button>
 </a>

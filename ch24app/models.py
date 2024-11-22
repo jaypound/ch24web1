@@ -40,6 +40,12 @@ GENRE_CHOICES = [
     ('Cooking', 'Cooking'),
 ]
 
+REPEAT_CHOICES = [
+    ('once', 'Once'),
+    ('weekly', 'Weekly'),
+    ('specific', 'Specific Day / Time Slot'),
+]
+
 # Create your models here.class Creator()
 class Creator(models.Model):
     custom_id = models.CharField(

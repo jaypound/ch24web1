@@ -1,3 +1,5 @@
+<!-- my_episodes.html -->
+
 {% extends "base.html" %} 
 {% block title %} My Episodes {% endblock %} 
 {% block content %}
@@ -11,34 +13,41 @@
 
         <br/>
         <div class="card">
-            <div class="card-header"">
+            <div class="card-header">
                 <h5 class="card-title">Episode Title: {{ episode.title }}</h5>
             </div>
             <div class="card-body">
-              <p class="card-text">ID: {{ episode.custom_id }}</p>
-              <p class="card-text">Creator: {{ episode.program.creator.first_name }} {{ episode.program.creator.last_name }}</p>
-              <p class="card-text"> Program Name: {{ episode.program.program_name }}</p>
-              <p class="card-text">Episode Number: {{ episode.episode_number }}</p>
-              <p class="card-text">Episode Description: {{ episode.description }}</p>
-              <p class="card-text">Created by: {{ episode.created_by }}</p>
-              <p class="card-text">File Name: {{ episode.file_name }}</p>
+                <p class="card-text">ID: {{ episode.custom_id }}</p>
+                <p class="card-text">Creator: {{ episode.program.creator.first_name }} {{ episode.program.creator.last_name }}</p>
+                <p class="card-text">Program Name: {{ episode.program.program_name }}</p>
+                <p class="card-text">Episode Number: {{ episode.episode_number }}</p>
+                <p class="card-text">Episode Description: {{ episode.description }}</p>
+                <p class="card-text">Created by: {{ episode.created_by }}</p>
+                <p class="card-text">File Name: {{ episode.file_name }}</p>
 
-              <p><form method="post" action="{% url 'upload_episode' episode.custom_id %}">
-                {% csrf_token %}
-                {% if not episode.file_name %}
-                <button type="submit" class="btn btn-primary">Upload Media</button>
-                {% else %}
-                <button type="submit" class="btn  btn-outline-secondary">Upload Media</button>
-                {% endif %}
+                <p>
+                    <form method="post" action="{% url 'upload_episode' episode.custom_id %}">
+                        {% csrf_token %}
+                        {% if not episode.file_name %}
+                            <button type="submit" class="btn btn-primary">Upload Media</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-outline-secondary">Upload Media</button>
+                        {% endif %}
+                    </form>
+                </p>
+                <p><a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update Metadata</a></p>
                 
-            </form></p>
-              <p><a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update Metadata</a></p>
-            </p>
-            {% if episode.file_name %}
-            <p><a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary">View Media Info</a></p>
-            {% endif %}    
+                {% if episode.file_name %}
+                    {% if episode.mediainfo_errors %}
+                        <!-- Button turns red when there are MediaInfo errors -->
+                        <p><a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-danger">View Media Info</a></p>
+                    {% else %}
+                        <!-- Default button appearance -->
+                        <p><a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary">View Media Info</a></p>
+                    {% endif %}
+                {% endif %}
+            </div>
         </div>
-          </div>
 
         {% endfor %}
         </ul>
@@ -46,12 +55,12 @@
         <p>No episodes are available.</p>
     {% endif %}
 
-{% else %}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        You must be logged in to view this page
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-{% endif %}
+    {% else %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            You must be logged in to view this page
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
 
 </div>
-    {% endblock %}
+{% endblock %}
