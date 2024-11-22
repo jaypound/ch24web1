@@ -34,39 +34,205 @@ class CreatorForm(ModelForm):
         super(CreatorForm, self).__init__(*args, **kwargs)
 
 
+# forms.py
+
+from django import forms
+from django.forms import ModelForm
+from .models import Program, TIME_SLOTS_CHOICES
+from .models import Creator
 
 class ProgramForm(ModelForm):
+    time_slots_requested = forms.MultipleChoiceField(
+        choices=TIME_SLOTS_CHOICES,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False,
+        label='Time Slots Requested',
+    )
+
     class Meta:
         model = Program
-        fields = ['program_name', 'description', 'genre', 'age_rating','creator']
+        fields = ['program_name', 'description', 'genre', 'age_rating', 'time_slots_requested']
         labels = {
             'program_name': '',
             'description': '',
             'genre': '',
             'age_rating': '',
-            'creator': '',  # Added this
+            'time_slots_requested': '',
         }
         widgets = {
             'program_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Program Name'}),
-            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+            # 'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),  # Set fewer rows
             'genre': forms.Select(attrs={'class': 'form-control'}),
             'age_rating': forms.Select(attrs={'class': 'form-control'}),
-            'creator': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Creator'}),  # Added this
+            # The widget for 'time_slots_requested' is specified in the field declaration
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
         super(ProgramForm, self).__init__(*args, **kwargs)
-        if user:
-            print('User:', user)
-            # Filter creators by the current user
-            self.fields['creator'].queryset = Creator.objects.filter(created_by=user)
-            # Set default to the first creator
-            creators = self.fields['creator'].queryset
-            if creators.exists():
-                self.fields['creator'].initial = creators.first()
-            else:
-                print('No creators found')
+        # Remove handling of 'creator' since it's no longer in the form
+
+        # Handle initial values for `time_slots_requested`
+        if self.instance and self.instance.time_slots_requested:
+            self.initial['time_slots_requested'] = self.instance.time_slots_requested.split(',')
+
+    def save(self, commit=True):
+        instance = super(ProgramForm, self).save(commit=False)
+        # Get the cleaned data for `time_slots_requested`
+        time_slots = self.cleaned_data.get('time_slots_requested', [])
+        # Join the list into a comma-separated string
+        instance.time_slots_requested = ','.join(time_slots)
+        if commit:
+            instance.save()
+        return instance
+
+
+# class ProgramForm(ModelForm):
+#     time_slots_requested = forms.MultipleChoiceField(
+#         choices=TIME_SLOTS_CHOICES,
+#         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+#         required=False,
+#         label='Time Slots Requested',
+#     )
+
+#     class Meta:
+#         model = Program
+#         fields = ['program_name', 'description', 'genre', 'age_rating', 'creator', 'time_slots_requested']
+#         labels = {
+#             'program_name': '',
+#             'description': '',
+#             'genre': '',
+#             'age_rating': '',
+#             'creator': '',
+#             'time_slots_requested': '',
+#         }
+#         widgets = {
+#             'program_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Program Name'}),
+#             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+#             'genre': forms.Select(attrs={'class': 'form-control'}),
+#             'age_rating': forms.Select(attrs={'class': 'form-control'}),
+#             'creator': forms.Select(attrs={'class': 'form-control'}),
+#             # The widget for 'time_slots_requested' is specified in the field declaration
+#         }
+
+#     def __init__(self, *args, **kwargs):
+#         user = kwargs.pop('user', None)
+#         super(ProgramForm, self).__init__(*args, **kwargs)
+#         if user:
+#             print('User:', user)
+#             # Filter creators by the current user
+#             creators = Creator.objects.filter(created_by=user)
+#             self.fields['creator'].queryset = creators
+#             # Set default to the last creator
+#             if creators.exists():
+#                 self.fields['creator'].initial = creators.last()
+#             else:
+#                 print('No creators found')
+
+#         # Handle initial values for `time_slots_requested`
+#         if self.instance and self.instance.time_slots_requested:
+#             self.initial['time_slots_requested'] = self.instance.time_slots_requested.split(',')
+
+#     def save(self, commit=True):
+#         instance = super(ProgramForm, self).save(commit=False)
+#         # Get the cleaned data for `time_slots_requested`
+#         time_slots = self.cleaned_data.get('time_slots_requested', [])
+#         # Join the list into a comma-separated string
+#         instance.time_slots_requested = ','.join(time_slots)
+#         if commit:
+#             instance.save()
+#         return instance
+
+
+# class ProgramForm(ModelForm):
+#     time_slots_requested = forms.MultipleChoiceField(
+#         choices=TIME_SLOTS_CHOICES,
+#         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+#         required=False,
+#         label='',  # Keeping label empty to match your style
+#     )
+
+#     class Meta:
+#         model = Program
+#         fields = ['program_name', 'description', 'genre', 'age_rating', 'creator', 'time_slots_requested']
+#         labels = {
+#             'program_name': '',
+#             'description': '',
+#             'genre': '',
+#             'age_rating': '',
+#             'creator': '',
+#             'time_slots_requested': '',  # Added this
+#         }
+#         widgets = {
+#             'program_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Program Name'}),
+#             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+#             'genre': forms.Select(attrs={'class': 'form-control'}),
+#             'age_rating': forms.Select(attrs={'class': 'form-control'}),
+#             'creator': forms.Select(attrs={'class': 'form-control'}),
+#             # For `time_slots_requested`, since we defined the widget in the field declaration, we don't need to specify it here.
+#         }
+
+#     def __init__(self, *args, **kwargs):
+#         user = kwargs.pop('user', None)
+#         super(ProgramForm, self).__init__(*args, **kwargs)
+#         if user:
+#             print('User:', user)
+#             # Filter creators by the current user
+#             self.fields['creator'].queryset = Creator.objects.filter(created_by=user)
+#             # Set default to the first creator
+#             creators = self.fields['creator'].queryset
+#             if creators.exists():
+#                 self.fields['creator'].initial = creators.first()
+#             else:
+#                 print('No creators found')
+
+#         # Handle initial values for `time_slots_requested`
+#         if self.instance and self.instance.time_slots_requested:
+#             self.initial['time_slots_requested'] = self.instance.time_slots_requested.split(',')
+
+#     def save(self, commit=True):
+#         instance = super(ProgramForm, self).save(commit=False)
+#         # Get the cleaned data for `time_slots_requested`
+#         time_slots = self.cleaned_data.get('time_slots_requested', [])
+#         # Join the list into a comma-separated string
+#         instance.time_slots_requested = ','.join(time_slots)
+#         if commit:
+#             instance.save()
+#         return instance
+
+
+# class ProgramForm(ModelForm):
+#     class Meta:
+#         model = Program
+#         fields = ['program_name', 'description', 'genre', 'age_rating','creator']
+#         labels = {
+#             'program_name': '',
+#             'description': '',
+#             'genre': '',
+#             'age_rating': '',
+#             'creator': '',  # Added this
+#         }
+#         widgets = {
+#             'program_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Program Name'}),
+#             'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+#             'genre': forms.Select(attrs={'class': 'form-control'}),
+#             'age_rating': forms.Select(attrs={'class': 'form-control'}),
+#             'creator': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Creator'}),  # Added this
+#         }
+
+#     def __init__(self, *args, **kwargs):
+#         user = kwargs.pop('user', None)
+#         super(ProgramForm, self).__init__(*args, **kwargs)
+#         if user:
+#             print('User:', user)
+#             # Filter creators by the current user
+#             self.fields['creator'].queryset = Creator.objects.filter(created_by=user)
+#             # Set default to the first creator
+#             creators = self.fields['creator'].queryset
+#             if creators.exists():
+#                 self.fields['creator'].initial = creators.first()
+#             else:
+#                 print('No creators found')
 
 
 class EpisodeForm(ModelForm):

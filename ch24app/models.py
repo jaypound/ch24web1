@@ -4,6 +4,18 @@ import uuid
 # from django.contrib.postgres.fields import JSONField
 import json
 
+# models.py
+
+TIME_SLOTS_CHOICES = [
+    ('overnight', 'Overnight (2 AM - 6 AM)'),
+    ('early_morning', 'Early Morning (6 AM - 9 AM)'),
+    ('daytime', 'Daytime (9 AM - 3 PM)'),
+    ('after_school', 'After School (3 PM - 6 PM)'),
+    ('early_evening', 'Early Evening (6 PM - 8 PM)'),
+    ('prime_time', 'Prime Time (8 PM - 11 PM)'),
+    ('late_night', 'Late Night (11 PM - 2 AM)'),
+]
+
 AGE_RATING_CHOICES = [
     ('TV-Y', 'TV-Y: All Children'),
     ('TV-Y7', 'TV-Y7: Directed to Older Children'),
@@ -74,32 +86,6 @@ class Creator(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-    
-# from django.db import models
-# from django.contrib.auth.models import User
-# import uuid
-
-# class Creator(models.Model):
-#     custom_id = models.UUIDField(
-#         primary_key=True,
-#         default=uuid.uuid4,
-#         editable=False
-#     )
-#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='creator_profile')
-#     first_name = models.CharField('First Name', max_length=100)
-#     last_name = models.CharField('Last Name', max_length=100)
-#     company = models.CharField('Company', blank=True, max_length=200)
-#     address = models.CharField('Address', blank=True, max_length=255)
-#     city = models.CharField('City', blank=True, max_length=255)
-#     state = models.CharField('State', blank=True, max_length=255)
-#     zip_code = models.CharField('Zip Code', blank=True, max_length=16)
-#     email = models.EmailField('Email', unique=True)
-#     phone = models.CharField('Phone', blank=True, max_length=25)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-
-#     def __str__(self):
-#         return f"{self.first_name} {self.last_name}"
 
 
 class Program(models.Model):
@@ -122,6 +108,11 @@ class Program(models.Model):
         'Age Rating',
         max_length=10,
         choices=AGE_RATING_CHOICES,
+        blank=True
+    )
+    time_slots_requested = models.CharField(
+        'Time Slots Requested',
+        max_length=255,
         blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)

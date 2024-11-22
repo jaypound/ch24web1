@@ -1,33 +1,73 @@
-{% extends "base.html" %} 
-{% block title %} Add Program {% endblock %} 
+<!-- add_program.html -->
+
+{% extends "base.html" %}
+{% block title %} Add Program {% endblock %}
 {% block content %}
 <br/><br/>
 <div class="shadow p-4 mb-5 bg-body rounded">
-<h1>Add Program</h1>
-<br/><br/>
-{% if submitted %}
-
-    Program Added Successfully!
-    <br/><br/><br/>
-    <a href="{% url 'add-episode' %}" class="btn btn-primary">Add Episode</a>
+    <h1>Add Program</h1>
     <br/><br/>
-    <a href="{% url 'add-program' %}" class="btn btn-secondary">Add Another Program</a>
+    {% if submitted %}
+        Program Added Successfully!
+        <br/><br/><br/>
+        <a href="{% url 'add-episode' %}" class="btn btn-primary">Add Episode</a>
+        <br/><br/>
+        <a href="{% url 'add-program' %}" class="btn btn-secondary">Add Another Program</a>
+    {% else %}
+        {% if user.is_authenticated %}
+            <form action="" method="POST">
+                {% csrf_token %}
+                <!-- Manually render each form field -->
 
-    {% else %}
-    {% if user.is_authenticated %}
-    <form action="" method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <br/>
-        <input type="submit" value="Submit" class="btn btn-primary">
-    </form>
-    {% else %}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        You must be logged in to view this page
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <!-- Program Name -->
+                <div class="mb-3">
+                    {{ form.program_name.label_tag }}
+                    {{ form.program_name }}
+                    {{ form.program_name.errors }}
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    {{ form.description.label_tag }}
+                    {{ form.description }}
+                    {{ form.description.errors }}
+                </div>
+
+                <!-- Genre -->
+                <div class="mb-3">
+                    {{ form.genre.label_tag }}
+                    {{ form.genre }}
+                    {{ form.genre.errors }}
+                </div>
+
+                <!-- Age Rating -->
+                <div class="mb-3">
+                    {{ form.age_rating.label_tag }}
+                    {{ form.age_rating }}
+                    {{ form.age_rating.errors }}
+                </div>
+
+                <!-- Time Slots Requested -->
+                <div class="mb-3">
+                    <label>Time Slots Requested</label><br/>
+                    {% for checkbox in form.time_slots_requested %}
+                        <div class="form-check">
+                            {{ checkbox.tag }}
+                            {{ checkbox.choice_label }}
+                        </div>
+                    {% endfor %}
+                    {{ form.time_slots_requested.errors }}
+                </div>
+
+                <br/>
+                <input type="submit" value="Submit" class="btn btn-primary">
+            </form>
+        {% else %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                You must be logged in to view this page
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
     </div>
-    {% endif %}
-</div>
 {% endif %}
 {% endblock %}
-

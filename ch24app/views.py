@@ -94,20 +94,78 @@ def add_creator(request):
             submitted = True
     return render(request, 'add_creator.html', {'form': form, 'submitted': submitted})
 
+
+# from django.shortcuts import render, HttpResponseRedirect
+# from .forms import ProgramForm
+
+# views.py
+
+from django.shortcuts import render, HttpResponseRedirect
+from .forms import ProgramForm
+from .models import Creator
+
 def add_program(request):
     submitted = False
     if request.method == 'POST':
-        form = ProgramForm(request.POST, user=request.user)  # Pass user to the form
+        form = ProgramForm(request.POST)
         if form.is_valid():
-            instance = form.save(commit=False)  # Create an instance without saving to the database
-            instance.created_by = request.user  # Set the created_by field to the current user
-            instance.save()  # Now save the instance to the database
+            instance = form.save(commit=False)
+            instance.created_by = request.user  # Set the created_by field
+
+            # Set the creator field to the last creator associated with the user
+            creators = Creator.objects.filter(created_by=request.user)
+            if creators.exists():
+                instance.creator = creators.last()
+            else:
+                # Handle the case where the user has no creators
+                # You might want to redirect or display an error message
+                return HttpResponseRedirect('/no_creator_found')
+
+            instance.save()
             return HttpResponseRedirect('/add_program?submitted=True')
     else:
-        form = ProgramForm(user=request.user)  # Pass user to the form
+        form = ProgramForm()
         if 'submitted' in request.GET:
             submitted = True
     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
+
+
+# views.py
+
+def no_creator_found(request):
+    return render(request, 'no_creator_found.html')
+
+
+# def add_program(request):
+#     submitted = False
+#     if request.method == 'POST':
+#         form = ProgramForm(request.POST, user=request.user)  # Pass user to the form
+#         if form.is_valid():
+#             instance = form.save(commit=False)
+#             instance.created_by = request.user
+#             instance.save()
+#             return HttpResponseRedirect('/add_program?submitted=True')
+#     else:
+#         form = ProgramForm(user=request.user)  # Pass user to the form
+#         if 'submitted' in request.GET:
+#             submitted = True
+#     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
+
+
+# def add_program(request):
+#     submitted = False
+#     if request.method == 'POST':
+#         form = ProgramForm(request.POST, user=request.user)  # Pass user to the form
+#         if form.is_valid():
+#             instance = form.save(commit=False)  # Create an instance without saving to the database
+#             instance.created_by = request.user  # Set the created_by field to the current user
+#             instance.save()  # Now save the instance to the database
+#             return HttpResponseRedirect('/add_program?submitted=True')
+#     else:
+#         form = ProgramForm(user=request.user)  # Pass user to the form
+#         if 'submitted' in request.GET:
+#             submitted = True
+#     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
 
 
 def add_episode(request):
@@ -156,23 +214,52 @@ def update_creator(request, creator_id):
         'submitted': False
     })
 
+# views.py
+
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+
 def update_program(request, program_id):
-    program = Program.objects.get(custom_id=program_id)  # Changed from id to custom_id
-    if request.method == "POST":
+    program = Program.objects.get(pk=program_id)
+    if request.method == 'POST':
         form = ProgramForm(request.POST, instance=program)
         if form.is_valid():
             form.save()
-            return render(request, 'update_program.html', {
-                'form': form,
-                'submitted': True
-            })
+            return HttpResponseRedirect(f'{reverse("update-program", args=[program_id])}?submitted=True')
     else:
         form = ProgramForm(instance=program)
+    return render(request, 'update_program.html', {'form': form, 'submitted': request.GET.get('submitted', False)})
+
+
+# def update_program(request, program_id):
+#     program = Program.objects.get(pk=program_id)
+#     if request.method == 'POST':
+#         form = ProgramForm(request.POST, instance=program)
+#         if form.is_valid():
+#             form.save()
+#             return HttpResponseRedirect('/update_program?submitted=True')
+#     else:
+#         form = ProgramForm(instance=program)
+#     return render(request, 'update_program.html', {'form': form, 'submitted': False})
+
+
+# def update_program(request, program_id):
+#     program = Program.objects.get(custom_id=program_id)  # Changed from id to custom_id
+#     if request.method == "POST":
+#         form = ProgramForm(request.POST, instance=program)
+#         if form.is_valid():
+#             form.save()
+#             return render(request, 'update_program.html', {
+#                 'form': form,
+#                 'submitted': True
+#             })
+#     else:
+#         form = ProgramForm(instance=program)
     
-    return render(request, 'update_program.html', {
-        'form': form,
-        'submitted': False
-    })
+#     return render(request, 'update_program.html', {
+#         'form': form,
+#         'submitted': False
+#     })
 
 def update_episode(request, episode_id):
     episode = Episode.objects.get(custom_id=episode_id)  # Changed from id to custom_id
