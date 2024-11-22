@@ -155,6 +155,7 @@ class Episode(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     file_name = models.TextField('File Name', blank=True)
+    has_mediainfo_errors = models.BooleanField(default=False, db_index=True)
 
     def save(self, *args, **kwargs):
         # Assign a unique ID if not already set
