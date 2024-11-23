@@ -140,7 +140,7 @@ class Episode(models.Model):
     episode_number = models.IntegerField('Episode Number')
     title = models.CharField('Title', max_length=255)
     description = models.TextField('Description', blank=True)
-    repeat_preferences = models.CharField('Repeat Preferences (e.g. daily, weekly, or specific day/time)', max_length=255, blank=True)
+    # repeat_preferences = models.CharField('Repeat Preferences (e.g. daily, weekly, or specific day/time)', max_length=255, blank=True)
     start_date = models.DateField('Start Date', null=True, blank=True)
     end_date = models.DateField('End Date', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

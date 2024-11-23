@@ -3,23 +3,6 @@ import environ
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import logging
 
-# def create_presigned_url(bucket_name, object_name, expiration=3600):
-#     """Generate a pre-signed URL to upload a file to S3."""
-#     s3_client = boto3.client('s3')
-#     try:
-#         response = s3_client.generate_presigned_url(
-#             'put_object',
-#             Params={
-#                 'Bucket': bucket_name,
-#                 'Key': object_name,
-#                 # 'ContentType': content_type  # Remove this line
-#             },
-#             ExpiresIn=expiration
-#         )
-#         return response
-#     except Exception as e:
-#         print(f"Error generating pre-signed URL: {e}")
-#         return None
 
 
 # Load environment variables
@@ -85,7 +68,7 @@ def validate_media_info(media_infos):
                 }
                 # Additional height checks can be added here
             ],
-            'acceptable_frame_rates': [23.976, 23.98, 29.97],
+            'acceptable_frame_rates': [23.976, 23.98, 29.97, 30],
             'frame_rate_error_level': 'WARNING',
             'height_error_level': 'WARNING'
         },
@@ -125,6 +108,7 @@ def validate_media_info(media_infos):
                 error_message = "Media duration is missing."
                 unique_errors.add(error_message)
 
+            # Get file extension
             file_extension = metadata.get('file_extension', None)
             if file_extension is not None:
                 allowed_extensions = media_checks[track_type]['allowed_extensions']
@@ -137,10 +121,6 @@ def validate_media_info(media_infos):
                 error_message = "Media duration is missing."
                 unique_errors.add(error_message)
 
-
-
-
-            # Get file extension
             # file_name = episode.file_name  # Assuming episode.file_name exists
             # if file_name:
             #     _, ext = os.path.splitext(file_name)
