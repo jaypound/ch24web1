@@ -170,7 +170,7 @@
               {% if user.is_authenticated %}
                 {% if not user_has_creator %}
                 <a href="{% url 'add-creator' %}">
-                  <button type="button" class="btn btn-primary btn-lg px-3 gpt-3">Add Creator</button>
+                  <button type="button" class="btn btn-primary btn-lg px-3 gpt-3">Add Channel</button>
                 </a>
                 {% endif %}
               <a href="{% url 'add-program' %}">
@@ -186,7 +186,7 @@
                 </a>
                 {% endif %}
               {% else %}
-                <button type="button" class="btn btn-outline-secondary btn-lg px-3 gpt-3">Add Creator</button>
+                <button type="button" class="btn btn-outline-secondary btn-lg px-3 gpt-3">Add Channel</button>
                 <button type="button" class="btn btn-outline-secondary btn-lg px-3 gpt-3">Add Program</button>
                 <button type="button" class="btn btn-outline-secondary btn-lg px-3 gap-3">Add Episode</button>
               {% endif %}

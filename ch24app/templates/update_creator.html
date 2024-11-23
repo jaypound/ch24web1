@@ -1,18 +1,19 @@
 {% extends "base.html" %} 
-{% block title %} Update Creator {% endblock %} 
+{% block title %} Update Channel {% endblock %} 
 {% block content %}
 <br/><br/>
 <div class="shadow p-4 mb-5 bg-body rounded">
-<h1>Update Creator</h1>
+<h1>Update Channel</h1>
 <br/><br/>
 {% if submitted %}
-    Creator Updated Successfully!
+    Channel Updated Successfully!
 {% else %}
     {% if user.is_authenticated %}
     <form action="" method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <input type="submit" value="Submit" class="btn btn-secondary">
+        <br/>
+        <input type="submit" value="Update Channel" class="btn btn-secondary">
     </form>
     {% else %}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">

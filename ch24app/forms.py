@@ -5,11 +5,11 @@ from .models import Program, Episode, Creator, EpisodeMediaInfo, SupportTicket, 
 class CreatorForm(ModelForm):
     class Meta:
         model = Creator
-        fields = ['first_name', 'last_name', 'company', 'email', 'phone', 'address', 'city', 'state', 'zip_code']
+        fields = ['first_name', 'last_name', 'channel_name', 'email', 'phone', 'address', 'city', 'state', 'zip_code']
         labels = {
             'first_name': '',
             'last_name': '',
-            'company': '',
+            'channel_name': '',
             'email': '',
             'phone': '',
             'address': '',
@@ -20,7 +20,7 @@ class CreatorForm(ModelForm):
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
-            'company': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company'}),
+            'channel_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Channel Name'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone'}),
             'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Address'}),

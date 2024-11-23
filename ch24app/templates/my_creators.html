@@ -1,10 +1,10 @@
 {% extends "base.html" %} 
-{% block title %} My Creators {% endblock %} 
+{% block title %} My Channels {% endblock %} 
 {% block content %}
 
 <br/><br/>
 <div class="shadow p-4 mb-5 bg-body rounded">    
-<h1>My Creators</h1>
+<h1>My Channels</h1>
 {% if user.is_authenticated %}
     {% if creator_list %}
         <ul>
@@ -13,10 +13,10 @@
             <br/>
             <div class="card">
                 <div class="card-header"">
-                    <h5 class="card-title">{{ creator.first_name }} {{ creator.last_name }}</h5>
+                    <h5 class="card-title">{{ creator.channel_name }}</h5>
                 </div>
                 <div class="card-body">
-                  <p class="card-text">Company: {{ creator.company }}</p>
+                  <p class="card-text">Creator Name: {{ creator.first_name }} {{ creator.last_name }}</p>
                   <p class="card-text">Email: {{ creator.email }}</p>
                   <p class="card-text">Phone: {{ creator.phone }}</p>
                   <p class="card-text">Created by: {{ creator.created_by }}</p>
@@ -26,7 +26,7 @@
         {% endfor %}
         </ul>
     {% else %}
-        <p>No creators are available.</p>
+        <p>No channels are available.</p>
 
     {% endif %}
 {% else %}

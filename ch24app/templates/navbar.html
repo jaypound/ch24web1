@@ -27,7 +27,7 @@
             List
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'list-creators' %}">List Creators</a></li>
+            <li><a class="dropdown-item" href="{% url 'list-creators' %}">List Channels</a></li>
             <li><a class="dropdown-item" href="{% url 'list-programs' %}">List Programs</a></li>
             <li><a class="dropdown-item" href="{% url 'list-episodes' %}">List Episodes</a></li>
           </ul>
@@ -41,6 +41,7 @@
             Add
           </a>
           <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'add-creator' %}">Add Channel</a></li>
             <li><a class="dropdown-item" href="{% url 'add-program' %}">Add Program</a></li>
             <li><a class="dropdown-item" href="{% url 'add-episode' %}">Add Episode</a></li>
           </ul>
@@ -52,6 +53,7 @@
             My
           </a>
           <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'my-creators' %}">My Channels</a></li>
             <li><a class="dropdown-item" href="{% url 'my-programs' %}">My Programs</a></li>
             <li><a class="dropdown-item" href="{% url 'my-episodes' %}">My Episodes</a></li>
           </ul>
