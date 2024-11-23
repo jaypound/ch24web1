@@ -3,10 +3,10 @@
 {% extends "base.html" %}
 {% block title %} Add Program {% endblock %}
 {% block content %}
-<br/><br/>
+<br/>
 <div class="shadow p-4 mb-5 bg-body rounded">
     <h1>Add Program</h1>
-    <br/><br/>
+    <br/>
     {% if submitted %}
         Program Added Successfully!
         <br/><br/><br/>
@@ -17,7 +17,13 @@
         {% if user.is_authenticated %}
             <form action="" method="POST">
                 {% csrf_token %}
-                <!-- Manually render each form field -->
+
+                <!-- Creator (Channel Name) -->
+                <div class="mb-3">
+                    {{ form.creator.label_tag }}
+                    {{ form.creator }}
+                    {{ form.creator.errors }}
+                </div>
 
                 <!-- Program Name -->
                 <div class="mb-3">

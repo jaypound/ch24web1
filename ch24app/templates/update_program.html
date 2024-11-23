@@ -17,7 +17,13 @@
         {% if user.is_authenticated %}
             <form action="" method="POST">
                 {% csrf_token %}
-                <!-- Manually render each form field -->
+
+                <!-- Creator (Channel Name) -->
+                <div class="mb-3">
+                    {{ form.creator.label_tag }}
+                    {{ form.creator }}
+                    {{ form.creator.errors }}
+                </div>
 
                 <!-- Program Name -->
                 <div class="mb-3">
@@ -45,13 +51,6 @@
                     {{ form.age_rating.label_tag }}
                     {{ form.age_rating }}
                     {{ form.age_rating.errors }}
-                </div>
-
-                <!-- Creator -->
-                <div class="mb-3">
-                    {{ form.creator.label_tag }}
-                    {{ form.creator }}
-                    {{ form.creator.errors }}
                 </div>
 
                 <!-- Time Slots Requested -->

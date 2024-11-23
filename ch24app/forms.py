@@ -6,27 +6,17 @@ class CreatorForm(ModelForm):
     class Meta:
         model = Creator
         fields = ['first_name', 'last_name', 'channel_name', 'email', 'phone', 'address', 'city', 'state', 'zip_code']
-        labels = {
-            'first_name': '',
-            'last_name': '',
-            'channel_name': '',
-            'email': '',
-            'phone': '',
-            'address': '',
-            'city': '',
-            'state': '',
-            'zip_code': '',
-        }
+
         widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
-            'channel_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Channel Name'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone'}),
-            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Address'}),
-            'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
-            'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'State'}),
-            'zip_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Zip Code'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'channel_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control' }),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.TextInput(attrs={'class': 'form-control'}),
+            'zip_code': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -42,6 +32,13 @@ from .models import Program, TIME_SLOTS_CHOICES
 from .models import Creator
 
 class ProgramForm(ModelForm):
+    creator = forms.ModelChoiceField(
+        queryset=Creator.objects.none(),  # Initial empty queryset
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Channel Name'
+    )
+    
     time_slots_requested = forms.MultipleChoiceField(
         choices=TIME_SLOTS_CHOICES,
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
@@ -51,26 +48,21 @@ class ProgramForm(ModelForm):
 
     class Meta:
         model = Program
-        fields = ['program_name', 'description', 'genre', 'age_rating', 'time_slots_requested']
-        labels = {
-            'program_name': '',
-            'description': '',
-            'genre': '',
-            'age_rating': '',
-            'time_slots_requested': '',
-        }
+        fields = ['creator', 'program_name', 'description', 'genre', 'age_rating', 'time_slots_requested']
         widgets = {
-            'program_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Program Name'}),
-            # 'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Description'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),  # Set fewer rows
+            'program_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'genre': forms.Select(attrs={'class': 'form-control'}),
             'age_rating': forms.Select(attrs={'class': 'form-control'}),
-            # The widget for 'time_slots_requested' is specified in the field declaration
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super(ProgramForm, self).__init__(*args, **kwargs)
-        # Remove handling of 'creator' since it's no longer in the form
+        
+        # Set the creator queryset based on the user
+        if user:
+            self.fields['creator'].queryset = Creator.objects.filter(created_by=user)
 
         # Handle initial values for `time_slots_requested`
         if self.instance and self.instance.time_slots_requested:
@@ -86,26 +78,64 @@ class ProgramForm(ModelForm):
             instance.save()
         return instance
 
+# class ProgramForm(ModelForm):
+#     time_slots_requested = forms.MultipleChoiceField(
+#         choices=TIME_SLOTS_CHOICES,
+#         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+#         required=False,
+#         label='Time Slots Requested',
+#     )
+
+#     class Meta:
+#         model = Program
+#         fields = ['program_name', 'description', 'genre', 'age_rating', 'time_slots_requested']
+#         labels = {
+#             'program_name': '',
+#             'description': '',
+#             'genre': '',
+#             'age_rating': '',
+#             'time_slots_requested': '',
+#         }
+#         widgets = {
+#             'program_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Program Name'}),
+#             # 'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+#             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),  # Set fewer rows
+#             'genre': forms.Select(attrs={'class': 'form-control'}),
+#             'age_rating': forms.Select(attrs={'class': 'form-control'}),
+#             # The widget for 'time_slots_requested' is specified in the field declaration
+#         }
+
+#     def __init__(self, *args, **kwargs):
+#         super(ProgramForm, self).__init__(*args, **kwargs)
+#         # Remove handling of 'creator' since it's no longer in the form
+
+#         # Handle initial values for `time_slots_requested`
+#         if self.instance and self.instance.time_slots_requested:
+#             self.initial['time_slots_requested'] = self.instance.time_slots_requested.split(',')
+
+#     def save(self, commit=True):
+#         instance = super(ProgramForm, self).save(commit=False)
+#         # Get the cleaned data for `time_slots_requested`
+#         time_slots = self.cleaned_data.get('time_slots_requested', [])
+#         # Join the list into a comma-separated string
+#         instance.time_slots_requested = ','.join(time_slots)
+#         if commit:
+#             instance.save()
+#         return instance
+
 
 class EpisodeForm(ModelForm):
     class Meta:
         model = Episode
         fields = ['program', 'episode_number', 'title', 'description', 'start_date', 'end_date']
-        labels = {
-            'program': '',
-            'episode_number': '',
-            'title': '',
-            'description': '',
-            'start_date': '',
-            'end_date': '',
-        }
+
         widgets = {
-            'program': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Program'}),
-            'episode_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Episode Number'}),
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Title'}),
-            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}),
-            'start_date': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'Start Date'}),
-            'end_date': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'End Date'}),
+            'program': forms.Select(attrs={'class': 'form-control'}),
+            'episode_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.TextInput(attrs={'class': 'form-control'}),
+            'start_date': forms.DateTimeInput(attrs={'class': 'form-control'}),
+            'end_date': forms.DateTimeInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -130,14 +160,7 @@ class EpisodeUpdateForm(ModelForm):
     class Meta:
         model = Episode
         fields = ['program', 'episode_number', 'title', 'description', 'start_date', 'end_date']
-        labels = {
-            'program': '',
-            'episode_number': '',
-            'title': '',
-            'description': '',
-            'start_date': '',
-            'end_date': '',
-        }
+
         widgets = {
             'program': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Program'}),
             'episode_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Episode Number'}),
