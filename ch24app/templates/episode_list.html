@@ -22,7 +22,8 @@
               <p class="card-text">Episode Description: {{ episode.description }}</p>
               <p class="card-text">Created by: {{ episode.created_by }}</p>
               <p class="card-text">File Name: {{ episode.file_name }}</p>
-              <a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update</a>
+              <p><a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update</a></p>
+              <p><a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary">View Episode</a></p>
             </div>
           </div>
 

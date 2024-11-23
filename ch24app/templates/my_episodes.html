@@ -42,6 +42,7 @@
                                 <!-- Default button appearance -->
                                 <p><a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary">View Media Info</a></p>
                             {% endif %}
+                            <p><a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary">View Episode</a></p>
                         {% endif %}
                     </div>
                 </div>

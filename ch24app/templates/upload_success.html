@@ -17,10 +17,9 @@
 
         {% else %}
             <!-- Default button appearance -->
-
-                <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary btn-lg px-3 gap-3">
-                    View Media Info
-                </a>
+            <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary btn-lg px-3 gap-3">View Episode</a>
+            <br/><br/>
+            <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary btn-lg px-3 gap-3">View Media Info</a>
 
         {% endif %}
     {% endif %}

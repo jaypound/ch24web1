@@ -10,7 +10,7 @@ from pprint import pprint
 import requests
 import boto3
 from pymediainfo import MediaInfo
-from .utils import validate_media_info  # Import the validation function
+from .utils import validate_media_info, create_presigned_view_url  # Import the validation function
 
 import os
 from django.conf import settings
@@ -538,4 +538,27 @@ def my_tickets(request):
     tickets = SupportTicket.objects.filter(created_by=request.user).order_by('-time_received')
     return render(request, 'support/my_tickets.html', {'tickets': tickets})
 
+
+def view_episode(request, episode_id):
+    episode = get_object_or_404(Episode, custom_id=episode_id)
+
+    # Security check: Ensure the user is allowed to view the episode
+    if episode.created_by != request.user:
+        return HttpResponse("Unauthorized", status=401)
+
+    bucket_name = AWS_STORAGE_BUCKET_NAME
+    s3_key = episode.file_name
+
+    # Generate pre-signed URL
+    presigned_url = create_presigned_view_url(bucket_name, s3_key)
+
+    if presigned_url:
+        # Pass the URL to the template
+        return render(request, 'view_episode.html', {
+            'episode': episode,
+            'presigned_url': presigned_url,
+        })
+    else:
+        messages.error(request, "Unable to generate view URL.")
+        return redirect('error_page')  # Replace with your actual error page
 

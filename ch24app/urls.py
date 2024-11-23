@@ -19,6 +19,7 @@ urlpatterns = [
     path('upload_success/', views.upload_success, name='upload_success'),
     path('upload_failed/', views.upload_failed, name='upload_failed'),
     path('upload_episode/<str:episode_id>/', views.upload_episode, name='upload_episode'),
+    path('view_episode/<str:episode_id>/', views.view_episode, name='view_episode'),
     path('adobe_premiere/', views.adobe_premiere, name='adobe_premiere'),
     path('davinci_resolve/', views.davinci_resolve, name='davinci_resolve'),
     path('getting_started/', views.getting_started, name='getting_started'),

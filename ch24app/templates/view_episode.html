@@ -1,0 +1,59 @@
+<!-- view_episode.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ episode.title }}</h1>
+
+{% if presigned_url %}
+    <!-- For video files -->
+    <video controls controls id="episodeVideo">
+        <source src="{{ presigned_url }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- For audio files -->
+    <!--
+    <audio controls>
+        <source src="{{ presigned_url }}" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+    -->
+{% else %}
+    <p>Unable to load the media clip.</p>
+{% endif %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      var videoPlayer = document.getElementById('episodeVideo');
+      var width = window.innerWidth;
+  
+      if (width >= 1920) {
+          videoPlayer.style.width = '1920px';
+          videoPlayer.style.height = '1080px';
+      } else if (width >= 1280) {
+          videoPlayer.style.width = '1280px';
+          videoPlayer.style.height = '720px';
+      } else if (width >= 1024) {
+          videoPlayer.style.width = '1024px';
+          videoPlayer.style.height = '576px';
+      } else if (width >= 768) {
+          videoPlayer.style.width = '768px';
+          videoPlayer.style.height = '432px';
+      } else if (width >= 600) {
+          videoPlayer.style.width = '600px';
+          videoPlayer.style.height = '337px';
+      } else if (width >= 480) {
+          videoPlayer.style.width = '480px';
+          videoPlayer.style.height = '270px';
+      } else if (width >= 360) {
+          videoPlayer.style.width = '360px';
+          videoPlayer.style.height = '202px';
+      } else {
+          // For very small devices, you might want to go full width
+          videoPlayer.style.width = '100%';
+          videoPlayer.style.height = 'auto'; // maintain aspect ratio
+      }
+  });
+  </script>
+
+{% endblock %}
