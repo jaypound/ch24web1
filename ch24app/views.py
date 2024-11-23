@@ -380,91 +380,6 @@ def upload_episode(request, episode_id):
     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})
 
 
-# def upload_episode(request, episode_id):
-#     episode = get_object_or_404(Episode, custom_id=episode_id)
-
-#     # Security check: Ensure the user is the creator of the episode
-#     if episode.created_by != request.user:
-#         return HttpResponse("Unauthorized", status=401)
-
-#     if request.method == 'POST':
-#         form = EpisodeUploadForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             # Delete previous EpisodeMediaInfo instances
-#             EpisodeMediaInfo.objects.filter(episode=episode).delete()
-
-#             file = form.cleaned_data['file']
-#             file_name = file.name
-            
-#             bucket_name = AWS_STORAGE_BUCKET_NAME
-#             print(f"bucket_name: {bucket_name}")
-
-#             # Generate a unique file name/path
-#             unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
-
-#             # Generate the pre-signed URL
-#             presigned_url = create_presigned_url(bucket_name, unique_file_name)
-
-#             if presigned_url:
-#                 # Upload the file to S3 using the pre-signed URL
-#                 response = requests.put(presigned_url, data=file)
-#                 print(f"Response: {response}")
-#                 if response.status_code == 200:
-#                     # Get media info from the uploaded file
-#                     media_info = get_mediainfo_from_s3(bucket_name, unique_file_name)
-                    
-#                     # Log and save media info for each track
-#                     track_id = 0
-#                     for track in media_info.tracks:
-#                         track_id += 1
-#                         pprint(track.to_data())
-#                         track_metadata = {key: value for key, value in track.to_data().items() if value is not None}
-#                         logger.debug(f"Track {track_id}: {track_metadata}")
-
-#                         # Save media info to the database
-#                         EpisodeMediaInfo.objects.create(
-#                             episode=episode,
-#                             track_id=track_id,
-#                             metadata=track_metadata
-#                         )
-
-#                     # Retrieve the saved media_infos
-#                     media_infos = episode.media_infos.all()
-
-#                     # Use the validation function
-#                     unique_errors, unique_warnings = validate_media_info(media_infos)
-
-#                     # Determine if there are any errors
-#                     mediainfo_errors = bool(unique_errors)
-
-
-#                     # Update the episode with the file name
-#                     episode.file_name = unique_file_name
-#                     episode.save()
-#                     messages.success(request, "File uploaded successfully.")
-#                     # return redirect('upload_success')
-#                     # return redirect(f"{reverse('upload_success')}?episode_id={episode.custom_id}")
-
-#                     return redirect(f"{reverse('upload_success')}?episode_id={episode.custom_id}&mediainfo_errors={int(mediainfo_errors)}")
-
-
-#                 else:
-#                     print(f"Failed to upload: {response.content}")
-#                     messages.error(request, "Upload failed.")
-#                     return redirect('upload_failed')
-#             else:
-#                 print("Unable to generate upload URL.")
-#                 messages.error(request, "Unable to generate upload URL.")
-#                 return redirect('upload_failed')
-#         else:
-#             print("Form is invalid")
-#             print(form.errors)
-#             messages.error(request, "Form is invalid.")
-#     else:
-#         form = EpisodeUploadForm()
-
-#     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})
-
 
 def upload_success(request):
     episode_id = request.GET.get('episode_id')
@@ -474,17 +389,6 @@ def upload_success(request):
         'episode': episode,
     })
 
-
-
-# def upload_success(request):
-#     episode_id = request.GET.get('episode_id')
-#     mediainfo_errors = bool(int(request.GET.get('mediainfo_errors', '0')))
-#     episode = get_object_or_404(Episode, custom_id=episode_id) if episode_id else None
-
-#     return render(request, 'upload_success.html', {
-#         'episode': episode,
-#         'mediainfo_errors': mediainfo_errors
-#     })
 
 
 def upload_failed(request):
@@ -519,9 +423,16 @@ def episode_media_info(request, episode_id):
         messages.warning(request, message)
 
     return render(request, 'episode_media_info.html', {
-        'episode': episode,
-        'media_infos': media_infos
-    })
+            'episode': episode,
+            'media_infos': media_infos,
+            'errors': unique_errors,
+            'warnings': unique_warnings
+        })
+
+# return render(request, 'episode_media_info.html', {
+#     'episode': episode,
+#     'media_infos': media_infos
+# })
 
 # def episode_media_info(request, episode_id):
 #     # print("episode_media_info")
