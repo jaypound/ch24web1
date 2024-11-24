@@ -67,7 +67,7 @@ class Creator(models.Model):
         editable=False)
     first_name = models.CharField('First Name', max_length=100)
     last_name = models.CharField('Last Name', max_length=100)
-    channel_name = models.CharField('Channel Name', blank=True, max_length=200)
+    channel_name = models.CharField('Channel Name', blank=True, max_length=200, unique=True)  # Ensure channel_name is unique
     address = models.CharField('Address', blank=True, max_length=255)
     city = models.CharField('City', blank=True, max_length=255)
     state = models.CharField('State', blank=True, max_length=255)
