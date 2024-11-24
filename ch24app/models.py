@@ -241,3 +241,35 @@ class TicketResponse(models.Model):
 
     def __str__(self):
         return f"Response #{self.response_no} to Ticket #{self.ticket.ticket_no}"
+    
+    from django.db import models
+from django.utils import timezone
+
+# Assuming you have an Episode model already defined as follows:
+# class Episode(models.Model):
+#     custom_id = models.CharField(max_length=36, primary_key=True, ...)
+
+class EpisodeProcessingJob(models.Model):
+    # A foreign key to the Episode model, assuming 'custom_id' is the primary key field of the Episode model
+    episode = models.ForeignKey('Episode', on_delete=models.CASCADE, to_field='custom_id')
+    
+    file_name = models.CharField(max_length=255)
+    start_time = models.DateTimeField(default=timezone.now)
+    stop_time = models.DateTimeField(null=True, blank=True)
+    
+    # You can use choices to define a set of fixed values for completion status
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+    completion_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    aws_transaction_id = models.CharField(max_length=255, blank=True, null=True)
+    errors = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Processing Job for {self.episode.custom_id}"
+
+    # Additional methods, if needed
