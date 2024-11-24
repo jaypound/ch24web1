@@ -20,31 +20,46 @@
                         <p class="card-text">Episode Number: {{ episode.episode_number }}</p>
                         <p class="card-text">Episode Description: {{ episode.description }}</p>
                         <p class="card-text">Created by: {{ episode.created_by }}</p>
-                        <p class="card-text">File Name: {{ episode.file_name }}</p>
-
-                        <p>
-                            <form method="post" action="{% url 'upload_episode' episode.custom_id %}">
-                                {% csrf_token %}
-                                {% if not episode.file_name %}
-                                    <button type="submit" class="btn btn-primary">Upload Media</button>
-                                {% else %}
-                                    <button type="submit" class="btn btn-outline-secondary">Upload Media</button>
-                                {% endif %}
-                            </form>
-                        </p>
-                        <p><a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update Metadata</a></p>
-                        
-                        {% if episode.file_name %}
-                            {% if episode.has_mediainfo_errors %}
-                                <!-- Button turns red when there are MediaInfo errors -->
-                                <p><a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-danger">View Media Info</a></p>
-                            {% else %}
-                                <!-- Default button appearance -->
-                                <p><a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary">View Media Info</a></p>
-                            {% endif %}
-                            <p><a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary">View Episode</a></p>
-                        {% endif %}
+                        <p class="card-text">File Name: {{ episode.file_name }}</p> 
                     </div>
+                    <div class="card-footer">
+                        <div class="d-flex flex-wrap">
+                            <form method="post" action="{% url 'upload_episode' episode.custom_id %}" class="me-2">
+                                {% csrf_token %}
+
+                                {% if episode.file_name %}
+                                
+                                    {% if not episode.has_mediainfo_errors %}
+
+                                        <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary me-2">View Episode</a>
+
+                                        <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary me-2">View Media Info</a>
+
+                                    {% else %}
+
+                                        <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-danger me-2">View Media Info</a>
+                                        
+                                    {% endif %}
+    
+                                {% endif %}
+
+                                {% if not episode.file_name %}
+
+                                    <button type="submit" class="btn btn-primary me-2">Upload Media</button>
+
+                                {% else %}
+
+                                    <button type="submit" class="btn btn-outline-secondary me-2">Upload Media</button>
+
+                                {% endif %}
+                            
+                            <a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary me-2">Update Metadata</a>
+                            
+                            </form>
+
+                        </div>
+                    </div>
+                            
                 </div>
             {% endfor %}
             </ul>

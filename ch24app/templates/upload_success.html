@@ -1,35 +1,54 @@
 {% extends "base.html" %} 
 {% block title %} Upload Success {% endblock %} 
 {% block content %}
-<br/><br/>
+
 <div class="shadow p-4 mb-5 bg-body rounded">
+    <br/>
     <h1>Episode Uploaded</h1>
-    <br/><br/>
-    Episode Uploaded Successfully!
-    <br/><br/><br/>
-    {% if episode and episode.file_name %}
-        {% if episode.has_mediainfo_errors %}
-            <!-- Button turns red when there are MediaInfo errors -->
+    <br/>
 
-                <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-danger btn-lg px-3 gap-3">
-                    Media Info
-                </a>
+    <div class="card mt-4">
+        <div class="card-header">
 
-        {% else %}
-            <!-- Default button appearance -->
-            <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary btn-lg px-3 gap-3">View Episode</a>
-            <br/><br/>
-            <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary btn-lg px-3 gap-3">View Media Info</a>
+            <h5 class="card-title">Episode Title: {{ episode.title }}</h5>
 
-        {% endif %}
-    {% endif %}
-    <br/><br/>
-    <a href="{% url 'my-episodes' %}">
-        <button type="button" class="btn btn-outline-secondary btn-lg px-3 gap-3">My Episodes</button>
-    </a>
-    <br/><br/>
-    <a href="{% url 'my-programs' %}">
-        <button type="button" class="btn btn-outline-secondary btn-lg px-3 gap-3">My Programs</button>
-    </a>
+        </div>
+
+        <div class="card-body">
+            <br/>
+            <p>Episode Uploaded Successfully!</p>
+
+        </div>
+
+        <div class="card-footer">
+            <div class="d-flex flex-wrap gap-2">
+                {% if episode.file_name %}
+                    {% if not episode.has_mediainfo_errors %}
+                        <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary ">View Episode</a>
+                        <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary">View Media Info</a>
+                    {% else %}
+                        <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-danger">View Media Info</a>
+                    {% endif %}
+                {% endif %}
+
+                {% if not episode.file_name %}
+                    <form method="post" action="{% url 'upload_episode' episode.custom_id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Upload Media</button>
+                    </form>
+                {% else %}
+                    <form method="post" action="{% url 'upload_episode' episode.custom_id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-secondary">Upload Media</button>
+                    </form>
+                {% endif %}
+
+                <a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update Metadata</a>
+                <!-- <a href="{% url 'my-episodes' %}" class="btn btn-outline-secondary">My Episodes</a>
+                <a href="{% url 'my-programs' %}" class="btn btn-outline-secondary">My Programs</a> -->
+            </div>
+        </div>
+    </div>
 </div>
+
 {% endblock %}
