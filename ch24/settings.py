@@ -44,7 +44,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '3.80.106.246', '3.88.237.43', '0.0.0.0', '18.209.20.150']
+ALLOWED_HOSTS = ['127.0.0.1', '3.80.106.246', '3.88.237.43', '0.0.0.0', '18.209.20.150', '18.116.97.242']
 
 
 TIME_ZONE = 'America/New_York'
