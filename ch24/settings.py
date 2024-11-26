@@ -44,7 +44,15 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '3.80.106.246', '3.88.237.43', '0.0.0.0', '18.209.20.150', '18.116.97.242','atlanta24communitymediatest.com','www.atlanta24communitymediatest.com','atlanta24communitymedia.com','www.atlanta24communitymedia.com']
+ALLOWED_HOSTS = ['127.0.0.1', 
+                 '18.116.97.242',
+                 '3.88.237.43', 
+                 '3.90.216.73',
+                 '0.0.0.0', 
+                 'atlanta24communitymediatest.com',
+                 'www.atlanta24communitymediatest.com',
+                 'atlanta24communitymedia.com',
+                 'www.atlanta24communitymedia.com']
 
 
 TIME_ZONE = 'America/New_York'
