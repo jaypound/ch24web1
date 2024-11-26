@@ -41,19 +41,30 @@ AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
 # SECRET_KEY = 'django-inseZcure-cuull-)qb=75#bl4pp7ov=9&)3poli9m)z3jfxijz%@376c*b#'
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 
+DJANGO_ENV = env('DJANGO_ENV')
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 
                  '18.116.97.242',
                  '3.88.237.43', 
                  '3.90.216.73',
                  '0.0.0.0', 
-                 'atlanta24communitymediatest.com',
-                 'www.atlanta24communitymediatest.com',
-                 'atlanta24communitymedia.com',
-                 'www.atlanta24communitymedia.com']
+]
 
+if DJANGO_ENV == 'production':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # Add your production domain to ALLOWED_HOSTS
+    ALLOWED_HOSTS = [
+        'atlanta24communitymedia.com',
+        'www.atlanta24communitymedia.com',
+        'atlanta24communitymediatest.com',
+        'www.atlanta24communitymediatest.com',
+    ]
 
 TIME_ZONE = 'America/New_York'
 
@@ -257,3 +268,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SECURE_SSL_REDIRECT = True
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://atlanta24communitymedia.com',
+    'https://www.atlanta24communitymedia.com',
+    'https://atlanta24communitymediatest.com',
+    'https://www.atlanta24communitymediatest.com',
+]
