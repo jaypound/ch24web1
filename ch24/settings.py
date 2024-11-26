@@ -63,7 +63,7 @@ MEDIA_ROOT = '/tmp'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # URL to use when referring to static files located in STATIC_ROOT
-STATIC_URL = '/staticfiles/'
+STATIC_URL = '/static/'
 
 # Additional directories to look for static files
 STATICFILES_DIRS = [
@@ -253,7 +253,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
