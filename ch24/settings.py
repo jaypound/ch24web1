@@ -50,6 +50,7 @@ ALLOWED_HOSTS = ['127.0.0.1',
                  '3.88.237.43', 
                  '3.90.216.73',
                  '0.0.0.0', 
+                 'localhost',
                 'atlanta24communitymedia.com',
                 'www.atlanta24communitymedia.com',
                 'atlanta24communitymediatest.com',
@@ -269,13 +270,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
 
-# CSRF_TRUSTED_ORIGINS = [
-#     'https://atlanta24communitymedia.com',
-#     'https://www.atlanta24communitymedia.com',
-#     'https://atlanta24communitymediatest.com',
-#     'https://www.atlanta24communitymediatest.com',
-# ]
+CSRF_TRUSTED_ORIGINS = [
+    'https://atlanta24communitymedia.com',
+    'https://www.atlanta24communitymedia.com',
+    'https://atlanta24communitymediatest.com',
+    'https://www.atlanta24communitymediatest.com',
+]
