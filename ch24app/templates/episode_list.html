@@ -22,9 +22,46 @@
               <p class="card-text">Episode Description: {{ episode.description }}</p>
               <p class="card-text">Created by: {{ episode.created_by }}</p>
               <p class="card-text">File Name: {{ episode.file_name }}</p>
-              <p><a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary">Update</a></p>
-              <p><a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary">View Episode</a></p>
             </div>
+
+            <div class="card-footer">
+                <div class="d-flex flex-wrap">
+                    <form method="post" action="{% url 'upload_episode' episode.custom_id %}" class="me-2">
+                        {% csrf_token %}
+
+                        {% if episode.file_name %}
+                        
+                            {% if not episode.has_mediainfo_errors %}
+
+                                <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary me-2">View Episode</a>
+
+                                <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary me-2">View Media Info</a>
+
+                            {% else %}
+
+                                <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-danger me-2">View Media Info</a>
+                                
+                            {% endif %}
+
+                        {% endif %}
+
+                        {% if not episode.file_name %}
+
+                            <button type="submit" class="btn btn-primary me-2">Upload Media</button>
+
+                        {% else %}
+
+                            <button type="submit" class="btn btn-outline-secondary me-2">Upload Media</button>
+
+                        {% endif %}
+                    
+                    <a href="{% url 'update-episode' episode.custom_id %}" class="btn btn-outline-secondary me-2">Update Metadata</a>
+                    
+                    </form>
+
+                </div>
+            </div>
+
           </div>
 
         {% endfor %}

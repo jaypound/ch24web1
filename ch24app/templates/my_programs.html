@@ -21,14 +21,10 @@
               <p class="card-text">Genre: {{ program.genre }}</p>
               <p class="card-text">Rating: {{ program.age_rating }}</p>
               <p class="card-text">Created by: {{ program.created_by }}</p>
-             
-              
             </div>
             <div class="card-footer">
                 <div class="d-flex flex-wrap">
                 <a href="{% url 'update-program' program.custom_id %}" class="btn btn-outline-secondary me-2">Update Metadata</a>
-                <!-- <a href="{% url 'my-episodes' %}" class="btn btn-outline-secondary me-2">My Episodes</a> -->
-            
                 </div>
             </div>
           </div>

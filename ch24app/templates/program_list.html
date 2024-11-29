@@ -3,41 +3,51 @@
 <br/><br/>
 <div class="shadow p-4 mb-5 bg-body rounded">
     <h1>All Programs</h1>
-{% if user.is_authenticated %}
-    {% if program_list %}
-        <ul>
-        {% for program in program_list %}
+    {% if user.is_authenticated %}
 
-        <br/>
-        <div class="card">
-            <div class="card-header"">
-                <h5 class="card-title">Program Name: {{ program.program_name }}</h5>
+        {% if program_list %}
+            <ul>
+            {% for program in program_list %}
+
+            <br/>
+            <div class="card">
+                <div class="card-header"">
+                    <h5 class="card-title">Program Name: {{ program.program_name }}</h5>
+                </div>
+
+                <div class="card-body">
+                    <p class="card-text">Channel Name: {{ program.creator.channel_name}}</p>
+                    <p class="card-text">Creator: {{ program.creator.first_name }} {{ program.creator.last_name }}</p>
+                    <p class="card-text">Program Name: {{ program.program_name }}</p>
+                    <p class="card-text">Description: {{ program.description }}</p>
+                    <p class="card-text">Genre: {{ program.genre }}</p>
+                    <p class="card-text">Rating: {{ program.age_rating }}</p>
+                    <p class="card-text">Created by: {{ program.created_by }}</p>
+                </div>
+
+                <div class="card-footer">
+                    
+                    <div class="d-flex flex-wrap">
+                    <a href="{% url 'update-program' program.custom_id %}" class="btn btn-outline-secondary me-2">Update Metadata</a>
+                    </div>
+                
+
             </div>
-            <div class="card-body">
-              <p class="card-text">Channel Name: {{ program.creator.channel_name}}</p>
-              <p class="card-text">Creator: {{ program.creator.first_name }} {{ program.creator.last_name }}</p>
-              <p class="card-text">Program Name: {{ program.program_name }}</p>
-              <p class="card-text">Description: {{ program.description }}</p>
-              <p class="card-text">Genre: {{ program.genre }}</p>
-              <p class="card-text">Rating: {{ program.age_rating }}</p>
-              <p class="card-text">Created by: {{ program.created_by }}</p>
-              <a href="{% url 'update-program' program.custom_id %}" class="btn btn-outline-secondary">Update</a>
-            </div>
-          </div>
 
+        </div>
 
-        {% endfor %}
-        </ul>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No programs are available.</p>
+        {% endif %}
+
     {% else %}
-        <p>No programs are available.</p>
-
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            You must be logged in to view this page
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     {% endif %}
-{% else %}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        You must be logged in to view this page
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-{% endif %}
 
 </div>
     {% endblock %}
