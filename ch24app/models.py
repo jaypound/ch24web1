@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 import uuid
 # from django.contrib.postgres.fields import JSONField
 import json
+from django.contrib.postgres.fields import ArrayField
 
-# models.py
+# models.pyß
 
 TIME_SLOTS_CHOICES = [
     ('overnight', 'Overnight (2 AM - 6 AM)'),
@@ -52,11 +53,6 @@ GENRE_CHOICES = [
     ('Cooking', 'Cooking'),
 ]
 
-REPEAT_CHOICES = [
-    ('once', 'Once'),
-    ('weekly', 'Weekly'),
-    ('specific', 'Specific Day / Time Slot'),
-]
 
 # Create your models here.class Creator()
 class Creator(models.Model):
@@ -147,7 +143,7 @@ class Episode(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     file_name = models.TextField('File Name', blank=True)
-    has_mediainfo_errors = models.BooleanField(default=False, db_index=True)
+    has_mediainfo_errors = models.BooleanField(default=False, db_index=True) 
 
     def save(self, *args, **kwargs):
         # Assign a unique ID if not already set
@@ -157,6 +153,38 @@ class Episode(models.Model):
 
     def __str__(self):
         return f"{self.program.program_name} - Episode {self.episode_number}: {self.title}"
+
+
+class Transcription(models.Model):
+    custom_id = models.CharField(
+        max_length=36, 
+        primary_key=True,
+        default=uuid.uuid4,  # Generates a unique UUID for each instance
+        editable=False)
+    episode = models.ForeignKey(Episode, on_delete=models.CASCADE)
+    transcription = models.TextField('Transcription', blank=True)
+    ai_summary = models.TextField('AI Summary', blank=True)
+    ai_genre = models.CharField('AI Generated Genre', max_length=50, blank=True)
+    ai_age_rating = models.CharField('AI Generated Age Rating', max_length=10, blank=True)
+    ai_topics = ArrayField(
+        models.CharField(max_length=100),
+        blank=True,
+        default=list
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_scheduled = models.DateTimeField('Last Scheduled Time', null=True, blank=True)
+    last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True)
+    schedule_count = models.IntegerField('Schedule Count', default=0)
+
+    def save(self, *args, **kwargs):
+        # Assign a unique ID if not already set
+        if not self.custom_id:
+            self.custom_id = str(uuid.uuid4())
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.episode.program.program_name} - Episode {self.episode.episode_number}: {self.episode.title}"
 
 
 class EpisodeMediaInfo(models.Model):
