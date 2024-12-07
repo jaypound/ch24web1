@@ -136,7 +136,6 @@ class Episode(models.Model):
     episode_number = models.IntegerField('Episode Number')
     title = models.CharField('Title', max_length=255)
     description = models.TextField('Description', blank=True)
-    # repeat_preferences = models.CharField('Repeat Preferences (e.g. daily, weekly, or specific day/time)', max_length=255, blank=True)
     start_date = models.DateField('Start Date', null=True, blank=True)
     end_date = models.DateField('End Date', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -144,8 +143,8 @@ class Episode(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     file_name = models.TextField('File Name', blank=True)
     has_mediainfo_errors = models.BooleanField(default=False, db_index=True) 
-    last_scheduled = models.DateTimeField('Last Scheduled Time', null=True, blank=True)
-    last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True)
+    last_scheduled = models.DateTimeField('Last Scheduled Time', null=True, blank=True, null=True)
+    last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True, null=True)
     schedule_count = models.IntegerField('Schedule Count', default=0)
 
     def save(self, *args, **kwargs):
@@ -203,16 +202,12 @@ class Analysis(models.Model):
     def __str__(self):
         return f"Analysis {self.custom_id} for Episode {self.episode.custom_id}"
 
-
-
     def save(self, *args, **kwargs):
         # Assign a unique ID if not already set
         if not self.custom_id:
             self.custom_id = str(uuid.uuid4())
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.episode.program.program_name} - Episode {self.episode.episode_number}: {self.episode.title}"
 
 
 class EpisodeMediaInfo(models.Model):
