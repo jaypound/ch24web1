@@ -145,7 +145,7 @@ class Episode(models.Model):
     has_mediainfo_errors = models.BooleanField(default=False, db_index=True) 
     last_scheduled = models.DateTimeField('Last Scheduled Time', blank=True, null=True)
     last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True, null=True)
-    schedule_count = models.IntegerField('Schedule Count', default=0)
+    schedule_count = models.IntegerField('Schedule Count', default=0, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         # Assign a unique ID if not already set
