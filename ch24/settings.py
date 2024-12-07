@@ -29,8 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # False if not in os.environ because of casting above
 DEBUG = env('DEBUG')
-# Raises Django's ImproperlyConfigured
-# exception if SECRET_KEY not in os.environ
+
 AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
 # print('AWS_STORAGE_BUCKET_NAME', AWS_STORAGE_BUCKET_NAME)
 
@@ -38,7 +37,6 @@ AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-inseZcure-cuull-)qb=75#bl4pp7ov=9&)3poli9m)z3jfxijz%@376c*b#'
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 DJANGO_ENV = env('DJANGO_ENV')
