@@ -144,6 +144,9 @@ class Episode(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     file_name = models.TextField('File Name', blank=True)
     has_mediainfo_errors = models.BooleanField(default=False, db_index=True) 
+    last_scheduled = models.DateTimeField('Last Scheduled Time', null=True, blank=True)
+    last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True)
+    schedule_count = models.IntegerField('Schedule Count', default=0)
 
     def save(self, *args, **kwargs):
         # Assign a unique ID if not already set
@@ -154,28 +157,53 @@ class Episode(models.Model):
     def __str__(self):
         return f"{self.program.program_name} - Episode {self.episode_number}: {self.title}"
 
-
-class Transcription(models.Model):
+# Renaming Transcription to Analysis
+class Analysis(models.Model):
     custom_id = models.CharField(
         max_length=36, 
         primary_key=True,
-        default=uuid.uuid4,  # Generates a unique UUID for each instance
-        editable=False)
-    episode = models.ForeignKey(Episode, on_delete=models.CASCADE)
+        default=uuid.uuid4,
+        editable=False
+    )
+    episode = models.ForeignKey(Episode, on_delete=models.CASCADE, related_name='analyses')
     transcription = models.TextField('Transcription', blank=True)
     ai_summary = models.TextField('AI Summary', blank=True)
-    ai_genre = models.CharField('AI Generated Genre', max_length=50, blank=True)
-    ai_age_rating = models.CharField('AI Generated Age Rating', max_length=10, blank=True)
+    ai_genre = models.CharField(
+        'AI Generated Genre',
+        max_length=50,
+        choices=GENRE_CHOICES,
+        blank=True
+    )
+    ai_age_rating = models.CharField(
+        'AI Generated Age Rating',
+        max_length=10,
+        choices=AGE_RATING_CHOICES,
+        blank=True
+    )
     ai_topics = ArrayField(
         models.CharField(max_length=100),
         blank=True,
         default=list
     )
+    ai_time_slots_recommended = models.CharField(
+        'Time Slots Requested',
+        max_length=255,
+        blank=True
+    )
+    audience_engagement_score = models.IntegerField('Audience Engagement Score', blank=True, null=True)
+    audience_engagement_reasons = models.TextField('Audience Engagement Reasons', blank=True)
+    use_analysis = models.BooleanField(
+        'Use This Analysis',
+        default=True,
+        help_text='Indicates whether this analysis should be considered when scheduling.'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    last_scheduled = models.DateTimeField('Last Scheduled Time', null=True, blank=True)
-    last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True)
-    schedule_count = models.IntegerField('Schedule Count', default=0)
+
+    def __str__(self):
+        return f"Analysis {self.custom_id} for Episode {self.episode.custom_id}"
+
+
 
     def save(self, *args, **kwargs):
         # Assign a unique ID if not already set
