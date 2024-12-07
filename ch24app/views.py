@@ -332,8 +332,8 @@ def upload_episode(request, episode_id):
             bucket_name = AWS_STORAGE_BUCKET_NAME
 
             # Generate a unique file name/path
-            unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
-
+            # unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
+            unique_file_name = f'{episode.custom_id}/{file_name}'
             # Generate the pre-signed URL
             presigned_url = create_presigned_url(bucket_name, unique_file_name)
 
