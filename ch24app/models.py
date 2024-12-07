@@ -143,7 +143,7 @@ class Episode(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     file_name = models.TextField('File Name', blank=True)
     has_mediainfo_errors = models.BooleanField(default=False, db_index=True) 
-    last_scheduled = models.DateTimeField('Last Scheduled Time', null=True, blank=True, null=True)
+    last_scheduled = models.DateTimeField('Last Scheduled Time', blank=True, null=True)
     last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True, null=True)
     schedule_count = models.IntegerField('Schedule Count', default=0)
 
