@@ -73,6 +73,10 @@ TIME_ZONE = 'America/New_York'
 
 MEDIA_ROOT = '/tmp'
 
+if DJANGO_ENV == 'production':
+    MEDIA_ROOT = '/mnt/data/tmp'
+
+
 # Add STATIC_ROOT setting
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
