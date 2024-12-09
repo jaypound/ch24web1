@@ -147,56 +147,114 @@ LOGGING = {
 
 if DJANGO_ENV == 'production':
     LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,  # Keeps existing loggers active
-    'formatters': {
-        'standard': {
-            'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+        'version': 1,
+        'disable_existing_loggers': False,  # Keeps existing loggers active
+        'formatters': {
+            'standard': {
+                'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+            },
         },
-    },
-    'handlers': {
-        'console': {
-            'level': 'WARNING',  # Adjust as needed
-            'class': 'logging.StreamHandler',
-            'formatter': 'standard',
+        'handlers': {
+            'console': {
+                'level': 'WARNING',  # Adjust as needed
+                'class': 'logging.StreamHandler',
+                'formatter': 'standard',
+            },
+            'file': {
+                'level': 'INFO',  # Captures INFO and above
+                'class': 'logging.handlers.RotatingFileHandler',
+                'formatter': 'standard',
+                'filename': '/mnt/data/logs/django.log',  # Log file on EBS
+                'maxBytes': 5 * 1024 * 1024,  # 5 MB
+                'backupCount': 5,
+            },
         },
-        'file': {
-            'level': 'INFO',  # Adjust as needed
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'standard',
-            'filename': '/mnt/data/logs/django.log',  # Path to log file
-            'maxBytes': 5 * 1024 * 1024,  # 5 MB
-            'backupCount': 5,  # Number of backups to keep
-        },
-    },
-    'loggers': {
-        '': {  # Root logger
-            'handlers': ['console', 'file'],  # Logs to both console and file
-            'level': 'INFO',  # Minimum log level
-            'propagate': True,
-        },
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': 'ERROR',  # Only log errors from Django
-            'propagate': False,
-        },
-        'django.request': {
-            'handlers': ['console', 'file'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'django.db.backends': {
-            'handlers': ['console', 'file'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'urllib3': {
-            'handlers': ['console', 'file'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
+        'loggers': {
+            '': {  # Root logger
+                'handlers': ['console', 'file'],  # Logs to both console and file
+                'level': 'INFO',  # Minimum log level
+                'propagate': True,
+            },
+            'django': {
+                'handlers': ['console', 'file'],
+                'level': 'ERROR',  # Only log errors from Django
+                'propagate': False,
+            },
+            'django.request': {
+                'handlers': ['console', 'file'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            'django.db.backends': {
+                'handlers': ['console', 'file'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            'urllib3': {
+                'handlers': ['console', 'file'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            # Add your application's logger if necessary
+            'your_app_name': {  # Replace with your actual app name
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+        }
     }
-}
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,  # Keeps existing loggers active
+#     'formatters': {
+#         'standard': {
+#             'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'WARNING',  # Adjust as needed
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'standard',
+#         },
+#         'file': {
+#             'level': 'INFO',  # Adjust as needed
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'formatter': 'standard',
+#             'filename': '/mnt/data/logs/django.log',  # Path to log file
+#             'maxBytes': 5 * 1024 * 1024,  # 5 MB
+#             'backupCount': 5,  # Number of backups to keep
+#         },
+#     },
+#     'loggers': {
+#         '': {  # Root logger
+#             'handlers': ['console', 'file'],  # Logs to both console and file
+#             'level': 'INFO',  # Minimum log level
+#             'propagate': True,
+#         },
+#         'django': {
+#             'handlers': ['console', 'file'],
+#             'level': 'ERROR',  # Only log errors from Django
+#             'propagate': False,
+#         },
+#         'django.request': {
+#             'handlers': ['console', 'file'],
+#             'level': 'ERROR',
+#             'propagate': False,
+#         },
+#         'django.db.backends': {
+#             'handlers': ['console', 'file'],
+#             'level': 'ERROR',
+#             'propagate': False,
+#         },
+#         'urllib3': {
+#             'handlers': ['console', 'file'],
+#             'level': 'ERROR',
+#             'propagate': False,
+#         },
+#     }
+# }
 
 # Application definition
 
