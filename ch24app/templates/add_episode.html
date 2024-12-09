@@ -7,13 +7,23 @@
 <br/>
 {% if submitted %}
 
-    Episode Added Successfully!
-    <br/><br/><br/>
-    <a href="{% url 'add-episode' %}" class="btn btn-primary">Add Another Episode</a>
-    <br/><br/>
-    <a href="{% url 'add-program' %}" class="btn btn-primary">Add Another Program</a>
+    <p>Episode Added Successfully!</p>
+    <br/>
+    <div class="card-footer">
+        <div class="d-flex flex-wrap">
+            <!-- Upload Media Button -->
+            <form method="post" action="{% url 'upload_episode' episode.custom_id %}" class="me-2">
+                {% csrf_token %}
+                <input type="submit" value="Upload Media" class="btn btn-secondary">
+            </form>
+            <!-- Add Another Episode Button -->
+            <a href="{% url 'add-episode' %}" class="btn btn-primary me-2">Add Another Episode</a>
+            <!-- Add Another Program Button -->
+            <a href="{% url 'add-program' %}" class="btn btn-primary me-2">Add Another Program</a>
+        </div>
+    </div>
 
-    {% else %}
+{% else %}
 
     {% if user.is_authenticated %}
     <form action="" method="POST">
@@ -31,4 +41,3 @@
 </div>
 {% endif %}
 {% endblock %}
-

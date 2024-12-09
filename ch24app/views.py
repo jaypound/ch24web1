@@ -195,32 +195,64 @@ def no_creator_found(request):
 
 
 def add_episode(request):
-    submitted = False
     if request.method == 'POST':
         form = EpisodeForm(request.POST, user=request.user)
         if form.is_valid():
-            instance = form.save(commit=False)
-            instance.created_by = request.user
-            instance.save()
-            return HttpResponseRedirect('/add_episode?submitted=True')
+            episode = form.save(commit=False)
+            episode.created_by = request.user
+            episode.save()
+            # Redirect with episode_id in query parameters
+            return HttpResponseRedirect(f'{reverse("add-episode")}?submitted=True&episode_id={episode.custom_id}')
     else:
-        # Get the last program added by the current user using 'created_at'
         # Prepare initial data for the form
         initial_data = {}
         last_program = Program.objects.filter(created_by=request.user).order_by('-created_at').first()
         if not last_program:
             messages.error(request, "You need to add a program before adding episodes.")
             program_form = ProgramForm(user=request.user)
-            submitted = False
-            return render(request, 'add_program.html', {'form': program_form, 'submitted': submitted})        
+            return render(request, 'add_program.html', {'form': program_form, 'submitted': False})        
 
         if last_program:
             initial_data['program'] = last_program  # Pre-fill the 'program' field
 
         form = EpisodeForm(user=request.user, initial=initial_data)
-        if 'submitted' in request.GET:
-            submitted = True
-    return render(request, 'add_episode.html', {'form': form, 'submitted': submitted})
+    
+    submitted = 'submitted' in request.GET
+    episode = None
+    if submitted and 'episode_id' in request.GET:
+        episode_id = request.GET.get('episode_id')
+        episode = get_object_or_404(Episode, custom_id=episode_id)
+    
+    return render(request, 'add_episode.html', {'form': form, 'submitted': submitted, 'episode': episode})
+
+
+# def add_episode(request):
+#     submitted = False
+#     if request.method == 'POST':
+#         form = EpisodeForm(request.POST, user=request.user)
+#         if form.is_valid():
+#             instance = form.save(commit=False)
+#             instance.created_by = request.user
+#             instance.save()
+#             return HttpResponseRedirect('/add_episode?submitted=True')
+#     else:
+#         # Get the last program added by the current user using 'created_at'
+#         # Prepare initial data for the form
+#         initial_data = {}
+#         last_program = Program.objects.filter(created_by=request.user).order_by('-created_at').first()
+#         if not last_program:
+#             messages.error(request, "You need to add a program before adding episodes.")
+#             program_form = ProgramForm(user=request.user)
+#             submitted = False
+#             return render(request, 'add_program.html', {'form': program_form, 'submitted': submitted})        
+
+#         if last_program:
+#             initial_data['program'] = last_program  # Pre-fill the 'program' field
+
+#         form = EpisodeForm(user=request.user, initial=initial_data)
+#         if 'submitted' in request.GET:
+#             submitted = True
+#     return render(request, 'add_episode.html', {'form': form, 'submitted': submitted})
 
 def update_creator(request, creator_id):
     creator = Creator.objects.get(custom_id=creator_id)  # Changed from id to custom_id
