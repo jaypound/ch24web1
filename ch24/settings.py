@@ -44,11 +44,12 @@ DJANGO_ENV = env('DJANGO_ENV')
 # SECURITY WARNING: don't run with debug turned on in production!
 
 ALLOWED_HOSTS = ['127.0.0.1', 
-                 '18.116.97.242',
-                 '3.88.237.43', 
-                 '3.90.216.73',
-                 '0.0.0.0', 
-                 'localhost',
+                '18.116.97.242',
+                '3.88.237.43', 
+                '3.90.216.73',
+                '52.23.245.241',
+                '0.0.0.0', 
+                'localhost',
                 'atlanta24communitymedia.com',
                 'www.atlanta24communitymedia.com',
                 'atlanta24communitymediatest.com',
