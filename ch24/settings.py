@@ -25,6 +25,8 @@ env = environ.Env(
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+print('BASE_DIR', BASE_DIR)
+
 # Take environment variables from .env file
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # False if not in os.environ because of casting above
@@ -39,7 +41,8 @@ AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 
-DJANGO_ENV = env('DJANGO_ENV')
+APPLICATION_ENV = env('APPLICATION_ENV')
+print('APPLICATION_ENV', APPLICATION_ENV)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
@@ -56,25 +59,11 @@ ALLOWED_HOSTS = ['127.0.0.1',
                 'www.atlanta24communitymediatest.com',
 ]
 
-# if DJANGO_ENV == 'production':
-#     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-#     SECURE_SSL_REDIRECT = True
-#     SESSION_COOKIE_SECURE = True
-#     CSRF_COOKIE_SECURE = True
-
-#     # Add your production domain to ALLOWED_HOSTS
-#     ALLOWED_HOSTS = [
-#         'atlanta24communitymedia.com',
-#         'www.atlanta24communitymedia.com',
-#         'atlanta24communitymediatest.com',
-#         'www.atlanta24communitymediatest.com',
-#     ]
-
 TIME_ZONE = 'America/New_York'
 
 MEDIA_ROOT = '/tmp'
 
-if DJANGO_ENV == 'production':
+if APPLICATION_ENV == 'production':
     MEDIA_ROOT = '/mnt/data/media/'
     MEDIA_URL = '/media/'
 
@@ -146,7 +135,7 @@ LOGGING = {
     }
 }
 
-if DJANGO_ENV == 'production':
+if APPLICATION_ENV == 'production':
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,  # Keeps existing loggers active
