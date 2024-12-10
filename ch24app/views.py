@@ -594,3 +594,8 @@ def view_episode(request, episode_id):
         messages.error(request, "Unable to generate view URL.")
         return redirect('error_page')  # Replace with your actual error page
 
+
+from django.http import HttpResponse
+
+def health_check(request):
+    return HttpResponse("OK", status=200)
