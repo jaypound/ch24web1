@@ -196,6 +196,12 @@ class Analysis(models.Model):
         default=True,
         help_text='Indicates whether this analysis should be considered when scheduling.'
     )
+    prohibited_content = ArrayField(
+        models.CharField(max_length=100),
+        blank=True,
+        default=list
+    )
+    prohibited_content_reasons = models.TextField('Prohibited Content Reasons', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
