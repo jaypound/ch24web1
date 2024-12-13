@@ -78,51 +78,6 @@ class ProgramForm(ModelForm):
             instance.save()
         return instance
 
-# class ProgramForm(ModelForm):
-#     time_slots_requested = forms.MultipleChoiceField(
-#         choices=TIME_SLOTS_CHOICES,
-#         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-#         required=False,
-#         label='Time Slots Requested',
-#     )
-
-#     class Meta:
-#         model = Program
-#         fields = ['program_name', 'description', 'genre', 'age_rating', 'time_slots_requested']
-#         labels = {
-#             'program_name': '',
-#             'description': '',
-#             'genre': '',
-#             'age_rating': '',
-#             'time_slots_requested': '',
-#         }
-#         widgets = {
-#             'program_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Program Name'}),
-#             # 'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Description'}),
-#             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),  # Set fewer rows
-#             'genre': forms.Select(attrs={'class': 'form-control'}),
-#             'age_rating': forms.Select(attrs={'class': 'form-control'}),
-#             # The widget for 'time_slots_requested' is specified in the field declaration
-#         }
-
-#     def __init__(self, *args, **kwargs):
-#         super(ProgramForm, self).__init__(*args, **kwargs)
-#         # Remove handling of 'creator' since it's no longer in the form
-
-#         # Handle initial values for `time_slots_requested`
-#         if self.instance and self.instance.time_slots_requested:
-#             self.initial['time_slots_requested'] = self.instance.time_slots_requested.split(',')
-
-#     def save(self, commit=True):
-#         instance = super(ProgramForm, self).save(commit=False)
-#         # Get the cleaned data for `time_slots_requested`
-#         time_slots = self.cleaned_data.get('time_slots_requested', [])
-#         # Join the list into a comma-separated string
-#         instance.time_slots_requested = ','.join(time_slots)
-#         if commit:
-#             instance.save()
-#         return instance
-
 
 class EpisodeForm(ModelForm):
     class Meta:

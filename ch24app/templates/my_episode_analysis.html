@@ -18,7 +18,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">{{ form.program.label }}:</label>
-                                <input type="text" readonly class="form-control-plaintext" value="{{ form.program.value }}">
+                                <input type="text" readonly class="form-control-plaintext" value="{{ form.program.program_name }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">{{ form.episode_number.label }}:</label>
@@ -79,7 +79,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.prohibited_content.label }}:</label>
+                            <label class="form-label">Prohibited Content:</label>
                             <p>{{ form.prohibited_content.value|yesno:"Yes,No" }}</p>
                         </div>
 
