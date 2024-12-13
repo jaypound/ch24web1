@@ -1,0 +1,26 @@
+<!-- my_episode_analysis.html -->
+{% extends "base.html" %} 
+{% block title %} Episode Analysis {% endblock %} 
+{% block content %}
+
+<br/><br/>
+<div class="shadow p-4 mb-5 bg-body rounded">    
+<h1>My Channels</h1>
+{% if user.is_authenticated %}
+    <h1>Episode Analysis</h1>
+            
+    <div class="card">
+        <form>
+            {% csrf_token %}
+            {{ form.as_p }}
+        </form>
+    </div>
+
+{% else %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        You must be logged in to view this page
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+</div>
+{% endblock %}

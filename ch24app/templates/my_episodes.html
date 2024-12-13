@@ -35,9 +35,13 @@
 
                                         <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-secondary me-2">View Media Info</a>
 
+                                        <a href="{% url 'episode_analysis' episode.custom_id %}" class="btn btn-outline-secondary me-2">Episode Analysis</a>
+
                                     {% else %}
 
                                         <a href="{% url 'episode_media_info' episode.custom_id %}" class="btn btn-outline-danger me-2">View Media Info</a>
+
+                                        <a href="{% url 'episode_analysis' episode.custom_id %}" class="btn btn-outline-secondary me-2">Episode Analysis</a>
                                         
                                     {% endif %}
     

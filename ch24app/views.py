@@ -157,41 +157,9 @@ def add_program(request):
             submitted = True
     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
 
-# def add_program(request):
-#     submitted = False
-#     if request.method == 'POST':
-#         form = ProgramForm(request.POST, user=request.user)
-#         if form.is_valid():
-#             instance = form.save(commit=False)
-#             instance.created_by = request.user
-#             instance.save()
-#             return HttpResponseRedirect(f'{reverse("add-program")}?submitted=True')
-#     else:
-#         form = ProgramForm(user=request.user)
-#         if 'submitted' in request.GET:
-#             submitted = True
-#     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
-
-# views.py
 
 def no_creator_found(request):
     return render(request, 'no_creator_found.html')
-
-
-# def add_program(request):
-#     submitted = False
-#     if request.method == 'POST':
-#         form = ProgramForm(request.POST, user=request.user)  # Pass user to the form
-#         if form.is_valid():
-#             instance = form.save(commit=False)
-#             instance.created_by = request.user
-#             instance.save()
-#             return HttpResponseRedirect('/add_program?submitted=True')
-#     else:
-#         form = ProgramForm(user=request.user)  # Pass user to the form
-#         if 'submitted' in request.GET:
-#             submitted = True
-#     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
 
 
 def add_episode(request):
@@ -225,34 +193,29 @@ def add_episode(request):
     
     return render(request, 'add_episode.html', {'form': form, 'submitted': submitted, 'episode': episode})
 
+# views.py
 
-# def add_episode(request):
-#     submitted = False
-#     if request.method == 'POST':
-#         form = EpisodeForm(request.POST, user=request.user)
-#         if form.is_valid():
-#             instance = form.save(commit=False)
-#             instance.created_by = request.user
-#             instance.save()
-#             return HttpResponseRedirect('/add_episode?submitted=True')
-#     else:
-#         # Get the last program added by the current user using 'created_at'
-#         # Prepare initial data for the form
-#         initial_data = {}
-#         last_program = Program.objects.filter(created_by=request.user).order_by('-created_at').first()
-#         if not last_program:
-#             messages.error(request, "You need to add a program before adding episodes.")
-#             program_form = ProgramForm(user=request.user)
-#             submitted = False
-#             return render(request, 'add_program.html', {'form': program_form, 'submitted': submitted})        
+from django.shortcuts import render, get_object_or_404
+from .models import Episode
+from .forms import EpisodeAnalysisForm
 
-#         if last_program:
-#             initial_data['program'] = last_program  # Pre-fill the 'program' field
+def episode_analysis_view(request, custom_id):
+    """
+    View to display the analysis of a specific episode in read-only mode.
+    """
+    # Fetch the Episode instance based on the custom_id
+    episode = get_object_or_404(Episode, custom_id=custom_id)
+    
+    # Instantiate the form with the Episode instance
+    form = EpisodeAnalysisForm(instance=episode)
+    
+    context = {
+        'form': form,
+        'episode': episode,  # Optional: Pass the episode object if needed in the template
+    }
+    
+    return render(request, 'my_episode_analysis.html', context)
 
-#         form = EpisodeForm(user=request.user, initial=initial_data)
-#         if 'submitted' in request.GET:
-#             submitted = True
-#     return render(request, 'add_episode.html', {'form': form, 'submitted': submitted})
 
 def update_creator(request, creator_id):
     creator = Creator.objects.get(custom_id=creator_id)  # Changed from id to custom_id

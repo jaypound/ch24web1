@@ -155,6 +155,43 @@ class EpisodeForm(ModelForm):
                 print('No programs found')
 
 
+# forms.py
+
+from django import forms
+from .models import Episode
+
+class EpisodeAnalysisForm(forms.ModelForm):
+    class Meta:
+        model = Episode
+        fields = [
+            'program',
+            'episode_number',
+            'title',
+            'has_mediainfo_errors',
+            'transcription',
+            'ai_summary',
+            'ai_genre',
+            'ai_age_rating',
+            'ai_topics',
+            'ai_time_slots_recommended',
+            'audience_engagement_score',
+            'audience_engagement_reasons',
+            'prohibited_content',
+            'prohibited_content_reasons',
+            'ready_for_air',
+            'last_timeslot',
+            'last_scheduled',
+            'schedule_count',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super(EpisodeAnalysisForm, self).__init__(*args, **kwargs)
+        # Disable all fields to make them read-only
+        for field in self.fields.values():
+            field.disabled = True
+
+
+
 
 class EpisodeUpdateForm(ModelForm):
     class Meta:

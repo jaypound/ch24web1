@@ -31,6 +31,11 @@ urlpatterns = [
     path('support/ticket/<int:ticket_no>/', views.ticket_detail, name='ticket_detail'),
     path('support/my_tickets/', views.my_tickets, name='my_tickets'),
     path('health/', health_check, name='health_check'),
+    path(
+        'episodes/<str:custom_id>/analysis/',
+        views.episode_analysis_view,
+        name='episode_analysis'
+    ),
 ]
 
 
