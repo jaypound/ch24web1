@@ -143,28 +143,6 @@ class Episode(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     file_name = models.TextField('File Name', blank=True)
     has_mediainfo_errors = models.BooleanField(default=False, db_index=True) 
-    last_scheduled = models.DateTimeField('Last Scheduled Time', blank=True, null=True)
-    last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True, null=True)
-    schedule_count = models.IntegerField('Schedule Count', default=0, blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        # Assign a unique ID if not already set
-        if not self.custom_id:
-            self.custom_id = str(uuid.uuid4())
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.program.program_name} - Episode {self.episode_number}: {self.title}"
-
-# Renaming Transcription to Analysis
-class Analysis(models.Model):
-    custom_id = models.CharField(
-        max_length=36, 
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
-    episode = models.ForeignKey(Episode, on_delete=models.CASCADE, related_name='analyses')
     transcription = models.TextField('Transcription', blank=True)
     ai_summary = models.TextField('AI Summary', blank=True)
     ai_genre = models.CharField(
@@ -191,22 +169,22 @@ class Analysis(models.Model):
     )
     audience_engagement_score = models.IntegerField('Audience Engagement Score', blank=True, null=True)
     audience_engagement_reasons = models.TextField('Audience Engagement Reasons', blank=True)
-    use_analysis = models.BooleanField(
-        'Use This Analysis',
-        default=True,
-        help_text='Indicates whether this analysis should be considered when scheduling.'
-    )
     prohibited_content = ArrayField(
         models.CharField(max_length=100),
         blank=True,
+        null=True,
         default=list
     )
-    prohibited_content_reasons = models.TextField('Prohibited Content Reasons', blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Analysis {self.custom_id} for Episode {self.episode.custom_id}"
+    prohibited_content_reasons = models.TextField('Prohibited Content Reasons', blank=True, null=True)
+    ready_for_air = models.BooleanField(
+        'Ready for Air',
+        default=True,
+        db_index=True,
+        help_text='Indicates whether this content is ready for scheduling.'
+    )
+    last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True, null=True)
+    last_scheduled = models.DateTimeField('Last Scheduled Time', blank=True, null=True)
+    schedule_count = models.IntegerField('Schedule Count', default=0, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         # Assign a unique ID if not already set
@@ -214,6 +192,8 @@ class Analysis(models.Model):
             self.custom_id = str(uuid.uuid4())
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.program.program_name} - Episode {self.episode_number}: {self.title}"
 
 
 class EpisodeMediaInfo(models.Model):
