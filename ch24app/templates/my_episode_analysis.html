@@ -21,9 +21,20 @@
                                 <input type="text" readonly class="form-control-plaintext" value="{{ form.episode_number.value }}">
                             </div>
 
-                            <div class="col-md-6mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Has MediaInfo Errors:</label>
                                 <p>{{ form.has_mediainfo_errors.value|yesno:"Yes,No" }}</p>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.ready_for_air.label }}:</label>
+                                <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
+
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.ready_for_air.label }}:</label>
+                                <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
                             </div>
 
                         </div>
@@ -82,11 +93,6 @@
                         <div class="mb-3">
                             <label class="form-label">{{ form.prohibited_content_reasons.label }}:</label>
                             <textarea class="form-control" readonly rows="3">{{ form.prohibited_content_reasons.value }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">{{ form.ready_for_air.label }}:</label>
-                            <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
                         </div>
 
                     </form>
