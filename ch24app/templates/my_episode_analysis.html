@@ -9,11 +9,18 @@
 {% if user.is_authenticated %}
     <h1>Episode Analysis</h1>
             
-    <div class="card">
-        <form>
-            {% csrf_token %}
-            {{ form.as_p }}
-        </form>
+    <div class="card mt-4">
+        <div class="card-header">
+
+            <h5 class="card-title">Episode Title: {{ episode.title }}</h5>
+
+        </div>
+        <div class="card-body">
+            <form>
+                {% csrf_token %}
+                {{ form.as_p }}
+            </form>
+        </div>
     </div>
 
 {% else %}
