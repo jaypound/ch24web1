@@ -6,14 +6,10 @@
 <br/><br/>
 <div class="shadow p-4 mb-5 bg-body rounded">    
 <h1>Episode Analysis</h1>
-{% if user.is_authenticated %}
-    <h1>Episode Analysis</h1>
-            
+{% if user.is_authenticated %}            
     <div class="card mt-4">
         <div class="card-header">
-
             <h5 class="card-title">Episode Title: {{ episode.title }}</h5>
-
         </div>
         <div class="card-body">
             <form>
