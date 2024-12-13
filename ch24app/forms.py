@@ -116,6 +116,12 @@ from django import forms
 from .models import Episode
 
 class EpisodeAnalysisForm(forms.ModelForm):
+    ai_time_slots_recommended = forms.MultipleChoiceField(
+        choices=TIME_SLOTS_CHOICES,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False,
+        label='AI Time Slots Recommended',
+    )
     class Meta:
         model = Episode
         fields = [
@@ -148,7 +154,7 @@ class EpisodeAnalysisForm(forms.ModelForm):
             'ai_genre': forms.TextInput(attrs={'class': 'form-control'}),
             'ai_age_rating': forms.TextInput(attrs={'class': 'form-control'}),
             'ai_topics': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'ai_time_slots_recommended': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            # 'ai_time_slots_recommended': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'audience_engagement_score': forms.TextInput(attrs={'class': 'form-control'}),
             'audience_engagement_reasons': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'prohibited_content': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
