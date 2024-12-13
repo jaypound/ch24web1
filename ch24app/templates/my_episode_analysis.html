@@ -3,85 +3,107 @@
 {% block title %} Episode Analysis {% endblock %} 
 {% block content %}
 
-<br/><br/>
-<div class="shadow p-4 mb-5 bg-body rounded">    
-<h1>Episode Analysis</h1>
-{% if user.is_authenticated %}            
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="card-title">Episode Title: {{ episode.title }}</h5>
-        </div>
-        <div class="card-body">
-            <form>
-                {% csrf_token %}
-                {{ form.program.label_tag }}
-                {{ form.program }}
-                {{ form.program.errors }}
-                <br/>
-                {{ form.episode_number.label_tag }}
-                {{ form.episode_number }}
-                {{ form.episode_number.errors }}
-                <br/>
-                {{ form.title.label_tag }}
-                {{ form.title }}
-                {{ form.title.errors }}
-                <br/>
-                {{ form.has_mediainfo_errors.label_tag }}
-                {{ form.has_mediainfo_errors }}
-                {{ form.has_mediainfo_errors.errors }}
-                <br/>
-                {{ form.transcription.label_tag }}
-                pre>{{ form.transcription.value }}</pre>
-                {{ form.transcription.errors }}
-                <br/>
-                {{ form.ai_summary.label_tag }}
-                <pre>{{ form.ai_summary.value }}</pre>
-                {{ form.ai_summary.errors }}
-                <br/>
-                {{ form.ai_genre.label_tag }}
-                {{ form.ai_genre }}
-                {{ form.ai_genre.errors }}
-                <br/>
-                {{ form.ai_age_rating.label_tag }}
-                {{ form.ai_age_rating }}
-                {{ form.ai_age_rating.errors }}
-                <br/>
-                {{ form.ai_topics.label_tag }}
-                {{ form.ai_topics }}
-                {{ form.ai_topics.errors }} 
-                <br/>
-                {{ form.ai_time_slots_recommended.label_tag }}
-                {{ form.ai_time_slots_recommended }}
-                {{ form.ai_time_slots_recommended.errors }}  
-                <br/>
-                {{ form.audience_engagement_score.label_tag }}
-                {{ form.audience_engagement_score }}
-                {{ form.audience_engagement_score.errors }}   
-                <br/>
-                {{ form.audience_engagement_reasons.label_tag }}
-                {{ form.audience_engagement_reasons }}
-                {{ form.audience_engagement_reasons.errors }}      
-                <br/>
-                {{ form.prohibited_content.label_tag }}
-                {{ form.prohibited_content }}
-                {{ form.prohibited_content.errors }}          
-                <br/>
-                {{ form.prohibited_content_reasons.label_tag }}
-                {{ form.prohibited_content_reasons }}
-                {{ form.prohibited_content_reasons.errors }}              
-                <br/>
-                {{ form.ready_for_air.label_tag }}
-                {{ form.ready_for_air }}
-                {{ form.ready_for_air.errors }}               
-            </form>
-        </div>
-    </div>
+<div class="container mt-5">
+    <div class="shadow p-4 mb-5 bg-body rounded">    
+        <h1 class="mb-4">Episode Analysis</h1>
+        {% if user.is_authenticated %}            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title">Episode Title: {{ episode.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <form>
+                        {% csrf_token %}
 
-{% else %}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        You must be logged in to view this page
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.program.label }}</label>
+                                <input type="text" readonly class="form-control-plaintext" value="{{ form.program.value }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.episode_number.label }}</label>
+                                <input type="text" readonly class="form-control-plaintext" value="{{ form.episode_number.value }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.title.label }}</label>
+                            <input type="text" readonly class="form-control-plaintext" value="{{ form.title.value }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.has_mediainfo_errors.label }}</label>
+                            <p>{{ form.has_mediainfo_errors.value|yesno:"Yes,No" }}</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.transcription.label }}</label>
+                            <pre class="form-control" readonly>{{ form.transcription.value }}</pre>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.ai_summary.label }}</label>
+                            <pre class="form-control" readonly>{{ form.ai_summary.value }}</pre>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.ai_genre.label }}</label>
+                                <input type="text" readonly class="form-control-plaintext" value="{{ form.ai_genre.value }}">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.ai_age_rating.label }}</label>
+                                <input type="text" readonly class="form-control-plaintext" value="{{ form.ai_age_rating.value }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.ai_topics.label }}</label>
+                            <textarea class="form-control" readonly rows="3">{{ form.ai_topics.value }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.ai_time_slots_recommended.label }}</label>
+                            <textarea class="form-control" readonly rows="3">{{ form.ai_time_slots_recommended.value }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.audience_engagement_score.label }}</label>
+                            <input type="text" readonly class="form-control-plaintext" value="{{ form.audience_engagement_score.value }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.audience_engagement_reasons.label }}</label>
+                            <textarea class="form-control" readonly rows="3">{{ form.audience_engagement_reasons.value }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.prohibited_content.label }}</label>
+                            <p>{{ form.prohibited_content.value|yesno:"Yes,No" }}</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.prohibited_content_reasons.label }}</label>
+                            <textarea class="form-control" readonly rows="3">{{ form.prohibited_content_reasons.value }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.ready_for_air.label }}</label>
+                            <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                You must be logged in to view this page
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
     </div>
-{% endif %}
 </div>
+
 {% endblock %}
