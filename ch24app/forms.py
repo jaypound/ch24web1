@@ -183,6 +183,26 @@ class EpisodeAnalysisForm(forms.ModelForm):
             'last_scheduled',
             'schedule_count',
         ]
+        widgets = {
+            'program': forms.Select(attrs={'class': 'form-control'}),
+            'episode_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'has_mediainfo_errors': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'transcription': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+            'ai_summary': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'ai_genre': forms.TextInput(attrs={'class': 'form-control'}),
+            'ai_age_rating': forms.TextInput(attrs={'class': 'form-control'}),
+            'ai_topics': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'ai_time_slots_recommended': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'audience_engagement_score': forms.TextInput(attrs={'class': 'form-control'}),
+            'audience_engagement_reasons': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'prohibited_content': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'prohibited_content_reasons': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'ready_for_air': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'last_timeslot': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_scheduled': forms.DateTimeInput(attrs={'class': 'form-control'}),
+            'schedule_count': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super(EpisodeAnalysisForm, self).__init__(*args, **kwargs)
