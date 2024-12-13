@@ -5,7 +5,7 @@
 
 <br/><br/>
 <div class="shadow p-4 mb-5 bg-body rounded">    
-<h1>My Channels</h1>
+<h1>Episode Analysis</h1>
 {% if user.is_authenticated %}
     <h1>Episode Analysis</h1>
             
@@ -18,7 +18,65 @@
         <div class="card-body">
             <form>
                 {% csrf_token %}
-                {{ form.as_p }}
+                {{ form.program.label_tag }}
+                {{ form.program }}
+                {{ form.program.errors }}
+                <br/>
+                {{ form.episode_number.label_tag }}
+                {{ form.episode_number }}
+                {{ form.episode_number.errors }}
+                <br/>
+                {{ form.title.label_tag }}
+                {{ form.title }}
+                {{ form.title.errors }}
+                <br/>
+                {{ form.has_mediainfo_errors.label_tag }}
+                {{ form.has_mediainfo_errors }}
+                {{ form.has_mediainfo_errors.errors }}
+                <br/>
+                {{ form.transcription.label_tag }}
+                pre>{{ form.transcription.value }}</pre>
+                {{ form.transcription.errors }}
+                <br/>
+                {{ form.ai_summary.label_tag }}
+                <pre>{{ form.ai_summary.value }}</pre>
+                {{ form.ai_summary.errors }}
+                <br/>
+                {{ form.ai_genre.label_tag }}
+                {{ form.ai_genre }}
+                {{ form.ai_genre.errors }}
+                <br/>
+                {{ form.ai_age_rating.label_tag }}
+                {{ form.ai_age_rating }}
+                {{ form.ai_age_rating.errors }}
+                <br/>
+                {{ form.ai_topics.label_tag }}
+                {{ form.ai_topics }}
+                {{ form.ai_topics.errors }} 
+                <br/>
+                {{ form.ai_time_slots_recommended.label_tag }}
+                {{ form.ai_time_slots_recommended }}
+                {{ form.ai_time_slots_recommended.errors }}  
+                <br/>
+                {{ form.audience_engagement_score.label_tag }}
+                {{ form.audience_engagement_score }}
+                {{ form.audience_engagement_score.errors }}   
+                <br/>
+                {{ form.audience_engagement_reasons.label_tag }}
+                {{ form.audience_engagement_reasons }}
+                {{ form.audience_engagement_reasons.errors }}      
+                <br/>
+                {{ form.prohibited_content.label_tag }}
+                {{ form.prohibited_content }}
+                {{ form.prohibited_content.errors }}          
+                <br/>
+                {{ form.prohibited_content_reasons.label_tag }}
+                {{ form.prohibited_content_reasons }}
+                {{ form.prohibited_content_reasons.errors }}              
+                <br/>
+                {{ form.ready_for_air.label_tag }}
+                {{ form.ready_for_air }}
+                {{ form.ready_for_air.errors }}               
             </form>
         </div>
     </div>
