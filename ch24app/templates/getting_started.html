@@ -1,44 +1,31 @@
-{% extends "base.html" %} 
-{% block title %} Getting Started {% endblock %} 
+{% extends "base.html" %}
+{% block title %} Getting Started {% endblock %}
 {% block content %}
-<br/><br/>
-<div class=WordSection1>
 
-    <h1>Getting Started with Atlanta 24 Community Media</h1>
-    
-    <p>Here's a step-by-step for using this website:</p>
-    
-    <div class=MsoNormal align=center style='text-align:center'>
-    
-    <hr size=0 width="100%" align=center>
-    
-    </div>
-    
-    <h5 id=HowtoExportMediafromDaVinciResolve-1.SetUpYourProjectSettings>1. Click
-    ‘Register’ to create a login and password.</h5>
-    
-    <h5>2. Click ‘Add Channel’ to enter your channel name and contact information.</h5>
-    
-    <h5>3. Click ‘Add Program’ to enter the name of your first program.</h5>
-    
-    <h5>4. Click ‘Add Episode’ to enter the name of your first program
-    episode.</h5>
-    
-    <h5>5. Click ‘My Episodes’ to view your episodes.</h5>
-    
-    <h5>6. Click ‘Upload Media’ to upload media containing your episode.</h5>
-
-    <h5>7. Click ‘View Media Info’ to review media information for your uploaded media.</h5>
-    
-    <div class=MsoNormal align=center style='text-align:center'>
-    
-    <hr size=0 width="100%" align=center>
-    
-    </div>
-    
-    <p>By following these instructions, you will submit your first program and
-    episode to Atlanta 24 Community Media.</p>
-    
+<main>
+    <h1 class="visually-hidden">Atlanta 24 Community Media</h1>
+  
+    <div class="px-4 py-3 my-4 text-center">
+        <h2 class="display-5 fw-bold text-body-emphasis">Getting Started</h2>
     </div>
 
-    {% endblock %}
+    <div class="container">
+        <div class="col-lg-8 mx-auto">
+            <p><strong>Here's a step-by-step for using this website:</strong></p>
+            <p>1. Click <strong>‘Register’</strong> to create a login and password.</p>
+            <p>2. Click <strong>‘Add Channel’</strong> to enter your channel name and contact information.</p>
+            <p><strong>What is a Channel?</strong></p>
+            <p>A <strong>Channel</strong> is a dedicated space where you can explore a collection of related Programs and Episodes. 
+               Think of Channels as specialized hubs focused on specific topics or interests, similar to YouTube Channels where you can follow your favorite creators and their content.  
+               You may be the producer of multiple ‘Channels’, with different target audiences.</p>
+            <p>3. Click <strong>‘Add Program’</strong> to enter the name of your first program. A program can have one or more episodes.</p>
+            <p>4. Click <strong>‘Add Episode’</strong> to enter the name of your first program episode.</p>
+            <p>5. Click <strong>‘Upload Media’</strong> to upload media containing your episode.</p>
+            <p>6. If the <strong>‘View Media Info’</strong> button is RED, click <strong>‘View Media Info’</strong>, review media information for your uploaded media and adjust your export settings. </p>
+            <p>7. If the <strong>‘View Episode’</strong> button is present, click <strong>‘View Episode’</strong> to preview your episode.</p>
+            <p>By following these instructions, you will submit your first program and episode to Atlanta 24 Community Media.</p>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

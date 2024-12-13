@@ -440,6 +440,9 @@ def adobe_premiere(request):
 def davinci_resolve(request):
     return render(request, 'davinci_resolve.html')
 
+# def getting_started2(request):
+#     return render(request, 'getting_started2.html')
+
 def getting_started(request):
     return render(request, 'getting_started.html')
 

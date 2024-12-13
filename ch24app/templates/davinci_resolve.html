@@ -1,155 +1,74 @@
-{% extends "base.html" %} 
-{% block title %} DaVinci Resolve {% endblock %} 
+{% extends "base.html" %}
+{% block title %} DaVinci Resolve {% endblock %}
 {% block content %}
-<br/><br/>
-<div class=WordSection1>
 
-    <h1>How to Export Media from DaVinci Resolve</h1>
-    
-    <p>Here's a step-by-step guide to export your video in DaVinci Resolve to meet
-    the specified standards:</p>
-    
-    <div class=MsoNormal align=center style='text-align:center'>
-    
-    <hr size=0 width="100%" align=center>
-    
-    </div>
-    
-    <h3 id=HowtoExportMediafromDaVinciResolve-1.SetUpYourProjectSettings>1. Set
-    Up Your Project Settings</h3>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Go to <strong>File &gt; Project Settings</strong>.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Under <strong>Master Settings</strong>, set the <strong>Timeline
-    Resolution</strong> to <strong>1280x720</strong> for 720p or <strong>1920x1080</strong>
-    for 1080p.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Set the <strong>Timeline Frame Rate</strong> to <strong>29.97 fps</strong>.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Ensure the <strong>Pixel Aspect Ratio</strong> matches <strong>16:9</strong>
-    or <strong>4:3</strong>.</p>
-    
-    <h3 id=HowtoExportMediafromDaVinciResolve-2.GototheDeliverPage>2. Go to
-    the Deliver Page</h3>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Once your timeline is ready for export, navigate to the <strong>Deliver</strong>
-    page at the bottom of the screen.</p>
-    
-    <h3 id=HowtoExportMediafromDaVinciResolve-3.ExportSettings>3. Export
-    Settings</h3>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span><strong>Format</strong>: Choose <strong>MP4</strong> for .mp4 or
-    .m4v, or <strong>QuickTime</strong> for .mov.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span><strong>Codec</strong>: Set to <strong>H.264</strong>.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span><strong>Resolution</strong>: Select <strong>1280x720</strong> for
-    720p or <strong>1920x1080</strong> for 1080p, based on your requirement.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span><strong>Frame Rate</strong>: Confirm it is set to <strong>29.97
-    fps</strong>.</p>
-    
-    <h3 id=HowtoExportMediafromDaVinciResolve-4.BitrateSettings>4. Bitrate
-    Settings</h3>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Scroll down to the <strong>Quality</strong> section.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Choose <strong>Restrict to</strong> and set the bitrate:</p>
-    
-    <p style='margin-left:1.0in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
-    </span></span><strong>720p</strong>: Set between <strong>5,000–7,500 kbps</strong>
-    (5–7.5 Mbps).</p>
-    
-    <p style='margin-left:1.0in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:"Courier New"'>o<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
-    </span></span><strong>1080p</strong>: Set between <strong>8,000–12,000 kbps</strong>
-    (8–12 Mbps).</p>
-    
-    <h3 id=HowtoExportMediafromDaVinciResolve-5.AudioSettings>5. Audio
-    Settings</h3>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Go to the <strong>Audio</strong> tab within the Deliver page.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span><strong>Audio Codec</strong>: Set to <strong>AAC</strong>.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span><strong>Channels</strong>: Select <strong>Stereo</strong>.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span><strong>Bitrate</strong>: Choose <strong>192 kbps</strong> or <strong>256
-    kbps</strong>.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span><strong>Sample Rate</strong>: Set to <strong>48,000 Hz</strong>.</p>
-    
-    <h3 id=HowtoExportMediafromDaVinciResolve-6.FileNaming>6. File Naming</h3>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Enter a file name using only <strong>letters, numbers, dashes,
-    and underscores</strong>.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Avoid <strong>quotes (&quot;), ampersands (&amp;), slashes (/),
-    and special characters</strong>.</p>
-    
-    <h3 id=HowtoExportMediafromDaVinciResolve-7.AddtoRenderQueueandExport>7. Add
-    to Render Queue and Export</h3>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Click <strong>Add to Render Queue</strong> on the right side of
-    the Deliver page.</p>
-    
-    <p style='margin-left:.5in;text-indent:-.25in'><span style='font-size:10.0pt;
-    font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </span></span>Then, select <strong>Render All</strong> to start exporting your
-    file.</p>
-    
-    <div class=MsoNormal align=center style='text-align:center'>
-    
-    <hr size=0 width="100%" align=center>
-    
-    </div>
-    
-    <p>By following these instructions, you'll have a video exported to meet the
-    required format, codec, resolution, bitrate, frame rate, and audio standards.</p>
-    
-    </div>
-    
-    <hr size=0 width="100%" align=center>
-    
+<main>
+    <h1 class="visually-hidden">Atlanta 24 Community Media</h1>
+
+    <div class="px-4 py-3 my-4 text-center">
+        <h2 class="display-5 fw-bold text-body-emphasis">How to Export Media from DaVinci Resolve</h2>
     </div>
 
-    {% endblock %}
+    <div class="container">
+        <div class="col-lg-8 mx-auto">
+            <p>Here's a step-by-step guide to export your video in DaVinci Resolve to meet the specified standards:</p>
+            
+            <h4>1. Set Up Your Project Settings</h4>
+            <ul>
+                <li>Go to <strong>File &gt; Project Settings</strong>.</li>
+                <li>Under <strong>Master Settings</strong>, set the <strong>Timeline Resolution</strong> to <strong>1280x720</strong> for 720p or <strong>1920x1080</strong> for 1080p.</li>
+                <li>Set the <strong>Timeline Frame Rate</strong> to <strong>29.97 fps</strong>.</li>
+                <li>Ensure the <strong>Pixel Aspect Ratio</strong> matches <strong>16:9</strong> or <strong>4:3</strong>.</li>
+            </ul>
+
+            <h4>2. Go to the Deliver Page</h4>
+            <ul>
+                <li>Once your timeline is ready for export, navigate to the <strong>Deliver</strong> page at the bottom of the screen.</li>
+            </ul>
+
+            <h4>3. Export Settings</h4>
+            <ul>
+                <li><strong>Format</strong>: Choose <strong>MP4</strong> for .mp4 or .m4v, or <strong>QuickTime</strong> for .mov.</li>
+                <li><strong>Codec</strong>: Set to <strong>H.264</strong>.</li>
+                <li><strong>Resolution</strong>: Select <strong>1280x720</strong> for 720p or <strong>1920x1080</strong> for 1080p, based on your requirement.</li>
+                <li><strong>Frame Rate</strong>: Confirm it is set to <strong>29.97 fps</strong>.</li>
+            </ul>
+
+            <h4>4. Bitrate Settings</h4>
+            <ul>
+                <li>Scroll down to the <strong>Quality</strong> section.</li>
+                <li>Choose <strong>Restrict to</strong> and set the bitrate:
+                    <ul>
+                        <li><strong>720p</strong>: Set between <strong>5,000–7,500 kbps</strong> (5–7.5 Mbps).</li>
+                        <li><strong>1080p</strong>: Set between <strong>8,000–12,000 kbps</strong> (8–12 Mbps).</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4>5. Audio Settings</h4>
+            <ul>
+                <li>Go to the <strong>Audio</strong> tab within the Deliver page.</li>
+                <li><strong>Audio Codec</strong>: Set to <strong>AAC</strong>.</li>
+                <li><strong>Channels</strong>: Select <strong>Stereo</strong>.</li>
+                <li><strong>Bitrate</strong>: Choose <strong>192 kbps</strong> or <strong>256 kbps</strong>.</li>
+                <li><strong>Sample Rate</strong>: Set to <strong>48,000 Hz</strong>.</li>
+            </ul>
+
+            <h4>6. File Naming</h4>
+            <ul>
+                <li>Enter a file name using only <strong>letters, numbers, dashes, and underscores</strong>.</li>
+                <li>Avoid <strong>quotes (&quot;), ampersands (&amp;), slashes (/), and special characters</strong>.</li>
+            </ul>
+
+            <h4>7. Add to Render Queue and Export</h4>
+            <ul>
+                <li>Click <strong>Add to Render Queue</strong> on the right side of the Deliver page.</li>
+                <li>Then, select <strong>Render All</strong> to start exporting your file.</li>
+            </ul>
+
+            <p>By following these instructions, you'll have a video exported to meet the required format, codec, resolution, bitrate, frame rate, and audio standards.</p>
+        </div>
+    </div>
+</main>
+
+{% endblock %}
