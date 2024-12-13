@@ -9,32 +9,23 @@
         {% if user.is_authenticated %}            
             <div class="card mt-4">
                 <div class="card-header">
-                    <h5 class="card-title">Episode Title: {{ episode.title }}</h5>
+                    <h5 class="card-title">>Episode Number: {{ episode.episode_number }} - Title: {{ episode.title }}</h5>
                 </div>
                 <div class="card-body">
                     <form>
                         {% csrf_token %}
 
                         <div class="row">
+
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Episode Number:</label>
-                                <input type="text" readonly class="form-control-plaintext" value="{{ form.episode_number.value }}">
+                                <label class="form-label">{{ form.ready_for_air.label }}:</label>
+                                <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
+
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Has MediaInfo Errors:</label>
                                 <p>{{ form.has_mediainfo_errors.value|yesno:"Yes,No" }}</p>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.ready_for_air.label }}:</label>
-                                <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
-
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.ready_for_air.label }}:</label>
-                                <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
                             </div>
 
                         </div>
