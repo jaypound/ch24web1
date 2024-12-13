@@ -5,11 +5,11 @@
 
 <div class="container mt-5">
     <div class="shadow p-4 mb-5 bg-body rounded">    
-        <h1 class="mb-4">Episode Analysis - Title: {{ episode.title }}</h1>
+        <h1 class="mb-4">Episode Analysis for {{ episode.title }}</h1>
         {% if user.is_authenticated %}            
             <div class="card mt-4">
                 <div class="card-header">
-                    <h5 class="card-title">>Episode Number: {{ episode.episode_number }} </h5>
+                    <h5 class="card-title">Episode Number: {{ episode.episode_number }} </h5>
                 </div>
                 <div class="card-body">
                     <form>
