@@ -435,33 +435,6 @@ def episode_media_info(request, episode_id):
             'warnings': unique_warnings
         })
 
-# return render(request, 'episode_media_info.html', {
-#     'episode': episode,
-#     'media_infos': media_infos
-# })
-
-# def episode_media_info(request, episode_id):
-#     # print("episode_media_info")
-#     episode = get_object_or_404(Episode, custom_id=episode_id)
-#     media_infos = episode.media_infos.all()
-
-#     unique_errors, unique_warnings = validate_media_info(media_infos)
-
-#     # Add unique error messages to the Django messages framework as errors
-#     for message in unique_errors:
-#         messages.error(request, message)
-
-#     # Add unique warning messages to the Django messages framework as warnings
-#     for message in unique_warnings:
-#         messages.warning(request, message)
-
-
-#     return render(request, 'episode_media_info.html', {
-#         'episode': episode,
-#         'media_infos': media_infos,
-#         'errors': unique_errors,
-#         'warnings': unique_warnings
-#     })
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
