@@ -17,79 +17,79 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.program.label }}</label>
+                                <label class="form-label">{{ form.program.label }}:</label>
                                 <input type="text" readonly class="form-control-plaintext" value="{{ form.program.value }}">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.episode_number.label }}</label>
+                                <label class="form-label">{{ form.episode_number.label }}:</label>
                                 <input type="text" readonly class="form-control-plaintext" value="{{ form.episode_number.value }}">
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.title.label }}</label>
+                            <label class="form-label">{{ form.title.label }}:</label>
                             <input type="text" readonly class="form-control-plaintext" value="{{ form.title.value }}">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.has_mediainfo_errors.label }}</label>
+                            <label class="form-label">{{ form.has_mediainfo_errors.label }}:</label>
                             <p>{{ form.has_mediainfo_errors.value|yesno:"Yes,No" }}</p>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.transcription.label }}</label>
+                            <label class="form-label">{{ form.transcription.label }}:</label>
                             <pre class="form-control" readonly>{{ form.transcription.value }}</pre>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.ai_summary.label }}</label>
+                            <label class="form-label">{{ form.ai_summary.label }}:</label>
                             <pre class="form-control" readonly>{{ form.ai_summary.value }}</pre>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.ai_genre.label }}</label>
+                                <label class="form-label">{{ form.ai_genre.label }}:</label>
                                 <input type="text" readonly class="form-control-plaintext" value="{{ form.ai_genre.value }}">
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.ai_age_rating.label }}</label>
+                                <label class="form-label">{{ form.ai_age_rating.label }}:</label>
                                 <input type="text" readonly class="form-control-plaintext" value="{{ form.ai_age_rating.value }}">
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.ai_topics.label }}</label>
+                            <label class="form-label">{{ form.ai_topics.label }}:</label>
                             <textarea class="form-control" readonly rows="3">{{ form.ai_topics.value }}</textarea>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.ai_time_slots_recommended.label }}</label>
+                            <label class="form-label">{{ form.ai_time_slots_recommended.label }}:</label>
                             <textarea class="form-control" readonly rows="3">{{ form.ai_time_slots_recommended.value }}</textarea>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.audience_engagement_score.label }}</label>
+                            <label class="form-label">{{ form.audience_engagement_score.label }}:</label>
                             <input type="text" readonly class="form-control-plaintext" value="{{ form.audience_engagement_score.value }}">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.audience_engagement_reasons.label }}</label>
+                            <label class="form-label">{{ form.audience_engagement_reasons.label }}:</label>
                             <textarea class="form-control" readonly rows="3">{{ form.audience_engagement_reasons.value }}</textarea>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.prohibited_content.label }}</label>
+                            <label class="form-label">{{ form.prohibited_content.label }}:</label>
                             <p>{{ form.prohibited_content.value|yesno:"Yes,No" }}</p>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.prohibited_content_reasons.label }}</label>
+                            <label class="form-label">{{ form.prohibited_content_reasons.label }}:</label>
                             <textarea class="form-control" readonly rows="3">{{ form.prohibited_content_reasons.value }}</textarea>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ form.ready_for_air.label }}</label>
+                            <label class="form-label">{{ form.ready_for_air.label }}:</label>
                             <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
                         </div>
 
