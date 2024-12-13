@@ -6,8 +6,8 @@ import logging
 
 
 # Load environment variables
-env = environ.Env()
-environ.Env.read_env()  # This loads variables from your .env file
+# env = environ.Env()
+# environ.Env.read_env()  # This loads variables from your .env file
 
 def create_presigned_url(bucket_name, object_name, expiration=3600):
     """Generate a pre-signed URL to upload a file to S3."""
