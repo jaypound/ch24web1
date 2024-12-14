@@ -2,12 +2,17 @@ import boto3
 import environ
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import logging
+from pprint import pprint
 
 
 
 # Load environment variables
-# env = environ.Env()
-# environ.Env.read_env()  # This loads variables from your .env file
+env = environ.Env()
+environ.Env.read_env()  # This loads variables from your .env file
+
+# for key, value in env:
+#     print(f'{key}: {value}')
+pprint(env)
 
 def create_presigned_url(bucket_name, object_name, expiration=3600):
     """Generate a pre-signed URL to upload a file to S3."""

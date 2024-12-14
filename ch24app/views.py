@@ -289,7 +289,8 @@ def get_mediainfo_from_s3(bucket_name, s3_key):
     # Define a temporary file path
     temp_file_path = os.path.join(settings.MEDIA_ROOT, '', os.path.basename(s3_key))
 
-    # print('Temp file path: ', temp_file_path)
+    print('Temp file path: ', temp_file_path)
+    logger.debug(f'Temp file path: {temp_file_path}')
 
     # Download the file from S3
     s3.download_file(bucket_name, s3_key, temp_file_path)

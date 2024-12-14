@@ -60,12 +60,12 @@ ALLOWED_HOSTS = ['127.0.0.1',
 ]
 
 TIME_ZONE = 'America/New_York'
+MEDIA_ROOT = '/mnt/data/media/'
+# MEDIA_ROOT = '/tmp'
 
-MEDIA_ROOT = '/tmp'
-
-if APPLICATION_ENV == 'production':
-    MEDIA_ROOT = '/mnt/data/media/'
-    MEDIA_URL = '/media/'
+if APPLICATION_ENV == 'development':
+    MEDIA_ROOT = '/tmp'
+    # MEDIA_URL = '/media/'
 
 
 # Add STATIC_ROOT setting
@@ -114,7 +114,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'django.request': {
