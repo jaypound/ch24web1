@@ -186,9 +186,9 @@ if APPLICATION_ENV == 'production':
                 'propagate': False,
             },
             # Add your application's logger if necessary
-            'your_app_name': {  # Replace with your actual app name
+            'ch24app': {  # Replace with your actual app name
                 'handlers': ['console', 'file'],
-                'level': 'INFO',
+                'level': 'DEBUG',
                 'propagate': False,
             },
         }
