@@ -13,7 +13,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 import environ
+import logging
 
+logger = logging.getLogger(__name__)
 
 env = environ.Env(
     # set casting, default value
@@ -43,6 +45,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 APPLICATION_ENV = env('APPLICATION_ENV')
 print('APPLICATION_ENV', APPLICATION_ENV)
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
@@ -98,7 +101,7 @@ LOGGING = {
             'formatter': 'standard',
         },
         'file': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
@@ -109,28 +112,28 @@ LOGGING = {
     'loggers': {
         '': {  # Root logger
             'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': True,
         },
         'django': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
-            'propagate': False,
+            'propagate': True,
         },
         'django.request': {
             'handlers': ['console', 'file'],
-            'level': 'ERROR',
-            'propagate': False,
+            'level': 'DEBUG',
+            'propagate': True,
         },
         'django.db.backends': {
             'handlers': ['console', 'file'],
-            'level': 'ERROR',
-            'propagate': False,
+            'level': 'DEBUG',
+            'propagate': True,
         },
         'urllib3': {
             'handlers': ['console', 'file'],
-            'level': 'ERROR',
-            'propagate': False,
+            'level': 'DEBUG',
+            'propagate': True,
         },
     }
 }
@@ -151,7 +154,7 @@ if APPLICATION_ENV == 'production':
                 'formatter': 'standard',
             },
             'file': {
-                'level': 'INFO',  # Captures INFO and above
+                'level': 'DEBUG',  # Captures INFO and above
                 'class': 'logging.handlers.RotatingFileHandler',
                 'formatter': 'standard',
                 'filename': '/mnt/data/logs/django.log',  # Log file on EBS
@@ -162,18 +165,18 @@ if APPLICATION_ENV == 'production':
         'loggers': {
             '': {  # Root logger
                 'handlers': ['console', 'file'],  # Logs to both console and file
-                'level': 'INFO',  # Minimum log level
+                'level': 'DEBUG',  # Minimum log level
                 'propagate': True,
             },
             'django': {
                 'handlers': ['console', 'file'],
                 'level': 'DEBUG',  # Only log errors from Django
-                'propagate': False,
+                'propagate': True,
             },
             'django.request': {
                 'handlers': ['console', 'file'],
                 'level': 'DEBUG',
-                'propagate': False,
+                'propagate': True,
             },
             'django.db.backends': {
                 'handlers': ['console', 'file'],
@@ -182,14 +185,14 @@ if APPLICATION_ENV == 'production':
             },
             'urllib3': {
                 'handlers': ['console', 'file'],
-                'level': 'ERROR',
+                'level': 'DEBUG',
                 'propagate': False,
             },
             # Add your application's logger if necessary
             'ch24app': {  # Replace with your actual app name
                 'handlers': ['console', 'file'],
                 'level': 'DEBUG',
-                'propagate': False,
+                'propagate': True,
             },
         }
     }
@@ -245,6 +248,8 @@ if APPLICATION_ENV == 'production':
 #         },
 #     }
 # }
+
+logger.error("Testing logging")
 
 # Application definition
 
