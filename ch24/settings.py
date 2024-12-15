@@ -113,27 +113,27 @@ LOGGING = {
         '': {  # Root logger
             'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'django': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'django.request': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'django.db.backends': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'urllib3': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
     }
 }
@@ -166,17 +166,17 @@ if APPLICATION_ENV == 'production':
             '': {  # Root logger
                 'handlers': ['console', 'file'],  # Logs to both console and file
                 'level': 'INFO',  # Minimum log level
-                'propagate': True,
+                'propagate': False,
             },
             'django': {
                 'handlers': ['console', 'file'],
                 'level': 'INFO',  # Only log errors from Django
-                'propagate': True,
+                'propagate': False,
             },
             'django.request': {
                 'handlers': ['console', 'file'],
                 'level': 'INFO',
-                'propagate': True,
+                'propagate': False,
             },
             'django.db.backends': {
                 'handlers': ['console', 'file'],
@@ -192,7 +192,7 @@ if APPLICATION_ENV == 'production':
             'ch24app': {  # Replace with your actual app name
                 'handlers': ['console', 'file'],
                 'level': 'INFO',
-                'propagate': True,
+                'propagate': False,
             },
         }
     }
