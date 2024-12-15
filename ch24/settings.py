@@ -167,12 +167,12 @@ if APPLICATION_ENV == 'production':
             },
             'django': {
                 'handlers': ['console', 'file'],
-                'level': 'ERROR',  # Only log errors from Django
+                'level': 'DEBUG',  # Only log errors from Django
                 'propagate': False,
             },
             'django.request': {
                 'handlers': ['console', 'file'],
-                'level': 'ERROR',
+                'level': 'DEBUG',
                 'propagate': False,
             },
             'django.db.backends': {
