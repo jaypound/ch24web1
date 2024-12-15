@@ -10,10 +10,6 @@ from pprint import pprint
 env = environ.Env()
 environ.Env.read_env()  # This loads variables from your .env file
 
-# for key, value in env:
-#     print(f'{key}: {value}')
-pprint(env)
-
 def create_presigned_url(bucket_name, object_name, expiration=3600):
     """Generate a pre-signed URL to upload a file to S3."""
     # Create an S3 client with credentials from the environment variables

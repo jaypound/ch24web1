@@ -19,9 +19,9 @@ AWS_STORAGE_BUCKET_NAME = settings.AWS_STORAGE_BUCKET_NAME
 
 # from .models import MediaInfo
 
-logger = logging.getLogger('django')
+# logger = logging.getLogger('django')
 # Get an instance of a logger
-# logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 def home(request):
@@ -300,7 +300,7 @@ def get_mediainfo_from_s3(bucket_name, s3_key):
     # pprint(media_info)
 
     # Clean up the temporary file
-    # os.remove(temp_file_path)
+    os.remove(temp_file_path)
 
     return media_info
 
