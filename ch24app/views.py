@@ -543,7 +543,7 @@ def health_check(request):
 import os
 from django.http import JsonResponse
 
-def environment_variables(request):
+def environment(request):
     """
     View to display all environment variables.
     """
