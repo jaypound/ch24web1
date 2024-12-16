@@ -47,6 +47,21 @@ APPLICATION_ENV = env('APPLICATION_ENV')
 print('APPLICATION_ENV', APPLICATION_ENV)
 
 
+env = environ.Env()
+environ.Env.read_env()
+
+TMPDIR = env('TMPDIR', default='/tmp')
+
+logger.info(f'TMPDIR: {TMPDIR}')
+print(f'TMPDIR: {TMPDIR}')
+
+import tempfile
+print(tempfile.gettempdir()) 
+logger.info(f'tempfile.gettempdir(): {tempfile.gettempdir()}')
+
+for item in os.environ:
+    logger.info(f'{item}: {os.environ[item]}')
+    print(f'{item}: {os.environ[item]}')
 # SECURITY WARNING: don't run with debug turned on in production!
 
 ALLOWED_HOSTS = ['127.0.0.1', 
