@@ -62,12 +62,14 @@ ALLOWED_HOSTS = ['127.0.0.1',
                 'www.atlanta24communitymediatest.com',
 ]
 
+os.environ['TMPDIR'] = "/mnt/data/tmp"
 TIME_ZONE = 'America/New_York'
 MEDIA_ROOT = '/mnt/data/media/'
 # MEDIA_ROOT = '/tmp'
 
 if APPLICATION_ENV == 'development':
     MEDIA_ROOT = '/tmp'
+    os.environ['TMPDIR'] = "/tmp"
     # MEDIA_URL = '/media/'
 
 
