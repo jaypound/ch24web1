@@ -547,12 +547,12 @@ def environment_variables(request):
     """
     View to display all environment variables.
     """
-    excluded_keywords = ["DATABASE", "DJANGO", "AWS", "PYENV", "HOME", "USER", "PATH", "LOGNAME"]  # Keywords to exclude
+    excluded_keywords = ["DATABASE", "DJANGO", "AWS", "PYENV", "HOME", "USER", "PATH", "LOGNAME", "PWD", "VIRTUAL_ENV", "ZDOTDIR"]  # Keywords to exclude
     env_vars = {
         key: value
         for key, value in os.environ.items()
         if not any(keyword in key for keyword in excluded_keywords)
     }
-    return JsonResponse(env_vars, safe=False)
+    return render(request, 'environment_variables.html', {'env_vars': env_vars})
 
 

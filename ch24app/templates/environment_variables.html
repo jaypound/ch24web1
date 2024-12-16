@@ -1,0 +1,26 @@
+{% extends "base.html" %} 
+{% block title %} Add Episode {% endblock %} 
+{% block content %}
+
+<br/>
+<div class="shadow p-4 mb-5 bg-body rounded">
+<h1>Environment Variables</h1>
+<br/>
+<table border="1">
+    <thead>
+        <tr>
+            <th>Variable</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key, value in env_vars.items %}
+        <tr>
+            <td>{{ key }}</td>
+            <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
