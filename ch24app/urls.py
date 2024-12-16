@@ -36,6 +36,7 @@ urlpatterns = [
         views.episode_analysis_view,
         name='episode_analysis'
     ),
+    path('environment_variables/', views.environment_variables, name='environment_variables'),
 ]
 
 

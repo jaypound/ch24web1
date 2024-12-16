@@ -539,3 +539,20 @@ from django.http import HttpResponse
 
 def health_check(request):
     return HttpResponse("OK", status=200)
+
+import os
+from django.http import JsonResponse
+
+def environment_variables(request):
+    """
+    View to display all environment variables.
+    """
+    excluded_keywords = ["DATABASE", "DJANGO", "AWS", "PYENV", "HOME", "USER", "PATH", "LOGNAME"]  # Keywords to exclude
+    env_vars = {
+        key: value
+        for key, value in os.environ.items()
+        if not any(keyword in key for keyword in excluded_keywords)
+    }
+    return JsonResponse(env_vars, safe=False)
+
+
