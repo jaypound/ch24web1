@@ -77,17 +77,22 @@ ALLOWED_HOSTS = ['127.0.0.1',
                 'www.atlanta24communitymediatest.com',
 ]
 
-os.environ['TMPDIR'] = "/mnt/data/tmp"
 TIME_ZONE = 'America/New_York'
-MEDIA_ROOT = '/mnt/data/media/'
-FILE_UPLOAD_TEMP_DIR = '/mnt/data/tmp' 
-# MEDIA_ROOT = '/tmp'
+
+if APPLICATION_ENV == 'production':
+    os.environ['TMPDIR'] = "/mnt/data/tmp"
+    MEDIA_ROOT = '/mnt/data/media/'
+    FILE_UPLOAD_TEMP_DIR = '/mnt/data/tmp' 
+    FILE_UPLOAD_HANDLERS = [
+        'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+    ]
+
 
 if APPLICATION_ENV == 'development':
     MEDIA_ROOT = '/tmp'
     os.environ['TMPDIR'] = "/tmp"
     FILE_UPLOAD_TEMP_DIR = '/tmp' 
-    # MEDIA_URL = '/media/'
+    
 
 
 # Add STATIC_ROOT setting
