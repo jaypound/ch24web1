@@ -80,11 +80,13 @@ ALLOWED_HOSTS = ['127.0.0.1',
 os.environ['TMPDIR'] = "/mnt/data/tmp"
 TIME_ZONE = 'America/New_York'
 MEDIA_ROOT = '/mnt/data/media/'
+FILE_UPLOAD_TEMP_DIR = '/mnt/data/tmp' 
 # MEDIA_ROOT = '/tmp'
 
 if APPLICATION_ENV == 'development':
     MEDIA_ROOT = '/tmp'
     os.environ['TMPDIR'] = "/tmp"
+    FILE_UPLOAD_TEMP_DIR = '/tmp' 
     # MEDIA_URL = '/media/'
 
 
