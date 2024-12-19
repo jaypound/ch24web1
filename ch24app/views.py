@@ -309,6 +309,19 @@ def get_mediainfo_from_s3(bucket_name, s3_key):
 
 from .utils import validate_media_info  # Ensure this is imported
 
+import boto3
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
+from django.contrib import messages
+from django.urls import reverse
+from django.conf import settings
+
+from .forms import EpisodeUploadForm
+from .models import Episode, EpisodeMediaInfo
+# from .mediainfo_utils import get_mediainfo_from_s3, validate_media_info
+
+AWS_STORAGE_BUCKET_NAME = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
+
 def upload_episode(request, episode_id):
     episode = get_object_or_404(Episode, custom_id=episode_id)
 
@@ -326,62 +339,62 @@ def upload_episode(request, episode_id):
             file_name = file.name
 
             bucket_name = AWS_STORAGE_BUCKET_NAME
-
-            # Generate a unique file name/path
-            # unique_file_name = f'episodes/{episode.custom_id}/{file_name}'
             unique_file_name = f'{episode.custom_id}/{file_name}'
-            # Generate the pre-signed URL
-            presigned_url = create_presigned_url(bucket_name, unique_file_name)
 
-            if presigned_url:
-                # Upload the file to S3 using the pre-signed URL
-                response = requests.put(presigned_url, data=file)
-                if response.status_code == 200:
-                    # Get media info from the uploaded file
-                    media_info = get_mediainfo_from_s3(bucket_name, unique_file_name)
+            # Initialize the S3 client
+            s3_client = boto3.client('s3')
 
-                    # Save media info to the database
-                    track_id = 0
-                    for track in media_info.tracks:
-                        track_id += 1
-                        track_metadata = {key: value for key, value in track.to_data().items() if value is not None}
-
-                        # Save media info to the database
-                        EpisodeMediaInfo.objects.create(
-                            episode=episode,
-                            track_id=track_id,
-                            metadata=track_metadata
-                        )
-
-                    # Retrieve the saved media_infos
-                    media_infos = episode.media_infos.all()
-
-                    # Use the validation function
-                    unique_errors, unique_warnings = validate_media_info(media_infos)
-
-                    # Set the has_mediainfo_errors field based on validation
-                    episode.has_mediainfo_errors = bool(unique_errors)
-
-                    # Update the episode with the file name
-                    episode.file_name = unique_file_name
-                    episode.save()
-
-                    messages.success(request, "File uploaded successfully.")
-
-                    # Redirect without the mediainfo_errors flag
-                    return redirect(f"{reverse('upload_success')}?episode_id={episode.custom_id}")
-                else:
-                    messages.error(request, "Upload failed.")
-                    return redirect('upload_failed')
-            else:
-                messages.error(request, "Unable to generate upload URL.")
+            # Upload the file to S3
+            try:
+                with file.open('rb') as f:
+                    s3_client.upload_fileobj(f, bucket_name, unique_file_name)
+            except Exception as e:
+                messages.error(request, f"Upload failed: {e}")
                 return redirect('upload_failed')
+
+            # If we reach here, the upload was successful.
+            # Get media info from the uploaded file
+            media_info = get_mediainfo_from_s3(bucket_name, unique_file_name)
+
+            # Save media info to the database
+            track_id = 0
+            for track in media_info.tracks:
+                track_id += 1
+                track_metadata = {
+                    key: value for key, value in track.to_data().items() if value is not None
+                }
+
+                EpisodeMediaInfo.objects.create(
+                    episode=episode,
+                    track_id=track_id,
+                    metadata=track_metadata
+                )
+
+            # Retrieve the saved media_infos
+            media_infos = episode.media_infos.all()
+
+            # Use the validation function
+            unique_errors, unique_warnings = validate_media_info(media_infos)
+
+            # Set the has_mediainfo_errors field based on validation
+            episode.has_mediainfo_errors = bool(unique_errors)
+
+            # Update the episode with the file name
+            episode.file_name = unique_file_name
+            episode.save()
+
+            messages.success(request, "File uploaded successfully.")
+
+            # Redirect without the mediainfo_errors flag
+            return redirect(f"{reverse('upload_success')}?episode_id={episode.custom_id}")
+
         else:
             messages.error(request, "Form is invalid.")
     else:
         form = EpisodeUploadForm()
 
     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})
+
 
 
 
