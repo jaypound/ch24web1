@@ -16,9 +16,13 @@
                     <div class="card-body">
                         <p class="card-text">ID: {{ episode.custom_id }}</p>
                         <p class="card-text">Creator: {{ episode.program.creator.first_name }} {{ episode.program.creator.last_name }}</p>
-                        <p class="card-text"> Program Name: {{ episode.program.program_name }}</p>
+                        <p class="card-text">Program Name: {{ episode.program.program_name }}</p>
                         <p class="card-text">Episode Number: {{ episode.episode_number }}</p>
                         <p class="card-text">Episode Description: {{ episode.description }}</p>
+                        <p class="card-text">Start Date: {{ episode.start_date }}</p>   
+                        <p class="card-text">End Date: {{ episode.end_date }}</p>
+                        <p class="card-text">Duration in Seconds: {{ episode.duration_seconds }}</p>
+                        <p class="card-text">Duration Timecode: {{ episode.duration_timecode }}</p>
                         <p class="card-text">Created by: {{ episode.created_by }}</p>
                         <p class="card-text">File Name: {{ episode.file_name }}</p> 
                     </div>
