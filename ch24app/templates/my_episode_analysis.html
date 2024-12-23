@@ -66,9 +66,16 @@
                             <textarea class="form-control" readonly rows="2">{{ form.ai_time_slots_recommended.value }}</textarea>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">{{ form.audience_engagement_score.label }}:</label>
-                            <input type="text" readonly class="form-control-plaintext" value="{{ form.audience_engagement_score.value }}">
+                        <div class="row">
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.audience_engagement_score.label }}:</label>
+                                <input type="text" readonly class="form-control-plaintext" value="{{ form.audience_engagement_score.value }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.duration_seconds.label }}:</label>
+                                <input type="text" readonly class="form-control-plaintext" value="{{ form.duration_seconds.value }}">
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -76,11 +83,17 @@
                             <textarea class="form-control" readonly rows="3">{{ form.audience_engagement_reasons.value }}</textarea>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Prohibited Content:</label>
-                            <p>{{ form.prohibited_content.value|yesno:"Yes,No" }}</p>
-                        </div>
+                        <div class="row">
+                            <div class="mb-3">
+                            <label class="form-label">Prohibited Content:</label><p>{{ form.prohibited_content.value|yesno:"Yes,No" }}</p>
+                            </div>
 
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.duration_seconds.label }}:</label>
+                                <input type="text" readonly class="form-control-plaintext" value="{{ form.duration_seconds.value }}">
+                            </div>
+
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">{{ form.prohibited_content_reasons.label }}:</label>
                             <textarea class="form-control" readonly rows="3">{{ form.prohibited_content_reasons.value }}</textarea>

@@ -185,6 +185,8 @@ class Episode(models.Model):
     last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True, null=True)
     last_scheduled = models.DateTimeField('Last Scheduled Time', blank=True, null=True)
     schedule_count = models.IntegerField('Schedule Count', default=0, blank=True, null=True)
+    duration_seconds = models.IntegerField('Duration in Seconds', blank=True, null=True)
+    duration_timecode = models.CharField('Duration Timecode', max_length=20, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         # Assign a unique ID if not already set
