@@ -2,8 +2,6 @@ import boto3
 import environ
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import logging
-from pprint import pprint
-
 
 
 # Load environment variables
@@ -288,3 +286,11 @@ def create_presigned_view_url(bucket_name, object_name, expiration=3600):
     except Exception as e:
         logging.error(f"Error generating pre-signed URL: {e}")
     return None
+
+
+def convert_seconds_to_timecode(seconds):
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+

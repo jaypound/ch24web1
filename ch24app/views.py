@@ -3,10 +3,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Creator, Program, Episode, EpisodeMediaInfo
 from .forms import CreatorForm, ProgramForm, EpisodeForm, EpisodeUploadForm, EpisodeUpdateForm
 from django.http import HttpResponseRedirect, HttpResponse
-from .utils import create_presigned_url  # Assuming the function is in utils.py
+from .utils import create_presigned_url, convert_seconds_to_timecode  # Assuming the function is in utils.py
 from django.contrib import messages
 from django.urls import reverse
-from pprint import pprint
 import requests
 import boto3
 from pymediainfo import MediaInfo
@@ -385,9 +384,25 @@ def upload_episode(request, episode_id):
 
             messages.success(request, "File uploaded successfully.")
 
+            # At the end of upload_episode, after media_info is created:
+            try:
+                media_info_track1 = EpisodeMediaInfo.objects.get(episode=episode, track_id=1)
+                duration_ms = media_info_track1.metadata.get('duration')
+
+                if duration_ms:
+                    # Convert to seconds
+                    duration_sec = float(duration_ms) / 1000
+                    
+                    # Populate the episode fields
+                    episode.duration_seconds = duration_sec
+                    episode.duration_timecode = convert_seconds_to_timecode(duration_sec)
+                    episode.save()
+            except EpisodeMediaInfo.DoesNotExist:
+                pass  # Handle the case where track_id=1 doesn't exist
+
             # Redirect without the mediainfo_errors flag
             return redirect(f"{reverse('upload_success')}?episode_id={episode.custom_id}")
-
+        
         else:
             messages.error(request, "Form is invalid.")
     else:
