@@ -185,6 +185,8 @@ class EpisodeUpdateForm(ModelForm):
             'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}),
             'start_date': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'Start Date'}),
             'end_date': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'End Date'}),
+            'duration_seconds': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Duration in Seconds'}),
+            'duration_timecode': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Duration Timecode'}),
         }
 
     def __init__(self, *args, **kwargs):
