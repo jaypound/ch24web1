@@ -82,7 +82,7 @@ class ProgramForm(ModelForm):
 class EpisodeForm(ModelForm):
     class Meta:
         model = Episode
-        fields = ['program', 'episode_number', 'title', 'description', 'start_date', 'end_date', 'duration_seconds', 'duration_timecode']
+        fields = ['program', 'episode_number', 'title', 'description', 'start_date', 'end_date']
 
         widgets = {
             'program': forms.Select(attrs={'class': 'form-control'}),
@@ -91,8 +91,8 @@ class EpisodeForm(ModelForm):
             'description': forms.TextInput(attrs={'class': 'form-control'}),
             'start_date': forms.DateTimeInput(attrs={'class': 'form-control'}),
             'end_date': forms.DateTimeInput(attrs={'class': 'form-control'}),
-            'duration_seconds': forms.TextInput(attrs={'class': 'form-control'}),
-            'duration_timecode': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'duration_seconds': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'duration_timecode': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
