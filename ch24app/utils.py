@@ -394,6 +394,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
         return
 
     # Process each time slot
+    # for slot_name, slot_info in TIME_SLOTS.items():
     for slot_name, slot_info in TIME_SLOTS.items():
         start_time = datetime.strptime(slot_info['start'], '%H:%M:%S').time()
         end_time = datetime.strptime(slot_info['end'], '%H:%M:%S').time()
@@ -814,9 +815,9 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
 
 def get_slot_for_time(current_time):
     """Determine which time slot a given time falls into"""
-    for slot_name, (start, end) in TIME_SLOTS.items():
-        slot_start = datetime.strptime(start, '%H:%M:%S').time()
-        slot_end = datetime.strptime(end, '%H:%M:%S').time()
+    for slot_name, slot_info in TIME_SLOTS.items():
+        slot_start = datetime.strptime(slot_info['start'], '%H:%M:%S').time()
+        slot_end = datetime.strptime(slot_info['end'], '%H:%M:%S').time()
         
         # Special handling for late_night slot that crosses midnight
         if slot_name == 'late_night':
@@ -825,6 +826,7 @@ def get_slot_for_time(current_time):
         else:
             if slot_start <= current_time <= slot_end:
                 return slot_name
+                
     return 'overnight'  # Default to overnight if no match
 
 def _remaining_seconds(current_time, end_time):
