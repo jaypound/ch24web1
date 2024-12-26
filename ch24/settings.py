@@ -313,6 +313,14 @@ if APPLICATION_ENV == 'production':
                 'maxBytes': 5 * 1024 * 1024,
                 'backupCount': 5,
             },
+            'scheduling_file': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'formatter': 'standard',
+                'filename': os.path.join(BASE_DIR, 'logs', 'scheduling.log'),
+                'maxBytes': 5 * 1024 * 1024,  # 5 MB
+                'backupCount': 5,
+            }
         },
         'loggers': {
             '': {
@@ -340,8 +348,8 @@ if APPLICATION_ENV == 'production':
                 'level': 'INFO',
                 'propagate': False,
             },
-            'ch24app': {  # Add this block
-                'handlers': ['console', 'file'],
+            'ch24app.scheduling': {  # Scheduling-specific logger
+                'handlers': ['console', 'scheduling_file'],
                 'level': 'INFO',
                 'propagate': False,
             }
