@@ -291,11 +291,62 @@ LOGGING = {
 
 # Production environment override
 if APPLICATION_ENV == 'production':
-    LOGGING['handlers']['file']['filename'] = '/mnt/data/logs/django.log'
-    LOGGING['handlers']['scheduling_file']['filename'] = '/mnt/data/logs/scheduling.log'
-    LOGGING['loggers']['django.db.backends']['level'] = 'ERROR'
-    # Add your production-specific logger settings
-    LOGGING['loggers']['ch24app']['level'] = 'INFO'
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'standard': {
+                'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+            },
+        },
+        'handlers': {
+            'console': {
+                'level': 'WARNING',
+                'class': 'logging.StreamHandler',
+                'formatter': 'standard',
+            },
+            'file': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'formatter': 'standard',
+                'filename': '/mnt/data/logs/django.log',
+                'maxBytes': 5 * 1024 * 1024,
+                'backupCount': 5,
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'django': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'django.request': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'django.db.backends': {
+                'handlers': ['console', 'file'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            'urllib3': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'ch24app': {  # Add this block
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            }
+        }
+    }
 
 logger.error("Testing logging")
 
