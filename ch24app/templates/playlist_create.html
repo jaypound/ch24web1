@@ -65,7 +65,8 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Time</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
                                     <th>Title</th>
                                     <th>Duration</th>
                                     <th>Rating</th>
@@ -77,6 +78,7 @@
                                 {% for episode in scheduled_episodes %}
                                     <tr>
                                         <td>{{ episode.start_time|time:"H:i:s" }}</td>
+                                        <td>{{ episode.end_time|time:"H:i:s" }}</td>
                                         <td>{{ episode.title }}</td>
                                         <td>{{ episode.duration_timecode }}</td>
                                         <td>{{ episode.ai_age_rating }}</td>
