@@ -637,14 +637,14 @@ logger.setLevel(logging.INFO)
 #                 current_time = _add_time(current_time, timedelta(minutes=5))
 
 
-def get_slot_for_time(current_time):
-        """Determine which time slot a given time falls into"""
-        for slot_name, (start, end) in TIME_SLOTS.items():
-            slot_start = datetime.strptime(start, '%H:%M:%S').time()
-            slot_end = datetime.strptime(end, '%H:%M:%S').time()
-            if slot_start <= current_time <= slot_end:
-                return slot_name
-        return 'overnight'  # Default to overnight if no match
+# def get_slot_for_time(current_time):
+#         """Determine which time slot a given time falls into"""
+#         for slot_name, (start, end) in TIME_SLOTS.items():
+#             slot_start = datetime.strptime(start, '%H:%M:%S').time()
+#             slot_end = datetime.strptime(end, '%H:%M:%S').time()
+#             if slot_start <= current_time <= slot_end:
+#                 return slot_name
+#         return 'overnight'  # Default to overnight if no match
 
 def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     """Enhanced scheduling function with corrected timing logic"""
@@ -794,6 +794,38 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
         raise
     
     return end_time
+
+# def _remaining_seconds(current_time, end_time):
+#     """Calculate remaining seconds in the time slot"""
+#     if end_time > current_time:
+#         delta = datetime.combine(datetime.today(), end_time) - \
+#                 datetime.combine(datetime.today(), current_time)
+#     else:
+#         # Handle overnight slots
+#         delta = datetime.combine(datetime.today() + timedelta(days=1), end_time) - \
+#                 datetime.combine(datetime.today(), current_time)
+#     return delta.total_seconds()
+
+# def _add_time(time, delta):
+#     """Add timedelta to time, handling overnight wraparound"""
+#     datetime_combined = datetime.combine(datetime.today(), time)
+#     new_datetime = datetime_combined + delta
+#     return new_datetime.time()
+
+def get_slot_for_time(current_time):
+    """Determine which time slot a given time falls into"""
+    for slot_name, (start, end) in TIME_SLOTS.items():
+        slot_start = datetime.strptime(start, '%H:%M:%S').time()
+        slot_end = datetime.strptime(end, '%H:%M:%S').time()
+        
+        # Special handling for late_night slot that crosses midnight
+        if slot_name == 'late_night':
+            if current_time >= slot_start or current_time <= slot_end:
+                return slot_name
+        else:
+            if slot_start <= current_time <= slot_end:
+                return slot_name
+    return 'overnight'  # Default to overnight if no match
 
 def _remaining_seconds(current_time, end_time):
     """Calculate remaining seconds in the time slot"""
