@@ -317,7 +317,7 @@ if APPLICATION_ENV == 'production':
                 'level': 'INFO',
                 'class': 'logging.handlers.RotatingFileHandler',
                 'formatter': 'standard',
-                'filename': os.path.join(BASE_DIR, 'logs', 'scheduling.log'),
+                'filename': '/mnt/data/logs/scheduling.log',
                 'maxBytes': 5 * 1024 * 1024,  # 5 MB
                 'backupCount': 5,
             }
