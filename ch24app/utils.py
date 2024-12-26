@@ -370,7 +370,7 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
     logger.info(f"End time: {end_time}")
     logger.info(f"Duration: {episode.duration_seconds}s")
     logger.info(f"Rating: {episode.ai_age_rating}")
-    logger.info(f"Content type: {episode.content_type}")
+    # logger.info(f"Content type: {episode.content_type}")
     
     try:
         # Create scheduled episode record first
@@ -395,7 +395,7 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
             ready_for_air=episode.ready_for_air,
             duration_seconds=episode.duration_seconds,
             duration_timecode=episode.duration_timecode,
-            content_type=episode.content_type  # Added content_type
+            # content_type=episode.content_type  # Added content_type
         )
         logger.info("Successfully created ScheduledEpisode record")
         
