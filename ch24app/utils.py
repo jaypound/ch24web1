@@ -4,7 +4,8 @@ from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import logging
 from .models import Episode, ScheduledEpisode
 import time
-
+from django.utils import timezone
+from django.db import models
 
 # Load environment variables
 env = environ.Env()
