@@ -637,6 +637,15 @@ logger.setLevel(logging.INFO)
 #                 current_time = _add_time(current_time, timedelta(minutes=5))
 
 
+def get_slot_for_time(current_time):
+        """Determine which time slot a given time falls into"""
+        for slot_name, (start, end) in TIME_SLOTS.items():
+            slot_start = datetime.strptime(start, '%H:%M:%S').time()
+            slot_end = datetime.strptime(end, '%H:%M:%S').time()
+            if slot_start <= current_time <= slot_end:
+                return slot_name
+        return 'overnight'  # Default to overnight if no match
+
 def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     """Enhanced scheduling function with corrected timing logic"""
     
@@ -650,20 +659,20 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
         'late_night': ('23:00:00', '02:00:00')
     }
 
-    def get_slot_for_time(current_time):
-        """Determine which time slot a given time falls into"""
-        for slot_name, (start, end) in TIME_SLOTS.items():
-            slot_start = datetime.strptime(start, '%H:%M:%S').time()
-            slot_end = datetime.strptime(end, '%H:%M:%S').time()
-            if slot_start <= current_time <= slot_end:
-                return slot_name
-        return 'overnight'  # Default to overnight if no match
-
     logger.info(f"Starting scheduling for date: {schedule_date}")
+
     base_query = Episode.objects.filter(ready_for_air=True)
     if creator_id:
         base_query = base_query.filter(program__creator_id=creator_id)
     elif not all_ready:
+        logger.warning("Neither creator_id nor all_ready specified. Exiting.")
+        return
+
+    # Validate available content
+    available_content = base_query.count()
+    logger.info(f"Found {available_content} available episodes")
+    if not available_content:
+        logger.warning("No content available for scheduling")
         return
 
     # Start at midnight
@@ -673,8 +682,13 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     while current_time < end_of_day:
         current_slot = get_slot_for_time(current_time)
         remaining_seconds = _remaining_seconds(current_time, end_of_day)
+
+        logger.info(f"\nCurrent time: {current_time}")
+        logger.info(f"Current slot: {current_slot}")
+        logger.info(f"Remaining seconds: {remaining_seconds}")
         
         if remaining_seconds <= 0:
+            logger.info("No more time remaining in day")
             break
 
         # Find suitable episode
@@ -685,37 +699,45 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
 
         if not available_episodes.exists():
             # Move time forward by 5 minutes if no content found
+            logger.info("No suitable episodes found for current slot")
             current_time = _add_time(current_time, timedelta(minutes=5))
             continue
 
         episode = available_episodes.first()
+        if not validate_episode(episode):
+            logger.warning(f"Skipping episode {episode.custom_id} due to missing required fields")
+            continue
         # Calculate end time based on episode duration
-        end_time = _add_time(current_time, timedelta(seconds=episode.duration_seconds))
+        # end_time = _add_time(current_time, timedelta(seconds=episode.duration_seconds))
+        if not episode.episode_number:
+            logger.warning(f"Episode {episode.title} has no episode number, skipping")
+            continue
 
         try:
-            # Create scheduled episode
-            scheduled = ScheduledEpisode.objects.create(
-                episode=episode,
-                program=episode.program,
-                creator=episode.program.creator,
-                schedule_date=schedule_date,
-                start_time=current_time,
-                end_time=end_time,
-                # ... other fields ...
-            )
-
-            # Update episode metadata
-            episode.last_timeslot = current_slot
-            episode.last_scheduled = timezone.now()
-            episode.schedule_count = models.F('schedule_count') + 1
-            episode.save()
-
-            # Move current_time to the end of this episode
-            current_time = end_time
-
+            # Schedule the episode
+            current_time = schedule_episode(episode, schedule_date, current_time, current_slot)
+            logger.info(f"Successfully scheduled {episode.title}")
         except Exception as e:
-            logger.error(f"Error scheduling episode: {str(e)}")
+            logger.error(f"Failed to schedule {episode.title}: {str(e)}")
             current_time = _add_time(current_time, timedelta(minutes=5))
+
+
+def validate_episode(episode):
+    """Validate that an episode has all required fields"""
+    required_fields = [
+        'episode_number',
+        'title',
+        'ai_genre',
+        'ai_age_rating',
+        'duration_seconds',
+        'duration_timecode'
+    ]
+    
+    for field in required_fields:
+        if not getattr(episode, field):
+            logger.warning(f"Episode {episode.custom_id} missing required field: {field}")
+            return False
+    return True
 
 
 def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: str) -> time:
@@ -761,9 +783,9 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
         logger.info("Successfully created ScheduledEpisode record")
         
         # Update episode scheduling info
-        # episode.last_timeslot = slot_name
-        # episode.last_scheduled = timezone.now()
-        # episode.schedule_count = models.F('schedule_count') + 1
+        episode.last_timeslot = slot_name
+        episode.last_scheduled = timezone.now()
+        episode.schedule_count = models.F('schedule_count') + 1
         episode.save()
         logger.info("Successfully updated episode scheduling metadata")
         
