@@ -494,6 +494,11 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     if min_episode_duration is None:
         min_episode_duration = 300  # Default 5 minutes if no episodes found
 
+    # Add tracking for consecutive promos
+    consecutive_shortform = 0
+    MAX_CONSECUTIVE_SHORTFORM = 5  # Limit consecutive shortform
+    MIN_REMAINING_TIME = 300  # 5 minutes minimum to consider scheduling
+
     while current_time < end_of_day:
         current_slot = get_slot_for_time(current_time)
         remaining_seconds = _remaining_seconds(current_time, end_of_day)
@@ -501,9 +506,10 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
         logger.info(f"\nCurrent time: {current_time}")
         logger.info(f"Current slot: {current_slot}")
         logger.info(f"Remaining seconds: {remaining_seconds}")
-        
-        if remaining_seconds <= 0:
-            logger.info("No more time remaining in day")
+
+        # Exit conditions
+        if remaining_seconds < MIN_REMAINING_TIME:
+            logger.info(f"Insufficient time remaining ({remaining_seconds}s), ending scheduling")
             break
 
          # Find suitable episode
@@ -519,6 +525,15 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
             continue
 
         episode = available_episodes.first()
+
+        if episode.content_type == ContentType.SHORTFORM or episode.duration_seconds < 300:
+            consecutive_shortform += 1
+            if consecutive_shortform >= MAX_CONSECUTIVE_SHORTFORM:
+                logger.info(f"Maximum consecutive shortform ({MAX_CONSECUTIVE_SHORTFORM}) reached, ending scheduling")
+                break
+        else:
+            consecutive_shortform = 0
+
         if not validate_episode(episode):
             logger.warning(f"Skipping episode {episode.custom_id} due to missing required fields")
             continue
