@@ -1,0 +1,108 @@
+<!-- templates/playlist_create.html -->
+{% extends "base.html" %}
+{% block title %}Playlist Creation{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="shadow p-4 mb-5 bg-body rounded">
+        <h1>Create Playlist</h1>
+        
+        {% if not user.is_authenticated or not user.is_staff %}
+            <div class="alert alert-warning" role="alert">
+                You must be logged in as an admin user to access this page.
+            </div>
+        {% else %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="POST" class="mt-4">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="playlist_date" class="form-label">Schedule Date:</label>
+                    <input type="date" 
+                           class="form-control" 
+                           id="playlist_date" 
+                           name="playlist_date" 
+                           required
+                           value="{{ selected_date }}">
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <button type="submit" 
+                            name="action" 
+                            value="create" 
+                            class="btn btn-primary me-md-2">
+                        Create Playlist
+                    </button>
+                    
+                    <button type="submit" 
+                            name="action" 
+                            value="clear" 
+                            class="btn btn-warning me-md-2"
+                            onclick="return confirm('Are you sure you want to clear the schedule for this date?')">
+                        Clear Schedule
+                    </button>
+                    
+                    <button type="submit" 
+                            name="action" 
+                            value="export" 
+                            class="btn btn-success">
+                        Export Playlist
+                    </button>
+                </div>
+            </form>
+            
+            {% if scheduled_episodes %}
+                <div class="mt-4">
+                    <h3>Current Schedule ({{ scheduled_episodes.0.schedule_date|date:"Y-m-d" }})</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Title</th>
+                                    <th>Duration</th>
+                                    <th>Rating</th>
+                                    <th>Genre</th>
+                                    <th>Creator</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for episode in scheduled_episodes %}
+                                    <tr>
+                                        <td>{{ episode.start_time|time:"H:i:s" }}</td>
+                                        <td>{{ episode.title }}</td>
+                                        <td>{{ episode.duration_timecode }}</td>
+                                        <td>{{ episode.ai_age_rating }}</td>
+                                        <td>{{ episode.ai_genre }}</td>
+                                        <td>{{ episode.creator.channel_name }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="mt-4 alert alert-info">
+                    No schedule exists for the selected date.
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('playlist_date').addEventListener('change', function() {
+    this.form.submit();
+});
+</script>
+{% endblock %}
+
+{% endblock %}

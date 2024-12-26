@@ -1,0 +1,222 @@
+<!-- templates/available_content.html -->
+{% extends "base.html" %}
+{% block title %}Available Content{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" id="filterForm">
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="search" 
+                                   name="search"
+                                   value="{{ current_filters.search }}">
+                        </div>
+
+                        <!-- Genre Filter -->
+                        <div class="mb-3">
+                            <label for="genre" class="form-label">Genre</label>
+                            <select class="form-select" id="genre" name="genre">
+                                <option value="">All Genres</option>
+                                {% for code, name in genres.items %}
+                                    <option value="{{ code }}" 
+                                            {% if code == current_filters.genre %}selected{% endif %}>
+                                        {{ name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Age Rating Filter -->
+                        <div class="mb-3">
+                            <label for="age_rating" class="form-label">Age Rating</label>
+                            <select class="form-select" id="age_rating" name="age_rating">
+                                <option value="">All Ratings</option>
+                                {% for code, name in age_ratings.items %}
+                                    <option value="{{ code }}"
+                                            {% if code == current_filters.age_rating %}selected{% endif %}>
+                                        {{ name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Duration Filter -->
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">Duration</label>
+                            <select class="form-select" id="duration" name="duration">
+                                <option value="">All Durations</option>
+                                {% for code, name in duration_choices %}
+                                    <option value="{{ code }}"
+                                            {% if code == current_filters.duration %}selected{% endif %}>
+                                        {{ name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Creator Filter -->
+                        <div class="mb-3">
+                            <label for="creator" class="form-label">Creator</label>
+                            <select class="form-select" id="creator" name="creator">
+                                <option value="">All Creators</option>
+                                {% for creator in creators %}
+                                    <option value="{{ creator.custom_id }}"
+                                            {% if creator.custom_id == current_filters.creator %}selected{% endif %}>
+                                        {{ creator.channel_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Sort -->
+                        <div class="mb-3">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select class="form-select" id="sort" name="sort">
+                                <option value="-created_at" {% if current_filters.sort == '-created_at' %}selected{% endif %}>
+                                    Newest First
+                                </option>
+                                <option value="created_at" {% if current_filters.sort == 'created_at' %}selected{% endif %}>
+                                    Oldest First
+                                </option>
+                                <option value="-audience_engagement_score" 
+                                        {% if current_filters.sort == '-audience_engagement_score' %}selected{% endif %}>
+                                    Highest Engagement
+                                </option>
+                                <option value="duration_seconds" 
+                                        {% if current_filters.sort == 'duration_seconds' %}selected{% endif %}>
+                                    Shortest First
+                                </option>
+                                <option value="-duration_seconds" 
+                                        {% if current_filters.sort == '-duration_seconds' %}selected{% endif %}>
+                                    Longest First
+                                </option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                        <a href="{% url 'available_content' %}" class="btn btn-outline-secondary w-100 mt-2">Clear Filters</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content List -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Available Content</h5>
+                    <span class="badge bg-primary">{{ page_obj.paginator.count }} Items</span>
+                </div>
+                <div class="card-body">
+                    {% if episodes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Creator</th>
+                                        <th>Duration</th>
+                                        <th>Rating</th>
+                                        <th>Genre</th>
+                                        <th>Engagement</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for episode in episodes %}
+                                        <tr>
+                                            <td>{{ episode.title }}</td>
+                                            <td>{{ episode.program.creator.channel_name }}</td>
+                                            <td>{{ episode.duration_timecode }}</td>
+                                            <td>{{ episode.ai_age_rating }}</td>
+                                            <td>{{ episode.ai_genre }}</td>
+                                            <td>{{ episode.audience_engagement_score }}</td>
+                                            <td>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-primary"
+                                                        onclick="scheduleEpisode('{{ episode.custom_id }}')">
+                                                    Schedule
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                            <nav aria-label="Page navigation" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1">&laquo; First</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">No content available matching the current filters.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit form when filters change
+document.querySelectorAll('#filterForm select').forEach(select => {
+    select.addEventListener('change', () => {
+        document.getElementById('filterForm').submit();
+    });
+});
+
+// Debounced search input
+let searchTimeout;
+document.getElementById('search').addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        document.getElementById('filterForm').submit();
+    }, 500);
+});
+
+function scheduleEpisode(episodeId) {
+    // Implement scheduling logic or redirect to scheduling page
+    window.location.href = `/schedule/create/?episode=${episodeId}`;
+}
+</script>
+{% endblock %}

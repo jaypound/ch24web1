@@ -79,6 +79,8 @@ ALLOWED_HOSTS = ['127.0.0.1',
 
 TIME_ZONE = 'America/New_York'
 
+DEFAULT_USER_TIMEZONE = 'America/New_York'
+
 if APPLICATION_ENV == 'production':
     os.environ['TMPDIR'] = "/mnt/data/tmp"
     MEDIA_ROOT = '/mnt/data/media/'
@@ -110,6 +112,118 @@ STATICFILES_DIRS = [
 
 import logging
 
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'standard': {
+#             'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'WARNING',
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'standard',
+#         },
+#         'file': {
+#             'level': 'INFO',
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'formatter': 'standard',
+#             'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+#             'maxBytes': 5 * 1024 * 1024,  # 5 MB
+#             'backupCount': 5,
+#         },
+#     },
+#     'loggers': {
+#         '': {  # Root logger
+#             'handlers': ['console', 'file'],
+#             'level': 'INFO',
+#             'propagate': False,
+#         },
+#         'django': {
+#             'handlers': ['console', 'file'],
+#             'level': 'INFO',
+#             'propagate': False,
+#         },
+#         'django.request': {
+#             'handlers': ['console', 'file'],
+#             'level': 'INFO',
+#             'propagate': False,
+#         },
+#         'django.db.backends': {
+#             'handlers': ['console', 'file'],
+#             'level': 'INFO',
+#             'propagate': False,
+#         },
+#         'urllib3': {
+#             'handlers': ['console', 'file'],
+#             'level': 'INFO',
+#             'propagate': False,
+#         },
+#     }
+# }
+
+# if APPLICATION_ENV == 'production':
+#     LOGGING = {
+#         'version': 1,
+#         'disable_existing_loggers': False,  # Keeps existing loggers active
+#         'formatters': {
+#             'standard': {
+#                 'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+#             },
+#         },
+#         'handlers': {
+#             'console': {
+#                 'level': 'WARNING',  # Adjust as needed
+#                 'class': 'logging.StreamHandler',
+#                 'formatter': 'standard',
+#             },
+#             'file': {
+#                 'level': 'INFO',  # Captures INFO and above
+#                 'class': 'logging.handlers.RotatingFileHandler',
+#                 'formatter': 'standard',
+#                 'filename': '/mnt/data/logs/django.log',  # Log file on EBS
+#                 'maxBytes': 5 * 1024 * 1024,  # 5 MB
+#                 'backupCount': 5,
+#             },
+#         },
+#         'loggers': {
+#             '': {  # Root logger
+#                 'handlers': ['console', 'file'],  # Logs to both console and file
+#                 'level': 'INFO',  # Minimum log level
+#                 'propagate': False,
+#             },
+#             'django': {
+#                 'handlers': ['console', 'file'],
+#                 'level': 'INFO',  # Only log errors from Django
+#                 'propagate': False,
+#             },
+#             'django.request': {
+#                 'handlers': ['console', 'file'],
+#                 'level': 'INFO',
+#                 'propagate': False,
+#             },
+#             'django.db.backends': {
+#                 'handlers': ['console', 'file'],
+#                 'level': 'ERROR',
+#                 'propagate': False,
+#             },
+#             'urllib3': {
+#                 'handlers': ['console', 'file'],
+#                 'level': 'INFO',
+#                 'propagate': False,
+#             },
+#             # Add your application's logger if necessary
+#             'ch24app': {  # Replace with your actual app name
+#                 'handlers': ['console', 'file'],
+#                 'level': 'INFO',
+#                 'propagate': False,
+#             },
+#         }
+#     }
+
+# Base logging configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -132,6 +246,14 @@ LOGGING = {
             'maxBytes': 5 * 1024 * 1024,  # 5 MB
             'backupCount': 5,
         },
+        'scheduling_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, 'logs', 'scheduling.log'),
+            'maxBytes': 5 * 1024 * 1024,  # 5 MB
+            'backupCount': 5,
+        }
     },
     'loggers': {
         '': {  # Root logger
@@ -159,119 +281,21 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'ch24app.scheduling': {  # Scheduling-specific logger
+            'handlers': ['console', 'scheduling_file'],
+            'level': 'INFO',
+            'propagate': False,
+        }
     }
 }
 
+# Production environment override
 if APPLICATION_ENV == 'production':
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,  # Keeps existing loggers active
-        'formatters': {
-            'standard': {
-                'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
-            },
-        },
-        'handlers': {
-            'console': {
-                'level': 'WARNING',  # Adjust as needed
-                'class': 'logging.StreamHandler',
-                'formatter': 'standard',
-            },
-            'file': {
-                'level': 'INFO',  # Captures INFO and above
-                'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'standard',
-                'filename': '/mnt/data/logs/django.log',  # Log file on EBS
-                'maxBytes': 5 * 1024 * 1024,  # 5 MB
-                'backupCount': 5,
-            },
-        },
-        'loggers': {
-            '': {  # Root logger
-                'handlers': ['console', 'file'],  # Logs to both console and file
-                'level': 'INFO',  # Minimum log level
-                'propagate': False,
-            },
-            'django': {
-                'handlers': ['console', 'file'],
-                'level': 'INFO',  # Only log errors from Django
-                'propagate': False,
-            },
-            'django.request': {
-                'handlers': ['console', 'file'],
-                'level': 'INFO',
-                'propagate': False,
-            },
-            'django.db.backends': {
-                'handlers': ['console', 'file'],
-                'level': 'ERROR',
-                'propagate': False,
-            },
-            'urllib3': {
-                'handlers': ['console', 'file'],
-                'level': 'INFO',
-                'propagate': False,
-            },
-            # Add your application's logger if necessary
-            'ch24app': {  # Replace with your actual app name
-                'handlers': ['console', 'file'],
-                'level': 'INFO',
-                'propagate': False,
-            },
-        }
-    }
-
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,  # Keeps existing loggers active
-#     'formatters': {
-#         'standard': {
-#             'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
-#         },
-#     },
-#     'handlers': {
-#         'console': {
-#             'level': 'WARNING',  # Adjust as needed
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'standard',
-#         },
-#         'file': {
-#             'level': 'INFO',  # Adjust as needed
-#             'class': 'logging.handlers.RotatingFileHandler',
-#             'formatter': 'standard',
-#             'filename': '/mnt/data/logs/django.log',  # Path to log file
-#             'maxBytes': 5 * 1024 * 1024,  # 5 MB
-#             'backupCount': 5,  # Number of backups to keep
-#         },
-#     },
-#     'loggers': {
-#         '': {  # Root logger
-#             'handlers': ['console', 'file'],  # Logs to both console and file
-#             'level': 'INFO',  # Minimum log level
-#             'propagate': True,
-#         },
-#         'django': {
-#             'handlers': ['console', 'file'],
-#             'level': 'ERROR',  # Only log errors from Django
-#             'propagate': False,
-#         },
-#         'django.request': {
-#             'handlers': ['console', 'file'],
-#             'level': 'ERROR',
-#             'propagate': False,
-#         },
-#         'django.db.backends': {
-#             'handlers': ['console', 'file'],
-#             'level': 'ERROR',
-#             'propagate': False,
-#         },
-#         'urllib3': {
-#             'handlers': ['console', 'file'],
-#             'level': 'ERROR',
-#             'propagate': False,
-#         },
-#     }
-# }
+    LOGGING['handlers']['file']['filename'] = '/mnt/data/logs/django.log'
+    LOGGING['handlers']['scheduling_file']['filename'] = '/mnt/data/logs/scheduling.log'
+    LOGGING['loggers']['django.db.backends']['level'] = 'ERROR'
+    # Add your production-specific logger settings
+    LOGGING['loggers']['ch24app']['level'] = 'INFO'
 
 logger.error("Testing logging")
 

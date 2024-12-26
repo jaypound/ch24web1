@@ -10,6 +10,7 @@ import requests
 import boto3
 from pymediainfo import MediaInfo
 from .utils import validate_media_info, create_presigned_view_url  # Import the validation function
+from django.core.exceptions import ValidationError
 
 import os
 from django.conf import settings
@@ -584,3 +585,289 @@ def environment(request):
     return render(request, 'environment_variables.html', {'env_vars': env_vars})
 
 
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponse
+from django.contrib import messages
+from datetime import datetime
+from .utils import schedule_episodes
+from django.utils import timezone
+from .models import Episode, ScheduledEpisode
+import csv
+import io
+import pytz
+
+# @login_required
+# @user_passes_test(lambda u: u.is_staff)  # Ensures only admin users can access
+# def playlist_create(request):
+#     if request.method == 'POST':
+#         action = request.POST.get('action')
+#         playlist_date = request.POST.get('playlist_date')
+        
+#         if not playlist_date:
+#             messages.error(request, 'Please select a date')
+#             return render(request, 'playlist_create.html')
+            
+#         try:
+#             date_obj = datetime.strptime(playlist_date, '%Y-%m-%d').date()
+            
+#             if action == 'create':
+#                 # Call your scheduling function
+#                 schedule_episodes(date_obj, all_ready=True)
+#                 messages.success(request, f'Playlist created for {playlist_date}')
+                
+#             elif action == 'clear':
+#                 # Clear existing schedule for the date
+#                 ScheduledEpisode.objects.filter(schedule_date=date_obj).delete()
+#                 messages.success(request, f'Schedule cleared for {playlist_date}')
+                
+#             elif action == 'export':
+#                 # Generate CSV export
+#                 return export_playlist(date_obj)
+                
+#         except Exception as e:
+#             messages.error(request, f'Error: {str(e)}')
+            
+#     return render(request, 'playlist_create.html')
+
+# def export_playlist(date_obj):
+#     """Export playlist to CSV file"""
+#     buffer = io.StringIO()
+#     writer = csv.writer(buffer)
+#     user_timezone = pytz.timezone(settings.TIME_ZONE)
+    
+#     # Write header
+#     writer.writerow([
+#         'Start Time', 'End Time', 'Title', 'Duration', 
+#         'Rating', 'Genre', 'Creator'
+#     ])
+    
+#     # Get scheduled episodes for the date
+#     schedule = ScheduledEpisode.objects.filter(
+#         schedule_date=date_obj
+#     ).order_by('start_time')
+    
+#     # Write data rows
+#     for episode in schedule:
+#         local_start = timezone.localtime(
+#             timezone.make_aware(datetime.combine(date_obj, episode.start_time)),
+#             timezone=user_timezone
+#         )
+#         local_end = timezone.localtime(
+#             timezone.make_aware(datetime.combine(date_obj, episode.end_time)),
+#             timezone=user_timezone
+#         )
+
+#         writer.writerow([
+#             episode.start_time.strftime('%H:%M:%S'),
+#             episode.end_time.strftime('%H:%M:%S'),
+#             episode.title,
+#             episode.duration_timecode,
+#             episode.ai_age_rating,
+#             episode.ai_genre,
+#             episode.creator.channel_name
+#         ])
+    
+#     # Create response
+#     buffer.seek(0)
+#     response = HttpResponse(buffer, content_type='text/csv')
+#     response['Content-Disposition'] = f'attachment; filename="playlist_{date_obj}.csv"'
+    
+#     return response
+
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
+from django.contrib import messages
+from datetime import datetime
+import pytz
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def playlist_create(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        playlist_date_str = request.POST.get('playlist_date')
+        
+        if not playlist_date_str:
+            messages.error(request, 'Please select a date')
+            return render(request, 'playlist_create.html')
+            
+        try:
+            playlist_date = datetime.strptime(playlist_date_str, '%Y-%m-%d').date()
+            
+            if action == 'create':
+                # Check if schedule already exists
+                existing_schedule = ScheduledEpisode.objects.filter(schedule_date=playlist_date).exists()
+                if existing_schedule:
+                    messages.warning(request, f'Schedule already exists for {playlist_date}. Clear it first.')
+                else:
+                    schedule_episodes(playlist_date, all_ready=True)
+                    messages.success(request, f'Playlist created for {playlist_date}')
+                
+            elif action == 'clear':
+                deleted_count = ScheduledEpisode.objects.filter(schedule_date=playlist_date).delete()[0]
+                messages.success(request, f'Cleared {deleted_count} scheduled episodes for {playlist_date}')
+                
+            elif action == 'export':
+                return export_playlist(playlist_date)
+                
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+    
+    # Get today's schedule for display
+    today = timezone.now().date()
+    scheduled_episodes = ScheduledEpisode.objects.filter(
+        schedule_date=today
+    ).select_related('episode', 'program', 'creator').order_by('start_time')
+    
+    context = {
+        'scheduled_episodes': scheduled_episodes,
+        'selected_date': request.POST.get('playlist_date', today.strftime('%Y-%m-%d'))
+    }
+    
+    return render(request, 'playlist_create.html', context)
+
+def export_playlist(schedule_date):
+    """Export playlist to CSV file"""
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    user_timezone = pytz.timezone(settings.TIME_ZONE)
+    
+    writer.writerow([
+        'Schedule Date',
+        'Start Time (UTC)',
+        'Start Time (Local)',
+        'Title',
+        'Duration',
+        'Rating',
+        'Genre',
+        'Creator'
+    ])
+    
+    schedule = ScheduledEpisode.objects.filter(
+        schedule_date=schedule_date
+    ).order_by('start_time')
+    
+    for episode in schedule:
+        utc_start = timezone.make_aware(
+            datetime.combine(schedule_date, episode.start_time)
+        )
+        local_start = timezone.localtime(utc_start, timezone=user_timezone)
+        
+        writer.writerow([
+            schedule_date.strftime('%Y-%m-%d'),
+            episode.start_time.strftime('%H:%M:%S'),
+            local_start.strftime('%H:%M:%S'),
+            episode.title,
+            episode.duration_timecode,
+            episode.ai_age_rating,
+            episode.ai_genre,
+            episode.creator.channel_name
+        ])
+    
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
+    
+    return response
+
+
+# views.py
+from django.shortcuts import render, redirect
+from .forms import ScheduledEpisodeForm
+from django.contrib import messages
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def scheduled_episode_create(request):
+    if request.method == 'POST':
+        form = ScheduledEpisodeForm(request.POST)
+        if form.is_valid():
+            try:
+                scheduled_episode = form.save()
+                messages.success(request, 'Episode scheduled successfully')
+                return redirect('scheduled_episode_detail', pk=scheduled_episode.pk)
+            except ValidationError as e:
+                messages.error(request, str(e))
+    else:
+        form = ScheduledEpisodeForm()
+    
+    return render(request, 'scheduled_episode_form.html', {'form': form})
+
+# views.py
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db.models import Q
+from .models import Episode, GENRE_CHOICES, AGE_RATING_CHOICES, Creator
+
+class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Episode
+    template_name = 'available_content.html'
+    context_object_name = 'episodes'
+    paginate_by = 20
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_queryset(self):
+        queryset = Episode.objects.filter(ready_for_air=True)
+        
+        # Apply filters from GET parameters
+        genre = self.request.GET.get('genre')
+        if genre:
+            queryset = queryset.filter(ai_genre=genre)
+            
+        age_rating = self.request.GET.get('age_rating')
+        if age_rating:
+            queryset = queryset.filter(ai_age_rating=age_rating)
+            
+        creator = self.request.GET.get('creator')
+        if creator:
+            queryset = queryset.filter(program__creator=creator)
+            
+        duration = self.request.GET.get('duration')
+        if duration:
+            if duration == 'bumper':
+                queryset = queryset.filter(duration_seconds__lte=15)
+            elif duration == 'shortform':
+                queryset = queryset.filter(duration_seconds__gt=15, duration_seconds__lte=900)
+            elif duration == 'longform':
+                queryset = queryset.filter(duration_seconds__gt=900)
+
+        # Apply search if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) |
+                Q(program__program_name__icontains=search) |
+                Q(program__creator__channel_name__icontains=search)
+            )
+
+        # Apply sorting
+        sort = self.request.GET.get('sort', '-created_at')
+        queryset = queryset.order_by(sort)
+        
+        return queryset.select_related('program', 'program__creator')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_filters'] = {
+            'genre': self.request.GET.get('genre', ''),
+            'age_rating': self.request.GET.get('age_rating', ''),
+            'creator': self.request.GET.get('creator', ''),
+            'duration': self.request.GET.get('duration', ''),
+            'search': self.request.GET.get('search', ''),
+            'sort': self.request.GET.get('sort', '-created_at'),
+        }
+        context['genres'] = dict(GENRE_CHOICES)
+        context['age_ratings'] = dict(AGE_RATING_CHOICES)
+        context['creators'] = Creator.objects.all()
+        context['duration_choices'] = [
+            ('bumper', 'Bumper (≤15s)'),
+            ('shortform', 'Short Form (15s-15m)'),
+            ('longform', 'Long Form (>15m)'),
+        ]
+        return context

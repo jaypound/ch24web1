@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import health_check
+from .views import health_check, AvailableContentView
 
 urlpatterns = [
     path('', views.home, name="home"),
@@ -36,6 +36,8 @@ urlpatterns = [
         views.episode_analysis_view,
         name='episode_analysis'
     ),
+    path('playlist/create/', views.playlist_create, name='playlist_create'),
+    path('content/available/', AvailableContentView.as_view(), name='available_content'),
     # path('env/', views.environment, name='environment_variables'),
 ]
 

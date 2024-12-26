@@ -274,3 +274,101 @@ class TicketResponseForm(forms.ModelForm):
             'message': forms.Textarea(attrs={'rows': 4}),
         }
 
+
+# forms.py
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import ScheduledEpisode, Episode
+from datetime import datetime, timedelta
+
+class ScheduledEpisodeForm(forms.ModelForm):
+   class Meta:
+       model = ScheduledEpisode
+       fields = [
+           'schedule_date',
+           'start_time',
+           'end_time',
+           'episode',
+           'program',
+           'creator',
+           'episode_number',
+           'title',
+           'file_name',
+           'ai_genre',
+           'ai_age_rating',
+           'ai_topics',
+           'ai_time_slots_recommended',
+           'audience_engagement_score',
+           'audience_engagement_reasons',
+           'prohibited_content',
+           'prohibited_content_reasons',
+           'ready_for_air',
+           'duration_seconds',
+           'duration_timecode'
+       ]
+       widgets = {
+           'schedule_date': forms.DateInput(attrs={'type': 'date'}),
+           'start_time': forms.TimeInput(attrs={'type': 'time'}),
+           'end_time': forms.TimeInput(attrs={'type': 'time'}),
+           'ai_topics': forms.SelectMultiple(attrs={'class': 'form-control'}),
+           'prohibited_content': forms.SelectMultiple(attrs={'class': 'form-control'}),
+       }
+
+   def clean(self):
+       cleaned_data = super().clean()
+       schedule_date = cleaned_data.get('schedule_date')
+       start_time = cleaned_data.get('start_time')
+       end_time = cleaned_data.get('end_time')
+       episode = cleaned_data.get('episode')
+       creator = cleaned_data.get('creator')
+
+       if schedule_date and start_time and end_time:
+           # Check if end_time is after start_time
+           if end_time <= start_time:
+               raise ValidationError('End time must be after start time')
+
+           # Check duration matches episode duration
+           if episode:
+               start_datetime = datetime.combine(schedule_date, start_time)
+               end_datetime = datetime.combine(schedule_date, end_time)
+               duration = (end_datetime - start_datetime).total_seconds()
+               if duration != episode.duration_seconds:
+                   raise ValidationError(
+                       f'Duration mismatch. Expected {episode.duration_seconds} seconds, '
+                       f'got {duration} seconds'
+                   )
+
+           # Check for overlapping schedules
+           overlapping = ScheduledEpisode.objects.filter(
+               schedule_date=schedule_date,
+               creator=creator
+           )
+           if self.instance.pk:
+               overlapping = overlapping.exclude(pk=self.instance.pk)
+           
+           for other in overlapping:
+               if (start_time < other.end_time and end_time > other.start_time):
+                   raise ValidationError(
+                       'This timeslot overlaps with another scheduled episode'
+                   )
+
+       return cleaned_data
+
+   def __init__(self, *args, **kwargs):
+       super().__init__(*args, **kwargs)
+       # Add Bootstrap classes to all form fields
+       for field_name, field in self.fields.items():
+           field.widget.attrs['class'] = 'form-control'
+           
+       # Make certain fields read-only if they come from Episode
+       if self.instance and self.instance.episode:
+           read_only_fields = [
+               'episode_number', 'title', 'file_name', 'ai_genre',
+               'ai_age_rating', 'ai_topics', 'ai_time_slots_recommended',
+               'audience_engagement_score', 'audience_engagement_reasons',
+               'prohibited_content', 'prohibited_content_reasons',
+               'duration_seconds', 'duration_timecode'
+           ]
+           for field_name in read_only_fields:
+               if field_name in self.fields:
+                   self.fields[field_name].widget.attrs['readonly'] = True

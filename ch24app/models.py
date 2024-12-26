@@ -282,6 +282,7 @@ class TicketResponse(models.Model):
         return f"Response #{self.response_no} to Ticket #{self.ticket.ticket_no}"
     
     from django.db import models
+from django.forms import ValidationError
 from django.utils import timezone
 
 # Assuming you have an Episode model already defined as follows:
@@ -311,4 +312,141 @@ class EpisodeProcessingJob(models.Model):
     def __str__(self):
         return f"Processing Job for {self.episode.custom_id}"
 
-    # Additional methods, if needed
+
+class ScheduledEpisode(models.Model):
+    custom_id = models.CharField(
+        max_length=36, 
+        primary_key=True,
+        default=uuid.uuid4,  # Generates a unique UUID for each instance
+        editable=False)
+    schedule_date = models.DateField(
+        'Schedule Date',
+        db_index=True,  # Add index for better query performance
+        help_text='Date this episode is scheduled to air',
+        null=True,  # Explicitly disallow NULL values
+        blank=True  # Required in forms
+    )
+    start_time = models.TimeField('Start Time', null=True, blank=True)
+    end_time = models.TimeField('End Time', null=True, blank=True)
+    episode = models.ForeignKey(Episode, on_delete=models.CASCADE)
+    program = models.ForeignKey(Program, on_delete=models.CASCADE)
+    creator = models.ForeignKey(Creator, on_delete=models.CASCADE)
+    episode_number = models.IntegerField('Episode Number')
+    title = models.CharField('Title', max_length=255)
+    file_name = models.TextField('File Name', blank=True)
+    ai_genre = models.CharField(
+        'AI Generated Genre',
+        max_length=50,
+        choices=GENRE_CHOICES,
+        blank=True
+    )
+    ai_age_rating = models.CharField(
+        'AI Generated Age Rating',
+        max_length=10,
+        choices=AGE_RATING_CHOICES,
+        blank=True
+    )
+    ai_topics = ArrayField(
+        models.CharField(max_length=100),
+        blank=True,
+        default=list
+    )
+    ai_time_slots_recommended = models.CharField(
+        'Time Slots Requested',
+        max_length=255,
+        blank=True
+    )
+    audience_engagement_score = models.IntegerField('Audience Engagement Score', blank=True, null=True)
+    audience_engagement_reasons = models.TextField('Audience Engagement Reasons', blank=True)
+    prohibited_content = ArrayField(
+        models.CharField(max_length=100),
+        blank=True,
+        null=True,
+        default=list
+    )
+    prohibited_content_reasons = models.TextField('Prohibited Content Reasons', blank=True, null=True)
+    ready_for_air = models.BooleanField(
+        'Ready for Air',
+        default=True,
+        db_index=True,
+        help_text='Indicates whether this content is ready for scheduling.'
+    )
+    last_timeslot = models.CharField('Last Time Slot', max_length=50, blank=True, null=True)
+    last_scheduled = models.DateTimeField('Last Scheduled Time', blank=True, null=True)
+    schedule_count = models.IntegerField('Schedule Count', default=0, blank=True, null=True)
+    duration_seconds = models.IntegerField('Duration in Seconds', blank=True, null=True)
+    duration_timecode = models.CharField('Duration Timecode', max_length=20, blank=True, null=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['schedule_date', 'start_time']),
+            models.Index(fields=['creator', 'schedule_date']),
+            models.Index(fields=['ai_genre', 'ai_age_rating']),
+            models.Index(fields=['duration_seconds']),
+            models.Index(fields=['ready_for_air', 'ai_age_rating'])
+        ]
+        ordering = ['schedule_date', 'start_time']  # Default ordering
+
+        # constraints = [
+        #     models.CheckConstraint(
+        #         check=Q(end_time__gt=models.F('start_time')),
+        #         name='end_time_after_start_time'
+        #     ),
+        #     models.CheckConstraint(
+        #         check=Q(duration_seconds__gt=0),
+        #         name='positive_duration'
+        #     ),
+        #     models.UniqueConstraint(
+        #     fields=['schedule_date', 'start_time', 'creator'],
+        #     name='unique_timeslot_per_creator'
+        # ),
+        # ]
+
+    def __str__(self):
+        return f"{self.schedule_date} - {self.start_time}: {self.title}"
+    
+    
+    def get_datetime_start(self):
+        """Get combined datetime for schedule_date and start_time"""
+        return datetime.combine(self.schedule_date, self.start_time)
+
+    def get_datetime_end(self):
+        """Get combined datetime for schedule_date and end_time"""
+        return datetime.combine(self.schedule_date, self.end_time)
+
+    def overlaps_with(self, other):
+        """Check if this scheduled episode overlaps with another"""
+        if self.schedule_date != other.schedule_date:
+            return False
+        return (self.start_time < other.end_time and 
+                self.end_time > other.start_time)
+    
+    def clean(self):
+        """Validate the model"""
+        super().clean()
+        if self.start_time and self.end_time:
+        # Verify times are within same day
+            if self.end_time < self.start_time:
+                raise ValidationError({
+                    'end_time': 'End time must be after start time'
+                })
+        
+        # Calculate duration matches duration_seconds
+        start_dt = self.get_datetime_start()
+        end_dt = self.get_datetime_end()
+        duration = (end_dt - start_dt).total_seconds()
+        if duration != self.duration_seconds:
+            raise ValidationError(
+                'Duration mismatch between times and duration_seconds'
+            )
+
+        # Check for overlaps
+        overlapping = ScheduledEpisode.objects.filter(
+            schedule_date=self.schedule_date,
+            creator=self.creator
+        ).exclude(pk=self.pk)
+        for other in overlapping:
+            if self.overlaps_with(other):
+                raise ValidationError(
+                    'This timeslot overlaps with another scheduled episode'
+                )
