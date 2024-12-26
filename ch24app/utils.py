@@ -584,18 +584,22 @@ def get_suitable_content(query, slot_name: str, content_type: ContentType,
     
     duration_filter = {}
     if content_type == ContentType.BUMPER:
-        duration_filter = {'duration_seconds__lte': 15}
+         max_duration = min(remaining_time, 15)
+         duration_filter = {'duration_seconds__lte': max_duration}
+
     elif content_type == ContentType.SHORTFORM:
+        # "somewhere between >15 and ≤900" 
+        # BUT also must not exceed remaining_time
+        # so unify the lte constraint into min(900, remaining_time)
         duration_filter = {
             'duration_seconds__gt': 15,
-            'duration_seconds__lte': 900
+            'duration_seconds__lte': min(900, remaining_time),
         }
     else:  # LONGFORM
         duration_filter = {'duration_seconds__gt': 900}
         
     return query.filter(
         ai_age_rating__in=ratings,
-        duration_seconds__lte=remaining_time,
         **duration_filter
     ).order_by(
         '-audience_engagement_score',
