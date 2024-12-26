@@ -400,7 +400,7 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
         logger.info("Successfully created ScheduledEpisode record")
         
         # Update episode scheduling info in a single operation
-        Episode.objects.filter(icustom_id=episode.custom_id).update(
+        Episode.objects.filter(custom_id=episode.custom_id).update(
             last_timeslot=slot_name,
             last_scheduled=timezone.now(),
             schedule_count=models.F('schedule_count') + 1
