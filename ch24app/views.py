@@ -730,11 +730,58 @@ def playlist_create(request):
     
     return render(request, 'playlist_create.html', context)
 
+# def export_playlist(schedule_date):
+#     """Export playlist to CSV file"""
+#     buffer = io.StringIO()
+#     writer = csv.writer(buffer)
+#     user_timezone = pytz.timezone(settings.TIME_ZONE)
+    
+#     writer.writerow([
+#         'Schedule Date',
+#         'Start Time (UTC)',
+#         'Start Time (Local)',
+#         'Title',
+#         'Duration',
+#         'Rating',
+#         'Genre',
+#         'Creator'
+#     ])
+    
+#     schedule = ScheduledEpisode.objects.filter(
+#         schedule_date=schedule_date
+#     ).order_by('start_time')
+    
+#     for episode in schedule:
+#         utc_start = timezone.make_aware(
+#             datetime.combine(schedule_date, episode.start_time)
+#         )
+#         local_start = timezone.localtime(utc_start, timezone=user_timezone)
+        
+#         writer.writerow([
+#             schedule_date.strftime('%Y-%m-%d'),
+#             episode.start_time.strftime('%H:%M:%S'),
+#             local_start.strftime('%H:%M:%S'),
+#             episode.title,
+#             episode.duration_timecode,
+#             episode.ai_age_rating,
+#             episode.ai_genre,
+#             episode.creator.channel_name
+#         ])
+    
+#     buffer.seek(0)
+#     response = HttpResponse(buffer, content_type='text/csv')
+#     response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
+    
+#     return response
+
 def export_playlist(schedule_date):
-    """Export playlist to CSV file"""
+    """Export playlist with correct timezone handling"""
     buffer = io.StringIO()
     writer = csv.writer(buffer)
-    user_timezone = pytz.timezone(settings.TIME_ZONE)
+    
+    # Get timezone objects
+    utc = pytz.UTC
+    local_tz = pytz.timezone('America/New_York')  # Or get from settings
     
     writer.writerow([
         'Schedule Date',
@@ -752,28 +799,31 @@ def export_playlist(schedule_date):
     ).order_by('start_time')
     
     for episode in schedule:
-        utc_start = timezone.make_aware(
-            datetime.combine(schedule_date, episode.start_time)
-        )
-        local_start = timezone.localtime(utc_start, timezone=user_timezone)
+        # Create UTC datetime
+        utc_datetime = datetime.combine(
+            schedule_date,
+            episode.start_time
+        ).replace(tzinfo=utc)
+        
+        # Convert to local time
+        local_datetime = utc_datetime.astimezone(local_tz)
         
         writer.writerow([
             schedule_date.strftime('%Y-%m-%d'),
-            episode.start_time.strftime('%H:%M:%S'),
-            local_start.strftime('%H:%M:%S'),
+            utc_datetime.strftime('%H:%M:%S'),
+            local_datetime.strftime('%H:%M:%S'),
             episode.title,
             episode.duration_timecode,
             episode.ai_age_rating,
             episode.ai_genre,
             episode.creator.channel_name
         ])
-    
+
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
     
     return response
-
 
 # views.py
 from django.shortcuts import render, redirect
