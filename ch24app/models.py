@@ -4,7 +4,7 @@ import uuid
 # from django.contrib.postgres.fields import JSONField
 import json
 from django.contrib.postgres.fields import ArrayField
-
+from datetime import datetime
 # models.pyß
 
 TIME_SLOTS_CHOICES = [

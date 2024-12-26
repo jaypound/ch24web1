@@ -4,6 +4,7 @@ from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import logging
 from .models import Episode, ScheduledEpisode
 import time
+from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db import models
 from django.db.models import Min
@@ -11,6 +12,8 @@ from django.db.models import Min
 # Load environment variables
 env = environ.Env()
 environ.Env.read_env()  # This loads variables from your .env file
+
+logger = logging.getLogger(__name__)
 
 def create_presigned_url(bucket_name, object_name, expiration=3600):
     """Generate a pre-signed URL to upload a file to S3."""
@@ -356,214 +359,7 @@ def get_content_type(duration_seconds: int) -> ContentType:
         return ContentType.SHORTFORM
     else:
         return ContentType.LONGFORM
-
-def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
-    """
-    Enhanced scheduling function that implements the new scheduling rules
-    """
-
-
-    # Build base query
-    base_query = Episode.objects.filter(ready_for_air=True)
-    if creator_id:
-        base_query = base_query.filter(program__creator_id=creator_id)
-    elif not all_ready:
-        return
-
-    # Process each time slot
-    # for slot_name, slot_info in TIME_SLOTS.items():
-    for slot_name, slot_info in TIME_SLOTS.items():
-        start_time = datetime.strptime(slot_info['start'], '%H:%M:%S').time()
-        end_time = datetime.strptime(slot_info['end'], '%H:%M:%S').time()
-        current_time = start_time
-
-        while current_time < end_time:
-            remaining_seconds = _remaining_seconds(current_time, end_time)
-            
-            # Try to schedule a bumper at the top of each hour
-            if current_time.minute == 0:
-                bumper = get_suitable_content(
-                    base_query, slot_name, ContentType.BUMPER, remaining_seconds
-                )
-                if bumper:
-                    current_time = schedule_episode(
-                        bumper, schedule_date, current_time, slot_name
-                    )
-                    remaining_seconds = _remaining_seconds(current_time, end_time)
-
-            # Try to schedule one longform content
-            longform = get_suitable_content(
-                base_query, slot_name, ContentType.LONGFORM, remaining_seconds
-            )
-            if longform:
-                current_time = schedule_episode(
-                    longform, schedule_date, current_time, slot_name
-                )
-                remaining_seconds = _remaining_seconds(current_time, end_time)
-
-            # Try to schedule up to 4 shortform content pieces
-            for _ in range(4):
-                if remaining_seconds <= 0:
-                    break
-                    
-                shortform = get_suitable_content(
-                    base_query, slot_name, ContentType.SHORTFORM, remaining_seconds
-                )
-                if shortform:
-                    current_time = schedule_episode(
-                        shortform, schedule_date, current_time, slot_name
-                    )
-                    remaining_seconds = _remaining_seconds(current_time, end_time)
-                else:
-                    break
-
-            if remaining_seconds == _remaining_seconds(current_time, end_time):
-                # If we couldn't schedule anything, move time forward to avoid infinite loop
-                current_time = _add_time(current_time, timedelta(minutes=5))
-
-def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: str) -> time:
-    """Schedule a single episode and return the new current time"""
-    end_time = _add_time(current_time, timedelta(seconds=episode.duration_seconds))
     
-    ScheduledEpisode.objects.create(
-        episode=episode,
-        program=episode.program,
-        creator=episode.program.creator,
-        schedule_date=schedule_date,
-        start_time=current_time,
-        end_time=end_time,
-        episode_number=episode.episode_number,
-        title=episode.title,
-        file_name=episode.file_name,
-        ai_genre=episode.ai_genre,
-        ai_age_rating=episode.ai_age_rating,
-        ai_topics=episode.ai_topics,
-        ai_time_slots_recommended=episode.ai_time_slots_recommended,
-        audience_engagement_score=episode.audience_engagement_score,
-        audience_engagement_reasons=episode.audience_engagement_reasons,
-        prohibited_content=episode.prohibited_content,
-        prohibited_content_reasons=episode.prohibited_content_reasons,
-        ready_for_air=episode.ready_for_air,
-        duration_seconds=episode.duration_seconds,
-        duration_timecode=episode.duration_timecode
-    )
-    
-    # Update episode scheduling info
-    episode.last_timeslot = slot_name
-    episode.last_scheduled = timezone.now()
-    episode.schedule_count = models.F('schedule_count') + 1
-    episode.save()
-    
-    return end_time
-
-
-import logging, time
-from datetime import datetime, timedelta
-from .models import Episode, ScheduledEpisode
-
-# Set up logging configuration
-logger = logging.getLogger('ch24app.scheduling')
-logger.setLevel(logging.INFO)
-
-
-def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
-    """Enhanced scheduling function with corrected timing logic"""
-
-    logger.info(f"Starting scheduling for date: {schedule_date}")
-
-    base_query = Episode.objects.filter(ready_for_air=True)
-    if creator_id:
-        base_query = base_query.filter(program__creator_id=creator_id)
-    elif not all_ready:
-        logger.warning("Neither creator_id nor all_ready specified. Exiting.")
-        return
-
-    # Validate available content
-    available_content = base_query.count()
-    logger.info(f"Found {available_content} available episodes")
-    if not available_content:
-        logger.warning("No content available for scheduling")
-        return
-
-    # Start at midnight
-    current_time = datetime.strptime('00:00:00', '%H:%M:%S').time()
-    end_of_day = datetime.strptime('23:59:59', '%H:%M:%S').time()
-
-      # Add minimum episode duration check
-    min_episode_duration = base_query.aggregate(Min('duration_seconds'))['duration_seconds__min']
-    if min_episode_duration is None:
-        min_episode_duration = 300  # Default 5 minutes if no episodes found
-
-    # Add tracking for consecutive promos
-    consecutive_shortform = 0
-    MAX_CONSECUTIVE_SHORTFORM = 5  # Limit consecutive shortform
-    MIN_REMAINING_TIME = 300  # 5 minutes minimum to consider scheduling
-
-    while current_time < end_of_day:
-        current_slot = get_slot_for_time(current_time)
-        remaining_seconds = _remaining_seconds(current_time, end_of_day)
-
-        logger.info(f"\nCurrent time: {current_time}")
-        logger.info(f"Current slot: {current_slot}")
-        logger.info(f"Remaining seconds: {remaining_seconds}")
-
-        # Exit conditions
-        if remaining_seconds < MIN_REMAINING_TIME:
-            logger.info(f"Insufficient time remaining ({remaining_seconds}s), ending scheduling")
-            break
-
-         # Find suitable episode
-        available_episodes = base_query.filter(
-            ai_time_slots_recommended__contains=current_slot,
-            duration_seconds__lte=remaining_seconds
-        ).order_by('-audience_engagement_score', 'schedule_count', 'last_scheduled')
-
-        if not available_episodes.exists():
-            # Move time forward by 5 minutes if no content found
-            logger.info("No suitable episodes found for current slot")
-            current_time = _add_time(current_time, timedelta(minutes=5))
-            continue
-
-        episode = available_episodes.first()
-
-        if episode.content_type == ContentType.SHORTFORM or episode.duration_seconds < 300:
-            consecutive_shortform += 1
-            if consecutive_shortform >= MAX_CONSECUTIVE_SHORTFORM:
-                logger.info(f"Maximum consecutive shortform ({MAX_CONSECUTIVE_SHORTFORM}) reached, ending scheduling")
-                break
-        else:
-            consecutive_shortform = 0
-
-        if not validate_episode(episode):
-            logger.warning(f"Skipping episode {episode.custom_id} due to missing required fields")
-            continue
-
-        try:
-            # Schedule the episode
-            current_time = schedule_episode(episode, schedule_date, current_time, current_slot)
-            logger.info(f"Successfully scheduled {episode.title}")
-        except Exception as e:
-            logger.error(f"Failed to schedule {episode.title}: {str(e)}")
-            current_time = _add_time(current_time, timedelta(minutes=5))
-
-
-def validate_episode(episode):
-    """Validate that an episode has all required fields"""
-    required_fields = [
-        'episode_number',
-        'title',
-        'ai_genre',
-        'ai_age_rating',
-        'duration_seconds',
-        'duration_timecode'
-    ]
-    
-    for field in required_fields:
-        if not getattr(episode, field):
-            logger.warning(f"Episode {episode.custom_id} missing required field: {field}")
-            return False
-    return True
-
 
 def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: str) -> time:
     """Schedule a single episode with logging"""
@@ -574,15 +370,10 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
     logger.info(f"End time: {end_time}")
     logger.info(f"Duration: {episode.duration_seconds}s")
     logger.info(f"Rating: {episode.ai_age_rating}")
+    logger.info(f"Content type: {episode.content_type}")
     
     try:
-        # Store in UTC
-        episode.last_scheduled = timezone.now()
-        episode.last_timeslot = slot_name
-        episode.schedule_count = models.F('schedule_count') + 1
-        episode.save()
-        
-        # Create scheduled episode record
+        # Create scheduled episode record first
         scheduled = ScheduledEpisode.objects.create(
             episode=episode,
             program=episode.program,
@@ -603,15 +394,17 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
             prohibited_content_reasons=episode.prohibited_content_reasons,
             ready_for_air=episode.ready_for_air,
             duration_seconds=episode.duration_seconds,
-            duration_timecode=episode.duration_timecode
+            duration_timecode=episode.duration_timecode,
+            content_type=episode.content_type  # Added content_type
         )
         logger.info("Successfully created ScheduledEpisode record")
         
-        # Update episode scheduling info
-        episode.last_timeslot = slot_name
-        episode.last_scheduled = timezone.now()
-        episode.schedule_count = models.F('schedule_count') + 1
-        episode.save()
+        # Update episode scheduling info in a single operation
+        Episode.objects.filter(id=episode.id).update(
+            last_timeslot=slot_name,
+            last_scheduled=timezone.now(),
+            schedule_count=models.F('schedule_count') + 1
+        )
         logger.info("Successfully updated episode scheduling metadata")
         
     except Exception as e:
@@ -620,22 +413,133 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
     
     return end_time
 
-# def _remaining_seconds(current_time, end_time):
-#     """Calculate remaining seconds in the time slot"""
-#     if end_time > current_time:
-#         delta = datetime.combine(datetime.today(), end_time) - \
-#                 datetime.combine(datetime.today(), current_time)
-#     else:
-#         # Handle overnight slots
-#         delta = datetime.combine(datetime.today() + timedelta(days=1), end_time) - \
-#                 datetime.combine(datetime.today(), current_time)
-#     return delta.total_seconds()
 
-# def _add_time(time, delta):
-#     """Add timedelta to time, handling overnight wraparound"""
-#     datetime_combined = datetime.combine(datetime.today(), time)
-#     new_datetime = datetime_combined + delta
-#     return new_datetime.time()
+def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
+    """Enhanced scheduling function with structured slot-based scheduling and limits"""
+    
+    logger.info(f"Starting scheduling for date: {schedule_date}")
+
+    # Build base query
+    base_query = Episode.objects.filter(ready_for_air=True)
+    if creator_id:
+        base_query = base_query.filter(program__creator_id=creator_id)
+    elif not all_ready:
+        logger.warning("Neither creator_id nor all_ready specified. Exiting.")
+        return
+
+    # Validate available content
+    available_content = base_query.count()
+    logger.info(f"Found {available_content} available episodes")
+    if not available_content:
+        logger.warning("No content available for scheduling")
+        return
+
+    # Get minimum episode duration
+    min_episode_duration = base_query.aggregate(Min('duration_seconds'))['duration_seconds__min']
+    if min_episode_duration is None:
+        min_episode_duration = 300  # Default 5 minutes if no episodes found
+
+    # Constants
+    MAX_CONSECUTIVE_SHORTFORM = 5
+    MIN_REMAINING_TIME = 300  # 5 minutes minimum
+
+    # Process each time slot
+    for slot_name, slot_info in TIME_SLOTS.items():
+        start_time = datetime.strptime(slot_info['start'], '%H:%M:%S').time()
+        end_time = datetime.strptime(slot_info['end'], '%H:%M:%S').time()
+        current_time = start_time
+        consecutive_shortform = 0
+
+        logger.info(f"\nProcessing slot: {slot_name}")
+        logger.info(f"Slot time range: {start_time} - {end_time}")
+
+        while current_time < end_time:
+            remaining_seconds = _remaining_seconds(current_time, end_time)
+            
+            logger.info(f"Current time: {current_time}")
+            logger.info(f"Remaining seconds: {remaining_seconds}")
+
+            # Exit conditions
+            if remaining_seconds < MIN_REMAINING_TIME:
+                logger.info(f"Insufficient time remaining ({remaining_seconds}s), moving to next slot")
+                break
+
+            # Try to schedule a bumper at the top of each hour
+            if current_time.minute == 0:
+                bumper = get_suitable_content(
+                    base_query, slot_name, ContentType.BUMPER, remaining_seconds
+                )
+                if bumper and validate_episode(bumper):
+                    try:
+                        current_time = schedule_episode(
+                            bumper, schedule_date, current_time, slot_name
+                        )
+                        remaining_seconds = _remaining_seconds(current_time, end_time)
+                        consecutive_shortform = 0
+                    except Exception as e:
+                        logger.error(f"Failed to schedule bumper: {str(e)}")
+
+            # Try to schedule one longform content
+            longform = get_suitable_content(
+                base_query, slot_name, ContentType.LONGFORM, remaining_seconds
+            )
+            if longform and validate_episode(longform):
+                try:
+                    current_time = schedule_episode(
+                        longform, schedule_date, current_time, slot_name
+                    )
+                    remaining_seconds = _remaining_seconds(current_time, end_time)
+                    consecutive_shortform = 0
+                except Exception as e:
+                    logger.error(f"Failed to schedule longform: {str(e)}")
+
+            # Try to schedule shortform content
+            if consecutive_shortform >= MAX_CONSECUTIVE_SHORTFORM:
+                logger.info(f"Maximum consecutive shortform ({MAX_CONSECUTIVE_SHORTFORM}) reached")
+                current_time = _add_time(current_time, timedelta(minutes=5))
+                continue
+
+            shortform = get_suitable_content(
+                base_query, slot_name, ContentType.SHORTFORM, remaining_seconds
+            )
+            if shortform and validate_episode(shortform):
+                try:
+                    current_time = schedule_episode(
+                        shortform, schedule_date, current_time, slot_name
+                    )
+                    remaining_seconds = _remaining_seconds(current_time, end_time)
+                    consecutive_shortform += 1
+                except Exception as e:
+                    logger.error(f"Failed to schedule shortform: {str(e)}")
+            else:
+                # If we couldn't schedule anything, move time forward
+                current_time = _add_time(current_time, timedelta(minutes=5))
+
+            # Check if we made any progress
+            if remaining_seconds == _remaining_seconds(current_time, end_time):
+                current_time = _add_time(current_time, timedelta(minutes=5))
+
+
+
+
+
+def validate_episode(episode):
+    """Validate that an episode has all required fields"""
+    required_fields = [
+        'episode_number',
+        'title',
+        'ai_genre',
+        'ai_age_rating',
+        'duration_seconds',
+        'duration_timecode'
+    ]
+    
+    for field in required_fields:
+        if not getattr(episode, field):
+            logger.warning(f"Episode {episode.custom_id} missing required field: {field}")
+            return False
+    return True
+
 
 def get_slot_for_time(current_time):
     """Determine which time slot a given time falls into"""
@@ -653,6 +557,7 @@ def get_slot_for_time(current_time):
                 
     return 'overnight'  # Default to overnight if no match
 
+
 def _remaining_seconds(current_time, end_time):
     """Calculate remaining seconds in the time slot"""
     if end_time > current_time:
@@ -664,11 +569,13 @@ def _remaining_seconds(current_time, end_time):
                 datetime.combine(datetime.today(), current_time)
     return delta.total_seconds()
 
+
 def _add_time(time, delta):
     """Add timedelta to time, handling overnight wraparound"""
     datetime_combined = datetime.combine(datetime.today(), time)
     new_datetime = datetime_combined + delta
     return new_datetime.time()
+
 
 def get_suitable_content(query, slot_name: str, content_type: ContentType, 
                         remaining_time: int) -> Episode:
