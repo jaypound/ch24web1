@@ -708,8 +708,10 @@ def playlist_create(request):
                     messages.success(request, f'Playlist created for {playlist_date}')
                 
             elif action == 'clear':
-                deleted_count = ScheduledEpisode.objects.filter(schedule_date=playlist_date).delete()[0]
-                messages.success(request, f'Cleared {deleted_count} scheduled episodes for {playlist_date}')
+                # deleted_count = ScheduledEpisode.objects.filter(schedule_date=playlist_date).delete()[0]
+                # messages.success(request, f'Cleared {deleted_count} scheduled episodes for {playlist_date}')
+                deleted_count = ScheduledEpisode.objects.all().delete()[0]
+                messages.success(request, f'Cleared ALL {deleted_count} scheduled episodes!')
                 
             elif action == 'export':
                 return export_playlist(playlist_date)
