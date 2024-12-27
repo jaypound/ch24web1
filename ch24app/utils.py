@@ -350,12 +350,12 @@ TIME_SLOTS = {
         'seconds': 10800,
         'ratings': ['TV-14', 'TV-MA']
     },
-    # 'overnight': {
-    #     'start': '02:00:00',  # 2 AM
-    #     'end': '06:00:00',  # 6 AM
-    #     'seconds': 14400,
-    #     'ratings': ['TV-MA']
-    # }
+    'overnight': {
+        'start': '02:00:00',  # 2 AM
+        'end': '06:00:00',  # 6 AM
+        'seconds': 14400,
+        'ratings': ['TV-MA']
+    }
 }
 
 def get_content_type(duration_seconds: int) -> ContentType:
