@@ -368,7 +368,7 @@ def get_content_type(duration_seconds: int) -> ContentType:
         return ContentType.LONGFORM
     
 
-def schedule_episode(episode: Episode, schedule_date, current_dt, slot_name: str) -> time:
+def schedule_episode(episode: Episode, schedule_date, current_dt, slot_name: str):
     """Schedule a single episode with logging"""
 
     # start_dt is the same as current_dt (already a datetime)
@@ -507,11 +507,11 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
 
             ############################################################
             # LONGFORM scheduling
-            logger.info(f"Getting suitable LOGNFORM content for slot: {slot_name}")
+            logger.info(f"Getting suitable LONGFORM content for slot: {slot_name}")
             longform = get_suitable_content(base_query, slot_name, ContentType.LONGFORM, remaining_in_slot)
             if longform and validate_episode(longform):
                 try:
-                    current_dt = schedule_episode(longform, schedule_date, current_dt.time(), slot_name)
+                    current_dt = schedule_episode(longform, schedule_date, current_dt, slot_name)
                     consecutive_shortform = 0
                 except Exception as e:
                     logger.error(f"Failed to schedule longform: {str(e)}")
@@ -532,7 +532,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
                 shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
                 if shortform and validate_episode(shortform):
                     try:
-                        current_dt = schedule_episode(shortform, schedule_date, current_dt.time(), slot_name)
+                        current_dt = schedule_episode(shortform, schedule_date, current_dt, slot_name)
                         consecutive_shortform += 1
                         # Recalculate remaining after scheduling each item
                         remaining_in_slot = (slot_end_dt - current_dt).total_seconds()
@@ -558,7 +558,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
             bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot)
             if bumper and validate_episode(bumper):
                 try:
-                    current_dt = schedule_episode(bumper, schedule_date, current_dt.time(), slot_name)
+                    current_dt = schedule_episode(bumper, schedule_date, current_dt, slot_name)
                 except Exception as e:
                     logger.error(f"Failed to schedule bumper: {str(e)}")
             else:
