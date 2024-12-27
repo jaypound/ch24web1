@@ -368,12 +368,11 @@ def get_content_type(duration_seconds: int) -> ContentType:
         return ContentType.LONGFORM
     
 
-def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: str) -> time:
+def schedule_episode(episode: Episode, schedule_date, current_dt, slot_name: str) -> time:
     """Schedule a single episode with logging"""
 
-    # Combine them into a single naive datetime:
-    start_dt = datetime.combine(schedule_date, current_time)
-    # Then add episode duration:
+    # start_dt is the same as current_dt (already a datetime)
+    start_dt = current_dt  
     end_dt = start_dt + timedelta(seconds=episode.duration_seconds)
 
     # (Optionally make it timezone-aware if needed)
@@ -425,7 +424,7 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
         logger.error(f"Error scheduling episode: {str(e)}")
         raise
     
-    return end_dt.time()
+    return end_dt
 
 
 def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
@@ -464,6 +463,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     for slot_name, slot_info in TIME_SLOTS.items():
 
         logger.info(f"\n******** Processing slot: {slot_name} ********")
+
         slot_start_str = slot_info['start']  # e.g. '23:00:00'
         logger.info(f"Slot start: {slot_start_str}")
         slot_duration_sec = slot_info['seconds']  # e.g. 10800 for 3 hours
@@ -490,6 +490,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
             break
 
         while (current_dt < slot_end_dt) and (steps < MAX_STEPS):
+            steps += 1
             logger.info(f"Current datetime: {current_dt} id less than slot end datetime: {slot_end_dt}")
             logger.info(f"Steps: {steps}")
             # Calculate how many seconds remain in this slot
@@ -511,7 +512,6 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
             if longform and validate_episode(longform):
                 try:
                     current_dt = schedule_episode(longform, schedule_date, current_dt.time(), slot_name)
-                    current_dt = datetime.combine(schedule_date, current_dt)
                     consecutive_shortform = 0
                 except Exception as e:
                     logger.error(f"Failed to schedule longform: {str(e)}")
@@ -533,7 +533,6 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
                 if shortform and validate_episode(shortform):
                     try:
                         current_dt = schedule_episode(shortform, schedule_date, current_dt.time(), slot_name)
-                        current_dt = datetime.combine(schedule_date, current_dt)
                         consecutive_shortform += 1
                         # Recalculate remaining after scheduling each item
                         remaining_in_slot = (slot_end_dt - current_dt).total_seconds()
@@ -560,7 +559,6 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
             if bumper and validate_episode(bumper):
                 try:
                     current_dt = schedule_episode(bumper, schedule_date, current_dt.time(), slot_name)
-                    current_dt = datetime.combine(schedule_date, current_dt)  # convert .time() back to datetime
                 except Exception as e:
                     logger.error(f"Failed to schedule bumper: {str(e)}")
             else:
