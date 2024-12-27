@@ -409,7 +409,8 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
         Episode.objects.filter(custom_id=episode.custom_id).update(
             last_timeslot=slot_name,
             last_scheduled=timezone.now(),
-            schedule_count=models.F('schedule_count') + 1
+            schedule_count=models.F('schedule_count') + 1,
+            priority_score=models.F('priority_score') + 1
         )
         logger.info("Successfully updated episode scheduling metadata")
         
@@ -611,9 +612,10 @@ def get_suitable_content(query, slot_name: str, content_type: ContentType,
         ai_age_rating__in=ratings,
         **duration_filter
     ).order_by(
-        '-audience_engagement_score',
-        'schedule_count',
-        'last_scheduled'
+        'priority_score',             # Prioritize less-scheduled content
+        '-audience_engagement_score', # Then by engagement
+        'schedule_count',             # Then by frequency
+        'last_scheduled'              # Then by recency
     ).first()
 
 
