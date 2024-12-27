@@ -326,8 +326,8 @@ class ScheduledEpisode(models.Model):
         null=True,  # Explicitly disallow NULL values
         blank=True  # Required in forms
     )
-    start_time = models.TimeField('Start Time', null=True, blank=True)
-    end_time = models.TimeField('End Time', null=True, blank=True)
+    start_time = models.DateTimeField(blank=True, null=True, verbose_name='Start Time')
+    end_time = models.DateTimeField(blank=True, null=True, verbose_name='End Time')
     episode = models.ForeignKey(Episode, on_delete=models.CASCADE)
     program = models.ForeignKey(Program, on_delete=models.CASCADE)
     creator = models.ForeignKey(Creator, on_delete=models.CASCADE)

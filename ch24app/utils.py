@@ -364,14 +364,15 @@ def get_content_type(duration_seconds: int) -> ContentType:
 def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: str) -> time:
     """Schedule a single episode with logging"""
     end_time = _add_time(current_time, timedelta(seconds=episode.duration_seconds))
-    
-    logger.info(f"\nScheduling episode: {episode.title}")
+    logger.info(f"\nSlot name: {slot_name}")
+    logger.info(f"Scheduling episode: {episode.title}")
     logger.info(f"Start time: {current_time}")
     logger.info(f"End time: {end_time}")
     logger.info(f"Duration: {episode.duration_seconds}s")
     logger.info(f"Rating: {episode.ai_age_rating}")
     # logger.info(f"Content type: {episode.content_type}")
-    
+    logger.info(f"start_time -> {current_time}, end_time -> {end_time}, schedule_date -> {schedule_date}")
+
     try:
         # Create scheduled episode record first
         scheduled = ScheduledEpisode.objects.create(
@@ -518,6 +519,9 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
             # Check if we made any progress
             if remaining_seconds == _remaining_seconds(current_time, end_time):
                 current_time = _add_time(current_time, timedelta(minutes=5))
+
+
+        logger.info(f"Ending scheduling for date: {schedule_date}")
 
 
 
