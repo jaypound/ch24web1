@@ -320,12 +320,12 @@ TIME_SLOTS = {
         'seconds': 10800,
         'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
     },
-    # 'daytime': {
-    #     'start': '09:00:00',
-    #     'end': '15:00:00',  # 3 PM
-    #     'seconds': 21600,
-    #     'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
-    # },
+    'daytime': {
+        'start': '09:00:00',
+        'end': '15:00:00',  # 3 PM
+        'seconds': 21600,
+        'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
+    },
     # 'after_school': {
     #     'start': '15:00:00',  # 3 PM
     #     'end': '18:00:00',  # 6 PM
@@ -483,6 +483,10 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
         logger.info(f"Current datetime: {current_dt}")
         consecutive_shortform = 0
 
+        if steps >= MAX_STEPS:
+            logger.info(f"Max steps reached ({MAX_STEPS}). Exiting.")
+            break
+
         while (current_dt < slot_end_dt) and (steps < MAX_STEPS):
             logger.info(f"Current datetime: {current_dt} id less than slot end datetime: {slot_end_dt}")
             # Calculate how many seconds remain in this slot
@@ -496,6 +500,8 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
             if remaining_in_slot < MIN_REMAINING_TIME:
                 logger.info(f"Not enough time left in slot ({remaining_in_slot}s). Moving on.")
                 break
+            else:
+                logger.info(f"Enough time left in slot ({remaining_in_slot}s). Scheduling content.")
 
             # Try to schedule one bumper content
             bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot)
@@ -507,6 +513,13 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
                     logger.error(f"Failed to schedule bumper: {str(e)}")
             else:
                 logger.info("******************* No bumper content found for this slot *******************")    
+
+            # Exit if insufficient time
+            if remaining_in_slot < MIN_REMAINING_TIME:
+                logger.info(f"Not enough time left in slot ({remaining_in_slot}s). Moving on.")
+                break
+            else:
+                logger.info(f"Enough time left in slot ({remaining_in_slot}s). Scheduling content.")
 
             # LONGFORM scheduling
             longform = get_suitable_content(base_query, slot_name, ContentType.LONGFORM, remaining_in_slot)
@@ -521,6 +534,13 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
                 logger.info("No longform found.")
                 logger.info("******************* No longform content found for this slot *******************")    
 
+            # Exit if insufficient time
+            if remaining_in_slot < MIN_REMAINING_TIME:
+                logger.info(f"Not enough time left in slot ({remaining_in_slot}s). Moving on.")
+                break
+            else:
+                logger.info(f"Enough time left in slot ({remaining_in_slot}s). Scheduling content.")
+
             # SHORTFORM scheduling up to MAX_CONSECUTIVE_SHORTFORM
             for _ in range(MAX_CONSECUTIVE_SHORTFORM):
                 shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
@@ -533,6 +553,8 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
                         remaining_in_slot = (slot_end_dt - current_dt).total_seconds()
                         if remaining_in_slot < MIN_REMAINING_TIME:
                             break
+                        else:
+                            logger.info(f"Enough time left in slot ({remaining_in_slot}s). Scheduling content.")
                     except Exception as e:
                         logger.error(f"Failed to schedule shortform: {str(e)}")
                 else:
