@@ -363,15 +363,21 @@ def get_content_type(duration_seconds: int) -> ContentType:
 
 def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: str) -> time:
     """Schedule a single episode with logging"""
-    end_time = _add_time(current_time, timedelta(seconds=episode.duration_seconds))
-    logger.info(f"\nSlot name: {slot_name}")
-    logger.info(f"Scheduling episode: {episode.title}")
-    logger.info(f"Start time: {current_time}")
-    logger.info(f"End time: {end_time}")
+
+    # Combine them into a single naive datetime:
+    start_dt = datetime.combine(schedule_date, current_time)
+    # Then add episode duration:
+    end_dt = start_dt + timedelta(seconds=episode.duration_seconds)
+
+    # (Optionally make it timezone-aware if needed)
+    # start_dt = timezone.make_aware(start_dt)
+    # end_dt = timezone.make_aware(end_dt)
+
+    logger.info(f"\nScheduling episode: {episode.title}")
+    logger.info(f"Start time: {start_dt}")
+    logger.info(f"End time: {end_dt}")
     logger.info(f"Duration: {episode.duration_seconds}s")
     logger.info(f"Rating: {episode.ai_age_rating}")
-    # logger.info(f"Content type: {episode.content_type}")
-    logger.info(f"start_time -> {current_time}, end_time -> {end_time}, schedule_date -> {schedule_date}")
 
     try:
         # Create scheduled episode record first
@@ -380,8 +386,8 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
             program=episode.program,
             creator=episode.program.creator,
             schedule_date=schedule_date,
-            start_time=current_time,
-            end_time=end_time,
+            start_time=start_dt,
+            end_time=end_dt,
             episode_number=episode.episode_number,
             title=episode.title,
             file_name=episode.file_name,
@@ -396,7 +402,6 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
             ready_for_air=episode.ready_for_air,
             duration_seconds=episode.duration_seconds,
             duration_timecode=episode.duration_timecode,
-            # content_type=episode.content_type  # Added content_type
         )
         logger.info("Successfully created ScheduledEpisode record")
         
@@ -412,7 +417,7 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
         logger.error(f"Error scheduling episode: {str(e)}")
         raise
     
-    return end_time
+    return end_dt.time()
 
 
 def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
