@@ -320,42 +320,42 @@ TIME_SLOTS = {
         'seconds': 10800,
         'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
     },
-    'daytime': {
-        'start': '09:00:00',
-        'end': '15:00:00',  # 3 PM
-        'seconds': 21600,
-        'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
-    },
-    'after_school': {
-        'start': '15:00:00',  # 3 PM
-        'end': '18:00:00',  # 6 PM
-        'seconds': 10800,
-        'ratings': ['TV-Y7', 'TV-G', 'TV-PG']
-    },
-    'early_evening': {
-        'start': '18:00:00',  # 6 PM
-        'end': '20:00:00',  # 8 PM
-        'seconds': 7200,
-        'ratings': ['TV-G', 'TV-PG']
-    },
-    'prime_time': {
-        'start': '20:00:00',  # 8 PM
-        'end': '23:00:00',  # 11 PM
-        'seconds': 10800,
-        'ratings': ['TV-PG', 'TV-14']
-    },
-    'late_night': {
-        'start': '23:00:00',  # 11 PM
-        'end': '02:00:00',  # 2 AM
-        'seconds': 10800,
-        'ratings': ['TV-14', 'TV-MA']
-    },
-    'overnight': {
-        'start': '02:00:00',  # 2 AM
-        'end': '06:00:00',  # 6 AM
-        'seconds': 14400,
-        'ratings': ['TV-MA']
-    }
+    # 'daytime': {
+    #     'start': '09:00:00',
+    #     'end': '15:00:00',  # 3 PM
+    #     'seconds': 21600,
+    #     'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
+    # },
+    # 'after_school': {
+    #     'start': '15:00:00',  # 3 PM
+    #     'end': '18:00:00',  # 6 PM
+    #     'seconds': 10800,
+    #     'ratings': ['TV-Y7', 'TV-G', 'TV-PG']
+    # },
+    # 'early_evening': {
+    #     'start': '18:00:00',  # 6 PM
+    #     'end': '20:00:00',  # 8 PM
+    #     'seconds': 7200,
+    #     'ratings': ['TV-G', 'TV-PG']
+    # },
+    # 'prime_time': {
+    #     'start': '20:00:00',  # 8 PM
+    #     'end': '23:00:00',  # 11 PM
+    #     'seconds': 10800,
+    #     'ratings': ['TV-PG', 'TV-14']
+    # },
+    # 'late_night': {
+    #     'start': '23:00:00',  # 11 PM
+    #     'end': '02:00:00',  # 2 AM
+    #     'seconds': 10800,
+    #     'ratings': ['TV-14', 'TV-MA']
+    # },
+    # 'overnight': {
+    #     'start': '02:00:00',  # 2 AM
+    #     'end': '06:00:00',  # 6 AM
+    #     'seconds': 14400,
+    #     'ratings': ['TV-MA']
+    # }
 }
 
 def get_content_type(duration_seconds: int) -> ContentType:
@@ -457,27 +457,37 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     MAX_CONSECUTIVE_SHORTFORM = 5
     MIN_REMAINING_TIME = 300  # 5 minutes minimum
 
+    steps = 0
+    MAX_STEPS = 100
     # Process each time slot
     for slot_name, slot_info in TIME_SLOTS.items():
 
         logger.info(f"\n******** Processing slot: {slot_name} ********")
         slot_start_str = slot_info['start']  # e.g. '23:00:00'
+        logger.info(f"Slot start: {slot_start_str}")
         slot_duration_sec = slot_info['seconds']  # e.g. 10800 for 3 hours
+        logger.info(f"Slot duration: {slot_duration_sec} seconds")
 
         # Convert the slot's start time to a datetime on schedule_date
         slot_start_time = datetime.strptime(slot_start_str, '%H:%M:%S').time()
+        logger.info(f"Slot start time: {slot_start_time}")
         slot_start_dt = datetime.combine(schedule_date, slot_start_time)
+        logger.info(f"Slot start datetime: {slot_start_dt}")
 
         # slot_end_dt is slot_start_dt + slot_duration_sec
         slot_end_dt = slot_start_dt + timedelta(seconds=slot_duration_sec)
+        logger.info(f"Slot end datetime: {slot_end_dt}")
 
         # We'll track "current_dt" as we schedule content
         current_dt = slot_start_dt
+        logger.info(f"Current datetime: {current_dt}")
         consecutive_shortform = 0
 
-        while current_dt < slot_end_dt:
+        while (current_dt < slot_end_dt) and (steps < MAX_STEPS):
+            logger.info(f"Current datetime: {current_dt} id less than slot end datetime: {slot_end_dt}")
             # Calculate how many seconds remain in this slot
             remaining_in_slot = (slot_end_dt - current_dt).total_seconds()
+            logger.info(f"Remaining in slot: {remaining_in_slot} seconds")
 
             logger.info(f"Current time: {current_dt.time()}")
             logger.info(f"Remaining seconds in slot '{slot_name}': {remaining_in_slot}")
