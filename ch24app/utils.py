@@ -338,12 +338,12 @@ TIME_SLOTS = {
         'seconds': 7200,
         'ratings': ['TV-G', 'TV-PG']
     },
-    # 'prime_time': {
-    #     'start': '20:00:00',  # 8 PM
-    #     'end': '23:00:00',  # 11 PM
-    #     'seconds': 10800,
-    #     'ratings': ['TV-PG', 'TV-14']
-    # },
+    'prime_time': {
+        'start': '20:00:00',  # 8 PM
+        'end': '23:00:00',  # 11 PM
+        'seconds': 10800,
+        'ratings': ['TV-PG', 'TV-14']
+    },
     # 'late_night': {
     #     'start': '23:00:00',  # 11 PM
     #     'end': '02:00:00',  # 2 AM
