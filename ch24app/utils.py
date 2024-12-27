@@ -332,12 +332,12 @@ TIME_SLOTS = {
         'seconds': 10800,
         'ratings': ['TV-Y7', 'TV-G', 'TV-PG']
     },
-    # 'early_evening': {
-    #     'start': '18:00:00',  # 6 PM
-    #     'end': '20:00:00',  # 8 PM
-    #     'seconds': 7200,
-    #     'ratings': ['TV-G', 'TV-PG']
-    # },
+    'early_evening': {
+        'start': '18:00:00',  # 6 PM
+        'end': '20:00:00',  # 8 PM
+        'seconds': 7200,
+        'ratings': ['TV-G', 'TV-PG']
+    },
     # 'prime_time': {
     #     'start': '20:00:00',  # 8 PM
     #     'end': '23:00:00',  # 11 PM
@@ -459,6 +459,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
 
     steps = 0
     MAX_STEPS = 100
+    current_dt = None
     # Process each time slot
     for slot_name, slot_info in TIME_SLOTS.items():
 
@@ -478,8 +479,9 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
         slot_end_dt = slot_start_dt + timedelta(seconds=slot_duration_sec)
         logger.info(f"Slot end datetime: {slot_end_dt}")
 
-        # We'll track "current_dt" as we schedule content
-        current_dt = slot_start_dt
+        # We'll track "current_dt" as we schedule content_dt 
+        if current_dt is None:
+            current_dt = slot_start_dt
         logger.info(f"Current datetime: {current_dt}")
         consecutive_shortform = 0
 
