@@ -317,36 +317,43 @@ TIME_SLOTS = {
     'early_morning': {
         'start': '06:00:00',
         'end': '09:00:00',
+        'seconds': 10800,
         'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
     },
     'daytime': {
         'start': '09:00:00',
         'end': '15:00:00',  # 3 PM
+        'seconds': 21600,
         'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
     },
     'after_school': {
         'start': '15:00:00',  # 3 PM
         'end': '18:00:00',  # 6 PM
+        'seconds': 10800,
         'ratings': ['TV-Y7', 'TV-G', 'TV-PG']
     },
     'early_evening': {
         'start': '18:00:00',  # 6 PM
         'end': '20:00:00',  # 8 PM
+        'seconds': 7200,
         'ratings': ['TV-G', 'TV-PG']
     },
     'prime_time': {
         'start': '20:00:00',  # 8 PM
         'end': '23:00:00',  # 11 PM
+        'seconds': 10800,
         'ratings': ['TV-PG', 'TV-14']
     },
     'late_night': {
         'start': '23:00:00',  # 11 PM
         'end': '02:00:00',  # 2 AM
+        'seconds': 10800,
         'ratings': ['TV-14', 'TV-MA']
     },
     'overnight': {
         'start': '02:00:00',  # 2 AM
         'end': '06:00:00',  # 6 AM
+        'seconds': 14400,
         'ratings': ['TV-MA']
     }
 }
@@ -424,7 +431,7 @@ def schedule_episode(episode: Episode, schedule_date, current_time, slot_name: s
 def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     """Enhanced scheduling function with structured slot-based scheduling and limits"""
     
-    logger.info(f"Starting scheduling for date: {schedule_date}")
+    logger.info(f"******************* Starting scheduling for date: {schedule_date} *******************")
 
     # Build base query
     base_query = Episode.objects.filter(ready_for_air=True)
@@ -452,85 +459,79 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
 
     # Process each time slot
     for slot_name, slot_info in TIME_SLOTS.items():
-        start_time = datetime.strptime(slot_info['start'], '%H:%M:%S').time()
-        end_time = datetime.strptime(slot_info['end'], '%H:%M:%S').time()
-        current_time = start_time
+
+        logger.info(f"\n******** Processing slot: {slot_name} ********")
+        slot_start_str = slot_info['start']  # e.g. '23:00:00'
+        slot_duration_sec = slot_info['seconds']  # e.g. 10800 for 3 hours
+
+        # Convert the slot's start time to a datetime on schedule_date
+        slot_start_time = datetime.strptime(slot_start_str, '%H:%M:%S').time()
+        slot_start_dt = datetime.combine(schedule_date, slot_start_time)
+
+        # slot_end_dt is slot_start_dt + slot_duration_sec
+        slot_end_dt = slot_start_dt + timedelta(seconds=slot_duration_sec)
+
+        # We'll track "current_dt" as we schedule content
+        current_dt = slot_start_dt
         consecutive_shortform = 0
 
-        logger.info(f"\nProcessing slot: {slot_name}")
-        logger.info(f"Slot time range: {start_time} - {end_time}")
+        while current_dt < slot_end_dt:
+            # Calculate how many seconds remain in this slot
+            remaining_in_slot = (slot_end_dt - current_dt).total_seconds()
 
-        while current_time < end_time:
-            remaining_seconds = _remaining_seconds(current_time, end_time)
-            
-            logger.info(f"Current time: {current_time}")
-            logger.info(f"Remaining seconds: {remaining_seconds}")
+            logger.info(f"Current time: {current_dt.time()}")
+            logger.info(f"Remaining seconds in slot '{slot_name}': {remaining_in_slot}")
 
-            # Exit conditions
-            if remaining_seconds < MIN_REMAINING_TIME:
-                logger.info(f"Insufficient time remaining ({remaining_seconds}s), moving to next slot")
+            # Exit if insufficient time
+            if remaining_in_slot < MIN_REMAINING_TIME:
+                logger.info(f"Not enough time left in slot ({remaining_in_slot}s). Moving on.")
                 break
 
-            # Try to schedule a bumper at the top of each hour
-            if current_time.minute == 0:
-                bumper = get_suitable_content(
-                    base_query, slot_name, ContentType.BUMPER, remaining_seconds
-                )
-                if bumper and validate_episode(bumper):
-                    try:
-                        current_time = schedule_episode(
-                            bumper, schedule_date, current_time, slot_name
-                        )
-                        remaining_seconds = _remaining_seconds(current_time, end_time)
-                        consecutive_shortform = 0
-                    except Exception as e:
-                        logger.error(f"Failed to schedule bumper: {str(e)}")
+            # Try to schedule one bumper content
+            bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot)
+            if bumper and validate_episode(bumper):
+                try:
+                    current_dt = schedule_episode(bumper, schedule_date, current_dt.time(), slot_name)
+                    current_dt = datetime.combine(schedule_date, current_dt)  # convert .time() back to datetime
+                except Exception as e:
+                    logger.error(f"Failed to schedule bumper: {str(e)}")
+            else:
+                logger.info("******************* No bumper content found for this slot *******************")    
 
-            # Try to schedule one longform content
-            longform = get_suitable_content(
-                base_query, slot_name, ContentType.LONGFORM, remaining_seconds
-            )
+            # LONGFORM scheduling
+            longform = get_suitable_content(base_query, slot_name, ContentType.LONGFORM, remaining_in_slot)
             if longform and validate_episode(longform):
                 try:
-                    current_time = schedule_episode(
-                        longform, schedule_date, current_time, slot_name
-                    )
-                    remaining_seconds = _remaining_seconds(current_time, end_time)
+                    current_dt = schedule_episode(longform, schedule_date, current_dt.time(), slot_name)
+                    current_dt = datetime.combine(schedule_date, current_dt)
                     consecutive_shortform = 0
                 except Exception as e:
                     logger.error(f"Failed to schedule longform: {str(e)}")
-
-            # Try to schedule shortform content
-            if consecutive_shortform >= MAX_CONSECUTIVE_SHORTFORM:
-                logger.info(f"Maximum consecutive shortform ({MAX_CONSECUTIVE_SHORTFORM}) reached")
-                current_time = _add_time(current_time, timedelta(minutes=5))
-                continue
-
-            shortform = get_suitable_content(
-                base_query, slot_name, ContentType.SHORTFORM, remaining_seconds
-            )
-            if shortform and validate_episode(shortform):
-                try:
-                    current_time = schedule_episode(
-                        shortform, schedule_date, current_time, slot_name
-                    )
-                    remaining_seconds = _remaining_seconds(current_time, end_time)
-                    consecutive_shortform += 1
-                except Exception as e:
-                    logger.error(f"Failed to schedule shortform: {str(e)}")
             else:
-                # If we couldn't schedule anything, move time forward
-                current_time = _add_time(current_time, timedelta(minutes=5))
+                logger.info("No longform found.")
+                logger.info("******************* No longform content found for this slot *******************")    
 
-            # Check if we made any progress
-            if remaining_seconds == _remaining_seconds(current_time, end_time):
-                current_time = _add_time(current_time, timedelta(minutes=5))
+            # SHORTFORM scheduling up to MAX_CONSECUTIVE_SHORTFORM
+            for _ in range(MAX_CONSECUTIVE_SHORTFORM):
+                shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
+                if shortform and validate_episode(shortform):
+                    try:
+                        current_dt = schedule_episode(shortform, schedule_date, current_dt.time(), slot_name)
+                        current_dt = datetime.combine(schedule_date, current_dt)
+                        consecutive_shortform += 1
+                        # Recalculate remaining after scheduling each item
+                        remaining_in_slot = (slot_end_dt - current_dt).total_seconds()
+                        if remaining_in_slot < MIN_REMAINING_TIME:
+                            break
+                    except Exception as e:
+                        logger.error(f"Failed to schedule shortform: {str(e)}")
+                else:
+                    logger.info("No shortform found or insufficient time.")
+                    break  # break out of the shortform loop
 
+        logger.info(f"******** Done processing slot: {slot_name} ********")
 
-        logger.info(f"Ending scheduling for date: {schedule_date}")
-
-
-
+    logger.info(f"******************* Ending scheduling for date: {schedule_date} *******************")
 
 
 def validate_episode(episode):

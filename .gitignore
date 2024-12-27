@@ -2,6 +2,7 @@
 __pycache__/
 *.sqlite3
 *.log
+logs/
 .DS_Store
 .venv
 nohup.out
