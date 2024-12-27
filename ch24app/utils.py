@@ -462,7 +462,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     # Process each time slot
     for slot_name, slot_info in TIME_SLOTS.items():
 
-        logger.info(f"\n******** Processing slot: {slot_name} ********")
+        logger.info(f"******** Processing slot: {slot_name} ********")
 
         slot_start_str = slot_info['start']  # e.g. '23:00:00'
         logger.info(f"Slot start: {slot_start_str}")
@@ -488,6 +488,14 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
         if steps >= MAX_STEPS:
             logger.info(f"Max steps reached ({MAX_STEPS}). Exiting.")
             break
+
+        if slot_end_dt < current_dt:
+            slot_start_dt += timedelta(days=1)
+            slot_end_dt += timedelta(days=1)
+            logger.info(f"Slot end datetime is less than current datetime. Moving to next day.")
+            logger.info(f"Slot start datetime: {slot_start_dt}")
+            logger.info(f"Slot end datetime: {slot_end_dt}")
+            logger.info(f"Current datetime: {current_dt}")
 
         while (current_dt < slot_end_dt) and (steps < MAX_STEPS):
             steps += 1
