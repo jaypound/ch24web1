@@ -344,12 +344,12 @@ TIME_SLOTS = {
         'seconds': 10800,
         'ratings': ['TV-PG', 'TV-14']
     },
-    # 'late_night': {
-    #     'start': '23:00:00',  # 11 PM
-    #     'end': '02:00:00',  # 2 AM
-    #     'seconds': 10800,
-    #     'ratings': ['TV-14', 'TV-MA']
-    # },
+    'late_night': {
+        'start': '23:00:00',  # 11 PM
+        'end': '02:00:00',  # 2 AM
+        'seconds': 10800,
+        'ratings': ['TV-14', 'TV-MA']
+    },
     # 'overnight': {
     #     'start': '02:00:00',  # 2 AM
     #     'end': '06:00:00',  # 6 AM
