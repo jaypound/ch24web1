@@ -143,11 +143,12 @@
                                             <td>{{ episode.ai_genre }}</td>
                                             <td>{{ episode.audience_engagement_score }}</td>
                                             <td>
-                                                <button type="button" 
+                                                <!-- <button type="button" 
                                                         class="btn btn-sm btn-primary"
                                                         onclick="scheduleEpisode('{{ episode.custom_id }}')">
                                                     Schedule
-                                                </button>
+                                                </button> -->
+                                                <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary me-2">Preview</a>
                                             </td>
                                         </tr>
                                     {% endfor %}
