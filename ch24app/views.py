@@ -472,6 +472,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import SupportTicketForm, SupportTicketStatusForm, TicketResponseForm
 from .models import SupportTicket, TicketResponse
 
+@login_required
 def submit_ticket(request):
     if request.method == 'POST':
         form = SupportTicketForm(request.POST, user=request.user)
@@ -539,7 +540,7 @@ def my_tickets(request):
     tickets = SupportTicket.objects.filter(created_by=request.user).order_by('-time_received')
     return render(request, 'support/my_tickets.html', {'tickets': tickets})
 
-
+@login_required
 def view_episode(request, episode_id):
     episode = get_object_or_404(Episode, custom_id=episode_id)
 
@@ -823,6 +824,8 @@ def playlist_create(request):
     
 #     return response
 
+@login_required
+@user_passes_test(lambda u: u.is_staff)
 def export_playlist(schedule_date):
     """Export playlist with correct timezone handling"""
     buffer = io.StringIO()
@@ -964,3 +967,65 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             ('longform', 'Long Form (>15m)'),
         ]
         return context
+    
+
+# views.py
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Q
+from django.core.paginator import Paginator
+
+@staff_member_required
+def admin_tickets(request):
+    # Get filter parameters from request
+    status = request.GET.get('status', '')
+    category = request.GET.get('category', '')
+    search = request.GET.get('search', '')
+    urgency = request.GET.get('urgency', '')
+
+    # Start with all tickets
+    tickets = SupportTicket.objects.all().order_by('-time_received')
+
+    # Apply filters
+    if status:
+        tickets = tickets.filter(ticket_status=status)
+    if category:
+        tickets = tickets.filter(category=category)
+    if urgency:
+        tickets = tickets.filter(urgency=urgency)
+    if search:
+        tickets = tickets.filter(
+            Q(ticket_no__icontains=search) |
+            Q(subject__icontains=search) |
+            Q(name__icontains=search) |
+            Q(contact_info__icontains=search)
+        )
+
+    # Pagination
+    paginator = Paginator(tickets, 25)  # Show 25 tickets per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'tickets': page_obj,
+        'status_choices': SupportTicket.STATUS_CHOICES,
+        'category_choices': SupportTicket.TICKET_CATEGORIES,
+        'urgency_choices': SupportTicket.URGENCY_CHOICES,
+        'selected_status': status,
+        'selected_category': category,
+        'selected_urgency': urgency,
+        'search_query': search,
+    }
+    
+    return render(request, 'support/admin_tickets.html', context)
+
+
+# views.py
+@staff_member_required
+def update_ticket_status(request, ticket_no):
+    if request.method == 'POST':
+        ticket = get_object_or_404(SupportTicket, ticket_no=ticket_no)
+        new_status = request.POST.get('ticket_status')
+        if new_status in dict(SupportTicket.STATUS_CHOICES):
+            ticket.ticket_status = new_status
+            ticket.save()
+    return redirect('admin_tickets')

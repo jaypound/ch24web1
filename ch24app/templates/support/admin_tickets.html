@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="shadow p-4 mb-5 bg-body rounded">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Support Tickets Management</h2>
+            <div>
+                <a href="{% url 'submit_ticket' %}" class="btn btn-primary">Create New Ticket</a>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <form method="get" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        {% for status_value, status_label in status_choices %}
+                        <option value="{{ status_value }}" {% if selected_status == status_value %}selected{% endif %}>
+                            {{ status_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="category" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        {% for cat_value, cat_label in category_choices %}
+                        <option value="{{ cat_value }}" {% if selected_category == cat_value %}selected{% endif %}>
+                            {{ cat_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="urgency" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Urgencies</option>
+                        {% for urg_value, urg_label in urgency_choices %}
+                        <option value="{{ urg_value }}" {% if selected_urgency == urg_value %}selected{% endif %}>
+                            {{ urg_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Search tickets..."
+                            value="{{ search_query }}">
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Tickets Table -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Ticket #</th>
+                        <th>Created By</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Category</th>
+                        <th>Urgency</th>
+                        <th>Submitted On</th>
+                        <th>Last Response</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td>{{ ticket.ticket_no }}</td>
+                        <td>{{ ticket.name }}</td>
+                        <td>{{ ticket.subject }}</td>
+                        <td>
+                            <span class="badge {% if ticket.ticket_status == 'RESOLVED' %}bg-success
+                                          {% elif ticket.ticket_status == 'WORKING' %}bg-primary
+                                          {% elif ticket.ticket_status == 'PENDING' %}bg-warning
+                                          {% elif ticket.ticket_status == 'ON_HOLD' %}bg-danger
+                                          {% else %}bg-secondary{% endif %}">
+                                {{ ticket.get_ticket_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ ticket.get_category_display }}</td>
+                        <td>
+                            <span class="badge {% if ticket.urgency == 'high' %}bg-danger
+                                          {% elif ticket.urgency == 'medium' %}bg-warning
+                                          {% else %}bg-info{% endif %}">
+                                {{ ticket.get_urgency_display }}
+                            </span>
+                        </td>
+                        <td>{{ ticket.time_received|date:"M d, Y H:i" }}</td>
+                        <td>
+                            {% with last_response=ticket.responses.last %}
+                            {% if last_response %}
+                            {{ last_response.timestamp|date:"M d, Y H:i" }}
+                            {% else %}
+                            No responses
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'ticket_detail' ticket_no=ticket.ticket_no %}"
+                                    class="btn btn-sm btn-outline-primary">View</a>
+                                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    Status
+                                </button>
+                                <ul class="dropdown-menu">
+                                    {% for status_value, status_label in status_choices %}
+                                    <li>
+                                        <form method="post" action="{% url 'update_ticket_status' ticket.ticket_no %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="ticket_status" value="{{ status_value }}">
+                                            <button type="submit"
+                                                class="dropdown-item {% if ticket.ticket_status == status_value %}active{% endif %}">
+                                                {{ status_label }}
+                                            </button>
+                                        </form>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if tickets.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if tickets.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ tickets.previous_page_number }}&status={{ selected_status }}&category={{ selected_category }}&urgency={{ selected_urgency }}&search={{ search_query }}">&laquo;</a>
+                </li>
+                {% endif %}
+
+                {% for num in tickets.paginator.page_range %}
+                <li class="page-item {% if tickets.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}&status={{ selected_status }}&category={{ selected_category }}&urgency={{ selected_urgency }}&search={{ search_query }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if tickets.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ tickets.next_page_number }}&status={{ selected_status }}&category={{ selected_category }}&urgency={{ selected_urgency }}&search={{ search_query }}">&raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

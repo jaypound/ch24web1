@@ -282,7 +282,10 @@ class TicketResponse(models.Model):
     def __str__(self):
         return f"Response #{self.response_no} to Ticket #{self.ticket.ticket_no}"
     
-    from django.db import models
+
+
+
+from django.db import models
 from django.forms import ValidationError
 from django.utils import timezone
 

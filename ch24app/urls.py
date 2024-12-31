@@ -30,6 +30,10 @@ urlpatterns = [
     path('support/submitted/<int:ticket_no>/', views.ticket_submitted, name='ticket_submitted'),
     path('support/ticket/<int:ticket_no>/', views.ticket_detail, name='ticket_detail'),
     path('support/my_tickets/', views.my_tickets, name='my_tickets'),
+    path('admin/tickets/', views.admin_tickets, name='admin_tickets'),
+    path('admin/tickets/update-status/<int:ticket_no>/', views.update_ticket_status, name='update_ticket_status'),
+    path('support/tickets/admin/', views.admin_tickets, name='admin_tickets'),
+    path('support/tickets/admin/update-status/<int:ticket_no>/', views.update_ticket_status, name='update_ticket_status'),
     path('health/', health_check, name='health_check'),
     path(
         'episodes/<str:custom_id>/analysis/',
