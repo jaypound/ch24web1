@@ -812,28 +812,63 @@ def update_ticket_status(request, ticket_no):
 
 @login_required
 def delete_episode(request, episode_id):
-    episode = get_object_or_404(Episode, custom_id=episode_id)
+    logger.info(f"Delete episode request received for episode_id: {episode_id}")
     
-    # Security check: ensure the user owns this episode
-    if episode.created_by != request.user:
-        return HttpResponse("Unauthorized", status=401)
-    
-    if request.method == 'POST':
-        # If the episode has a file, delete it from S3
-        if episode.file_name:
-            try:
-                s3_client = boto3.client('s3')
-                s3_client.delete_object(
-                    Bucket=AWS_STORAGE_BUCKET_NAME,
-                    Key=episode.file_name
-                )
-            except Exception as e:
-                messages.error(request, f"Error deleting file from S3: {str(e)}")
-                return redirect('my-episodes')
+    try:
+        episode = get_object_or_404(Episode, custom_id=episode_id)
+        logger.info(f"Episode found: {episode.title} (ID: {episode.custom_id})")
         
-        # Delete the episode from the database
-        episode.delete()
-        messages.success(request, "Episode successfully deleted.")
+        # Security check: ensure the user owns this episode
+        if episode.created_by != request.user:
+            logger.warning(f"Unauthorized delete attempt for episode {episode_id} by user {request.user}")
+            return HttpResponse("Unauthorized", status=401)
+        
+        if request.method == 'POST':
+            logger.info(f"Processing POST request to delete episode {episode_id}")
+            
+            # If the episode has a file, delete it from S3
+            if episode.file_name:
+                try:
+                    logger.info(f"Attempting to delete S3 file: {episode.file_name}")
+                    s3_client = boto3.client('s3')
+                    s3_client.delete_object(
+                        Bucket=AWS_STORAGE_BUCKET_NAME,
+                        Key=episode.file_name
+                    )
+                    logger.info("S3 file deleted successfully")
+                except Exception as e:
+                    logger.error(f"Error deleting S3 file: {str(e)}", exc_info=True)
+                    messages.error(request, f"Error deleting file from S3: {str(e)}")
+                    return redirect('my-episodes')
+            
+            try:
+                # Delete any associated media info records first
+                media_info_count = EpisodeMediaInfo.objects.filter(episode=episode).count()
+                logger.info(f"Found {media_info_count} media info records to delete")
+                EpisodeMediaInfo.objects.filter(episode=episode).delete()
+                logger.info("Media info records deleted successfully")
+                
+                # Delete the episode
+                logger.info(f"Attempting to delete episode {episode_id} from database")
+                episode.delete()
+                logger.info(f"Episode {episode_id} successfully deleted from database")
+                
+                messages.success(request, "Episode successfully deleted.")
+                return redirect('my-episodes')
+            except Exception as e:
+                logger.error(f"Error deleting episode from database: {str(e)}", exc_info=True)
+                messages.error(request, f"Error deleting episode: {str(e)}")
+                return redirect('my-episodes')
+        else:
+            logger.warning(f"Non-POST request received for episode deletion: {request.method}")
+        
         return redirect('my-episodes')
-    
-    return redirect('my-episodes')
+        
+    except Episode.DoesNotExist:
+        logger.error(f"Episode not found: {episode_id}")
+        messages.error(request, "Episode not found.")
+        return redirect('my-episodes')
+    except Exception as e:
+        logger.error(f"Unexpected error in delete_episode: {str(e)}", exc_info=True)
+        messages.error(request, f"An unexpected error occurred: {str(e)}")
+        return redirect('my-episodes')

@@ -231,17 +231,21 @@ LOGGING = {
         'standard': {
             'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
         },
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'console': {
             'level': 'WARNING',
             'class': 'logging.StreamHandler',
-            'formatter': 'standard',
+            'formatter': 'verbose',
         },
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'standard',
+            'formatter': 'verbose',
             'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
             'maxBytes': 5 * 1024 * 1024,  # 5 MB
             'backupCount': 5,
@@ -298,17 +302,21 @@ if APPLICATION_ENV == 'production':
             'standard': {
                 'format': '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
             },
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
         },
         'handlers': {
             'console': {
                 'level': 'WARNING',
                 'class': 'logging.StreamHandler',
-                'formatter': 'standard',
+                'formatter': 'verbose',
             },
             'file': {
                 'level': 'INFO',
                 'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'standard',
+                'formatter': 'verbose',
                 'filename': '/mnt/data/logs/django.log',
                 'maxBytes': 5 * 1024 * 1024,
                 'backupCount': 5,
