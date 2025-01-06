@@ -55,27 +55,10 @@ def my_programs(request):
     program_list = Program.objects.filter(created_by=request.user)
     return render(request, 'my_programs.html', {'program_list': program_list})
 
-# def my_episodes(request):
-#     episode_list = Episode.objects.filter(created_by=request.user)
-#     return render(request, 'my_episodes.html', {'episode_list': episode_list})
 
 def my_episodes(request):
     episode_list = Episode.objects.filter(created_by=request.user)
     return render(request, 'my_episodes.html', {'episode_list': episode_list})
-
-
-# def my_episodes(request):
-#     episode_list = Episode.objects.filter(created_by=request.user).prefetch_related('media_infos')
-    
-#     # Prepare a list of episodes with their MediaInfo error status
-#     for episode in episode_list:
-#         media_infos = episode.media_infos.all()
-#         unique_errors, unique_warnings = validate_media_info(media_infos)
-#         mediainfo_errors = bool(unique_errors)
-#         # Attach the error status to the episode object
-#         episode.mediainfo_errors = mediainfo_errors
-    
-#     return render(request, 'my_episodes.html', {'episode_list': episode_list})
 
 
 def add_creator(request):
@@ -95,39 +78,12 @@ def add_creator(request):
     return render(request, 'add_creator.html', {'form': form, 'submitted': submitted})
 
 
-# from django.shortcuts import render, HttpResponseRedirect
-# from .forms import ProgramForm
-
 # views.py
 
 from django.shortcuts import render, HttpResponseRedirect
 from .forms import ProgramForm
 from .models import Creator
 
-# def add_program(request):
-#     submitted = False
-#     if request.method == 'POST':
-#         form = ProgramForm(request.POST)
-#         if form.is_valid():
-#             instance = form.save(commit=False)
-#             instance.created_by = request.user  # Set the created_by field
-
-#             # Set the creator field to the last creator associated with the user
-#             creators = Creator.objects.filter(created_by=request.user)
-#             if creators.exists():
-#                 instance.creator = creators.last()
-#             else:
-#                 # Handle the case where the user has no creators
-#                 # You might want to redirect or display an error message
-#                 return HttpResponseRedirect('/no_creator_found')
-
-#             instance.save()
-#             return HttpResponseRedirect('/add_program?submitted=True')
-#     else:
-#         form = ProgramForm()
-#         if 'submitted' in request.GET:
-#             submitted = True
-#     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
 
 from django.urls import reverse
 
@@ -251,17 +207,6 @@ def update_program(request, program_id):
         form = ProgramForm(instance=program, user=request.user)
     return render(request, 'update_program.html', {'form': form, 'submitted': request.GET.get('submitted', False)})
 
-
-# def update_program(request, program_id):
-#     program = Program.objects.get(pk=program_id)
-#     if request.method == 'POST':
-#         form = ProgramForm(request.POST, instance=program)
-#         if form.is_valid():
-#             form.save()
-#             return HttpResponseRedirect(f'{reverse("update-program", args=[program_id])}?submitted=True')
-#     else:
-#         form = ProgramForm(instance=program)
-#     return render(request, 'update_program.html', {'form': form, 'submitted': request.GET.get('submitted', False)})
 
 
 def update_episode(request, episode_id):
@@ -599,83 +544,7 @@ import csv
 import io
 import pytz
 
-# @login_required
-# @user_passes_test(lambda u: u.is_staff)  # Ensures only admin users can access
-# def playlist_create(request):
-#     if request.method == 'POST':
-#         action = request.POST.get('action')
-#         playlist_date = request.POST.get('playlist_date')
-        
-#         if not playlist_date:
-#             messages.error(request, 'Please select a date')
-#             return render(request, 'playlist_create.html')
-            
-#         try:
-#             date_obj = datetime.strptime(playlist_date, '%Y-%m-%d').date()
-            
-#             if action == 'create':
-#                 # Call your scheduling function
-#                 schedule_episodes(date_obj, all_ready=True)
-#                 messages.success(request, f'Playlist created for {playlist_date}')
-                
-#             elif action == 'clear':
-#                 # Clear existing schedule for the date
-#                 ScheduledEpisode.objects.filter(schedule_date=date_obj).delete()
-#                 messages.success(request, f'Schedule cleared for {playlist_date}')
-                
-#             elif action == 'export':
-#                 # Generate CSV export
-#                 return export_playlist(date_obj)
-                
-#         except Exception as e:
-#             messages.error(request, f'Error: {str(e)}')
-            
-#     return render(request, 'playlist_create.html')
 
-# def export_playlist(date_obj):
-#     """Export playlist to CSV file"""
-#     buffer = io.StringIO()
-#     writer = csv.writer(buffer)
-#     user_timezone = pytz.timezone(settings.TIME_ZONE)
-    
-#     # Write header
-#     writer.writerow([
-#         'Start Time', 'End Time', 'Title', 'Duration', 
-#         'Rating', 'Genre', 'Creator'
-#     ])
-    
-#     # Get scheduled episodes for the date
-#     schedule = ScheduledEpisode.objects.filter(
-#         schedule_date=date_obj
-#     ).order_by('start_time')
-    
-#     # Write data rows
-#     for episode in schedule:
-#         local_start = timezone.localtime(
-#             timezone.make_aware(datetime.combine(date_obj, episode.start_time)),
-#             timezone=user_timezone
-#         )
-#         local_end = timezone.localtime(
-#             timezone.make_aware(datetime.combine(date_obj, episode.end_time)),
-#             timezone=user_timezone
-#         )
-
-#         writer.writerow([
-#             episode.start_time.strftime('%H:%M:%S'),
-#             episode.end_time.strftime('%H:%M:%S'),
-#             episode.title,
-#             episode.duration_timecode,
-#             episode.ai_age_rating,
-#             episode.ai_genre,
-#             episode.creator.channel_name
-#         ])
-    
-#     # Create response
-#     buffer.seek(0)
-#     response = HttpResponse(buffer, content_type='text/csv')
-#     response['Content-Disposition'] = f'attachment; filename="playlist_{date_obj}.csv"'
-    
-#     return response
 
 # views.py
 from django.shortcuts import render, redirect
@@ -733,96 +602,6 @@ def playlist_create(request):
     
     return render(request, 'playlist_create.html', context)
 
-# def export_playlist(schedule_date):
-#     """Export playlist to CSV file"""
-#     buffer = io.StringIO()
-#     writer = csv.writer(buffer)
-#     user_timezone = pytz.timezone(settings.TIME_ZONE)
-    
-#     writer.writerow([
-#         'Schedule Date',
-#         'Start Time (UTC)',
-#         'Start Time (Local)',
-#         'Title',
-#         'Duration',
-#         'Rating',
-#         'Genre',
-#         'Creator'
-#     ])
-    
-#     schedule = ScheduledEpisode.objects.filter(
-#         schedule_date=schedule_date
-#     ).order_by('start_time')
-    
-#     for episode in schedule:
-#         utc_start = timezone.make_aware(
-#             datetime.combine(schedule_date, episode.start_time)
-#         )
-#         local_start = timezone.localtime(utc_start, timezone=user_timezone)
-        
-#         writer.writerow([
-#             schedule_date.strftime('%Y-%m-%d'),
-#             episode.start_time.strftime('%H:%M:%S'),
-#             local_start.strftime('%H:%M:%S'),
-#             episode.title,
-#             episode.duration_timecode,
-#             episode.ai_age_rating,
-#             episode.ai_genre,
-#             episode.creator.channel_name
-#         ])
-    
-#     buffer.seek(0)
-#     response = HttpResponse(buffer, content_type='text/csv')
-#     response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
-    
-#     return response
-
-# def export_playlist(schedule_date):
-#     """Export playlist with correct timezone handling"""
-#     buffer = io.StringIO()
-#     writer = csv.writer(buffer)
-    
-#     # Get timezone objects
-#     utc = pytz.UTC
-#     local_tz = pytz.timezone('America/New_York')  # Or get from settings
-    
-#     writer.writerow([
-#         'Schedule Date',
-#         'Start Time (UTC)',
-#         'Start Time (Local)',
-#         'Title',
-#         'Duration',
-#         'Rating',
-#         'Genre',
-#         'Creator'
-#     ])
-    
-#     schedule = ScheduledEpisode.objects.filter(
-#         schedule_date=schedule_date
-#     ).order_by('start_time')
-    
-#     for episode in schedule:
-#         # Create UTC datetime
-#         utc_datetime = episode.start_time.astimezone(utc)
-#         # Convert to local time
-#         local_datetime = utc_datetime.astimezone(local_tz)
-        
-#         writer.writerow([
-#             schedule_date.strftime('%Y-%m-%d'),
-#             utc_datetime.strftime('%H:%M:%S'),
-#             local_datetime.strftime('%H:%M:%S'),
-#             episode.title,
-#             episode.duration_timecode,
-#             episode.ai_age_rating,
-#             episode.ai_genre,
-#             episode.creator.channel_name
-#         ])
-
-#     buffer.seek(0)
-#     response = HttpResponse(buffer, content_type='text/csv')
-#     response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
-    
-#     return response
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
@@ -1029,3 +808,32 @@ def update_ticket_status(request, ticket_no):
             ticket.ticket_status = new_status
             ticket.save()
     return redirect('admin_tickets')
+
+
+@login_required
+def delete_episode(request, episode_id):
+    episode = get_object_or_404(Episode, custom_id=episode_id)
+    
+    # Security check: ensure the user owns this episode
+    if episode.created_by != request.user:
+        return HttpResponse("Unauthorized", status=401)
+    
+    if request.method == 'POST':
+        # If the episode has a file, delete it from S3
+        if episode.file_name:
+            try:
+                s3_client = boto3.client('s3')
+                s3_client.delete_object(
+                    Bucket=AWS_STORAGE_BUCKET_NAME,
+                    Key=episode.file_name
+                )
+            except Exception as e:
+                messages.error(request, f"Error deleting file from S3: {str(e)}")
+                return redirect('my-episodes')
+        
+        # Delete the episode from the database
+        episode.delete()
+        messages.success(request, "Episode successfully deleted.")
+        return redirect('my-episodes')
+    
+    return redirect('my-episodes')
