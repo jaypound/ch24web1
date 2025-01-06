@@ -545,8 +545,8 @@ def view_episode(request, episode_id):
     episode = get_object_or_404(Episode, custom_id=episode_id)
 
     # Security check: Ensure the user is allowed to view the episode
-    if episode.created_by != request.user:
-        return HttpResponse("Unauthorized", status=401)
+    # if episode.created_by != request.user:
+    #     return HttpResponse("Unauthorized", status=401)
 
     bucket_name = AWS_STORAGE_BUCKET_NAME
     s3_key = episode.file_name
