@@ -51,10 +51,23 @@ def my_creators(request):
     creator_list = Creator.objects.filter(created_by=request.user)
     return render(request, 'my_creators.html', {'creator_list': creator_list})
 
-def my_programs(request):
-    program_list = Program.objects.filter(created_by=request.user)
-    return render(request, 'my_programs.html', {'program_list': program_list})
+# def my_programs(request):
+#     program_list = Program.objects.filter(created_by=request.user)
+#     return render(request, 'my_programs.html', {'program_list': program_list})
 
+# from django.db.models import Count
+from django.db import models
+
+def my_programs(request):
+    # Get all programs for the user
+    program_list = Program.objects.filter(created_by=request.user)
+    
+    # For each program, annotate with episode count
+    program_list = program_list.annotate(
+        episode_count=models.Count('episode')
+    )
+    
+    return render(request, 'my_programs.html', {'program_list': program_list})
 
 def my_episodes(request):
     episode_list = Episode.objects.filter(created_by=request.user)
@@ -872,3 +885,48 @@ def delete_episode(request, episode_id):
         logger.error(f"Unexpected error in delete_episode: {str(e)}", exc_info=True)
         messages.error(request, f"An unexpected error occurred: {str(e)}")
         return redirect('my-episodes')
+    
+@login_required
+def delete_program(request, program_id):
+    logger.info(f"Delete program request received for program_id: {program_id}")
+    
+    try:
+        program = get_object_or_404(Program, custom_id=program_id)
+        logger.info(f"Program found: {program.program_name} (ID: {program.custom_id})")
+        
+        # Security check: ensure the user owns this program
+        if program.created_by != request.user:
+            logger.warning(f"Unauthorized delete attempt for program {program_id} by user {request.user}")
+            return HttpResponse("Unauthorized", status=401)
+        
+        # Check if program has any episodes
+        episode_count = Episode.objects.filter(program=program).count()
+        if episode_count > 0:
+            logger.warning(f"Attempted to delete program {program_id} with {episode_count} episodes")
+            messages.error(request, "Cannot delete program with existing episodes")
+            return redirect('my-programs')
+        
+        if request.method == 'POST':
+            logger.info(f"Processing POST request to delete program {program_id}")
+            
+            try:
+                # Delete the program
+                program.delete()
+                logger.info(f"Program {program_id} successfully deleted from database")
+                messages.success(request, "Program successfully deleted.")
+                return redirect('my-programs')
+            except Exception as e:
+                logger.error(f"Error deleting program from database: {str(e)}", exc_info=True)
+                messages.error(request, f"Error deleting program: {str(e)}")
+                return redirect('my-programs')
+        
+        return redirect('my-programs')
+        
+    except Program.DoesNotExist:
+        logger.error(f"Program not found: {program_id}")
+        messages.error(request, "Program not found.")
+        return redirect('my-programs')
+    except Exception as e:
+        logger.error(f"Unexpected error in delete_program: {str(e)}", exc_info=True)
+        messages.error(request, f"An unexpected error occurred: {str(e)}")
+        return redirect('my-programs')

@@ -29,8 +29,42 @@
                                 </div>
                                 
                                 <div class="card-footer">
-                                    <a href="{% url 'update-program' program.custom_id %}" class="btn btn-outline-secondary">Update Metadata</a>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <a href="{% url 'update-program' program.custom_id %}" class="btn btn-outline-secondary me-2">Update Metadata</a>
+                                            {% if program.episode_count == 0 %}
+                                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ program.custom_id }}">
+                                                    Delete Program
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted">Episodes: {{ program.episode_count }}</small>
+                                    </div>
                                 </div>
+
+                                {% if program.episode_count == 0 %}
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteModal{{ program.custom_id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ program.custom_id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ program.custom_id }}">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the program "{{ program.program_name }}"? This action cannot be undone.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form method="post" action="{% url 'delete-program' program.custom_id %}" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     {% endfor %}

@@ -43,6 +43,7 @@ urlpatterns = [
     path('playlist/create/', views.playlist_create, name='playlist_create'),
     path('content/available/', AvailableContentView.as_view(), name='available_content'),
     path('delete-episode/<str:episode_id>/', views.delete_episode, name='delete-episode'),
+    path('delete-program/<str:program_id>/', views.delete_program, name='delete-program'),
     # path('env/', views.environment, name='environment_variables'),
 ]
 
