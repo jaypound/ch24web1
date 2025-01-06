@@ -145,13 +145,10 @@
                                             <td>{{ episode.audience_engagement_score }}</td>
                                             <td>{{ episode.ready_for_air }}</td>
                                             <td>
-                                                <!-- <button type="button" 
-                                                        class="btn btn-sm btn-primary"
-                                                        onclick="scheduleEpisode('{{ episode.custom_id }}')">
-                                                    Schedule
-                                                </button> -->
-                                                <a href="{% url 'episode_analysis' episode.custom_id %}" class="btn btn-primary me-2">Analysis</a>
-                                                <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-primary me-2">Preview</a>
+                                                <div class="d-flex gap-2">
+                                                    <a href="{% url 'episode_analysis' episode.custom_id %}" class="btn btn-sm btn-primary">Analysis</a>
+                                                    <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-sm btn-primary">Preview</a>
+                                                </div>
                                             </td>
                                         </tr>
                                     {% endfor %}
