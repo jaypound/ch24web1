@@ -701,8 +701,17 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user.is_staff
 
     def get_queryset(self):
-        queryset = Episode.objects.filter(ready_for_air=True)
-        
+        # queryset = Episode.objects.filter(ready_for_air=True)
+        queryset = Episode.objects.all()
+        # Add ready_for_air filter from GET parameters
+        ready_for_air = self.request.GET.get('ready_for_air')
+        if ready_for_air:
+            if ready_for_air.lower() == 'true':
+                queryset = queryset.filter(ready_for_air=True)
+            elif ready_for_air.lower() == 'false':
+                queryset = queryset.filter(ready_for_air=False)
+        # If no ready_for_air parameter is provided, show all episodes
+
         # Apply filters from GET parameters
         genre = self.request.GET.get('genre')
         if genre:
@@ -749,6 +758,7 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             'duration': self.request.GET.get('duration', ''),
             'search': self.request.GET.get('search', ''),
             'sort': self.request.GET.get('sort', '-created_at'),
+            'ready_for_air': self.request.GET.get('ready_for_air', ''),  # Add this line
         }
         context['genres'] = dict(GENRE_CHOICES)
         context['age_ratings'] = dict(AGE_RATING_CHOICES)
@@ -757,6 +767,11 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             ('bumper', 'Bumper (≤15s)'),
             ('shortform', 'Short Form (15s-15m)'),
             ('longform', 'Long Form (>15m)'),
+        ]
+        context['ready_for_air_choices'] = [
+            ('', 'All Content'),
+            ('true', 'Ready for Air'),
+            ('false', 'Not Ready'),
         ]
         return context
     

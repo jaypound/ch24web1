@@ -13,6 +13,7 @@
                 </div>
                 <div class="card-body">
                     <form method="get" id="filterForm">
+
                         <!-- Search -->
                         <div class="mb-3">
                             <label for="search" class="form-label">Search</label>
@@ -21,6 +22,19 @@
                                    id="search" 
                                    name="search"
                                    value="{{ current_filters.search }}">
+                        </div>
+                        
+                        <!-- Ready for Air Filter -->
+                        <div class="mb-3">
+                            <label for="ready_for_air" class="form-label">Ready Status</label>
+                            <select class="form-select" id="ready_for_air" name="ready_for_air">
+                                {% for value, label in ready_for_air_choices %}
+                                    <option value="{{ value }}"
+                                            {% if value == current_filters.ready_for_air %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
                         </div>
 
                         <!-- Genre Filter -->
