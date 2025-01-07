@@ -154,10 +154,29 @@
                                             <td>{{ episode.title }}</td>
                                             <td>{{ episode.program.creator.channel_name }}</td>
                                             <td>{{ episode.duration_timecode }}</td>
-                                            <td>{{ episode.ai_age_rating }}</td>
+                                            <td>
+                                                <select class="form-select form-select-sm editable-field"
+                                                        data-field="ai_age_rating"
+                                                        data-episode-id="{{ episode.custom_id }}">
+                                                    {% for code, name in age_ratings.items %}
+                                                        <option value="{{ code }}"
+                                                                {% if code == episode.ai_age_rating %}selected{% endif %}>
+                                                            {{ name }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
                                             <td>{{ episode.ai_genre }}</td>
                                             <td>{{ episode.audience_engagement_score }}</td>
-                                            <td>{{ episode.ready_for_air }}</td>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input type="checkbox" 
+                                                           class="form-check-input editable-field"
+                                                           data-field="ready_for_air"
+                                                           data-episode-id="{{ episode.custom_id }}"
+                                                           {% if episode.ready_for_air %}checked{% endif %}>
+                                                </div>
+                                            </td>
                                             <td>
                                                 <div class="d-flex gap-2">
                                                     <a href="{% url 'episode_analysis' episode.custom_id %}" class="btn btn-sm btn-primary">Analysis</a>
