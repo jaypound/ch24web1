@@ -23,7 +23,7 @@
                                    name="search"
                                    value="{{ current_filters.search }}">
                         </div>
-                        
+
                         <!-- Ready for Air Filter -->
                         <div class="mb-3">
                             <label for="ready_for_air" class="form-label">Ready Status</label>
@@ -213,14 +213,14 @@
 
 {% block extra_js %}
 <script>
-// Auto-submit form when filters change
+// Keep existing filter form auto-submit code
 document.querySelectorAll('#filterForm select').forEach(select => {
     select.addEventListener('change', () => {
         document.getElementById('filterForm').submit();
     });
 });
 
-// Debounced search input
+// Debounced search input (keep this too)
 let searchTimeout;
 document.getElementById('search').addEventListener('input', (e) => {
     clearTimeout(searchTimeout);
@@ -229,8 +229,65 @@ document.getElementById('search').addEventListener('input', (e) => {
     }, 500);
 });
 
+// Add new code for handling editable fields
+document.querySelectorAll('.editable-field').forEach(field => {
+    field.addEventListener('change', async function(e) {
+        const episodeId = this.dataset.episodeId;
+        const fieldName = this.dataset.field;
+        const value = this.type === 'checkbox' ? this.checked : this.value;
+        
+        try {
+            const response = await fetch('{% url "available_content" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: new URLSearchParams({
+                    'episode_id': episodeId,
+                    'field': fieldName,
+                    'value': value
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                // Show success feedback
+                const toast = new bootstrap.Toast(document.createElement('div'));
+                toast.innerHTML = `
+                    <div class="toast-body bg-success text-white">
+                        Updated successfully
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                toast.show();
+                
+                // Remove the toast after 2 seconds
+                setTimeout(() => toast.dispose(), 2000);
+            } else {
+                throw new Error(data.message || 'Update failed');
+            }
+        } catch (error) {
+            console.error('Error updating:', error);
+            alert('Failed to update: ' + error.message);
+            // Revert the field to its original value
+            if (this.type === 'checkbox') {
+                this.checked = !this.checked;
+            } else {
+                this.value = this.dataset.originalValue;
+            }
+        }
+    });
+    
+    // Store original value for reverting on error
+    if (field.type !== 'checkbox') {
+        field.dataset.originalValue = field.value;
+    }
+});
+
 function scheduleEpisode(episodeId) {
-    // Implement scheduling logic or redirect to scheduling page
+    // Keep existing schedule function
     window.location.href = `/schedule/create/?episode=${episodeId}`;
 }
 </script>

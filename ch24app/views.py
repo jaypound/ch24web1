@@ -691,6 +691,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Q
 from .models import Episode, GENRE_CHOICES, AGE_RATING_CHOICES, Creator
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
+from django.urls import path
+
 class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Episode
     template_name = 'available_content.html'
@@ -775,6 +780,57 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         ]
         return context
     
+    @method_decorator(require_POST)
+    def update_episode(self, request, *args, **kwargs):
+        try:
+            episode_id = request.POST.get('episode_id')
+            field = request.POST.get('field')
+            value = request.POST.get('value')
+            
+            episode = Episode.objects.get(custom_id=episode_id)
+            
+            if field == 'ready_for_air':
+                episode.ready_for_air = value.lower() == 'true'
+            elif field == 'ai_age_rating':
+                episode.ai_age_rating = value
+            
+            episode.save()
+            
+            return JsonResponse({
+                'status': 'success',
+                'new_value': getattr(episode, field)
+            })
+        except Episode.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        
+    def post(self, request, *args, **kwargs):
+        """Handle POST requests for updating episodes"""
+        try:
+            episode_id = request.POST.get('episode_id')
+            field = request.POST.get('field')
+            value = request.POST.get('value')
+            
+            episode = Episode.objects.get(custom_id=episode_id)
+            
+            if field == 'ready_for_air':
+                episode.ready_for_air = value.lower() == 'true'
+            elif field == 'ai_age_rating':
+                episode.ai_age_rating = value
+            
+            episode.save()
+            
+            return JsonResponse({
+                'status': 'success',
+                'new_value': getattr(episode, field)
+            })
+        except Episode.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
 
 # views.py
 from django.contrib.admin.views.decorators import staff_member_required
