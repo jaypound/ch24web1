@@ -3,6 +3,7 @@
 {% block title %}Available Content{% endblock %}
 
 {% block content %}
+<div class="toast-container position-fixed top-0 end-0 p-3"></div>
 <div class="container mt-4">
     <div class="row">
         <!-- Filters Sidebar -->
@@ -13,6 +14,7 @@
                 </div>
                 <div class="card-body">
                     <form method="get" id="filterForm">
+                        {% csrf_token %}
 
                         <!-- Search -->
                         <div class="mb-3">
@@ -156,7 +158,7 @@
                                             <td>{{ episode.program.creator.channel_name }}</td>
                                             <td>{{ episode.duration_timecode }}</td>
                                             <td class="rating-column">
-                                                <select class="form-select form-select-sm editable-field"
+                                                <select class="form-select form-select-sm editable-field rating-select"
                                                         data-field="ai_age_rating"
                                                         data-episode-id="{{ episode.custom_id }}">
                                                     {% for code, name in age_ratings.items %}
@@ -169,8 +171,8 @@
                                             </td>
                                             <td>{{ episode.ai_genre }}</td>
                                             <td>{{ episode.audience_engagement_score }}</td>
-                                            <td>
-                                                <div class="form-check">
+                                            <td class="text-center">
+                                                <div class="form-check d-inline-block">
                                                     <input type="checkbox" 
                                                            class="form-check-input editable-field"
                                                            data-field="ready_for_air"
