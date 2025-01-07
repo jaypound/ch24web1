@@ -704,6 +704,43 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def test_func(self):
         return self.request.user.is_staff
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST requests for updating episodes"""
+        print("POST request received")  # Debug print
+        print("POST data:", request.POST)  # Debug print
+        
+        if not request.user.is_staff:
+            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+            
+        try:
+            episode_id = request.POST.get('episode_id')
+            field = request.POST.get('field')
+            value = request.POST.get('value')
+            
+            print(f"Updating episode {episode_id}, field {field} to value {value}")  # Debug print
+            
+            episode = Episode.objects.get(custom_id=episode_id)
+            
+            if field == 'ready_for_air':
+                episode.ready_for_air = value.lower() == 'true'
+            elif field == 'ai_age_rating':
+                episode.ai_age_rating = value
+            
+            episode.save()
+            print(f"Save successful, new value: {getattr(episode, field)}")  # Debug print
+            
+            return JsonResponse({
+                'status': 'success',
+                'new_value': getattr(episode, field)
+            })
+        except Episode.DoesNotExist:
+            print(f"Episode not found: {episode_id}")  # Debug print
+            return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
+        except Exception as e:
+            print(f"Error updating episode: {str(e)}")  # Debug print
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
 
     def get_queryset(self):
         # queryset = Episode.objects.filter(ready_for_air=True)
@@ -805,32 +842,33 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
         
-    def post(self, request, *args, **kwargs):
-        """Handle POST requests for updating episodes"""
-        try:
-            episode_id = request.POST.get('episode_id')
-            field = request.POST.get('field')
-            value = request.POST.get('value')
+    # def post(self, request, *args, **kwargs):
+    #     """Handle POST requests for updating episodes"""
+    #     if not request.user.is_staff:
+    #         return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
             
-            episode = Episode.objects.get(custom_id=episode_id)
+    #     try:
+    #         episode_id = request.POST.get('episode_id')
+    #         field = request.POST.get('field')
+    #         value = request.POST.get('value')
             
-            if field == 'ready_for_air':
-                episode.ready_for_air = value.lower() == 'true'
-            elif field == 'ai_age_rating':
-                episode.ai_age_rating = value
+    #         episode = Episode.objects.get(custom_id=episode_id)
             
-            episode.save()
+    #         if field == 'ready_for_air':
+    #             episode.ready_for_air = value.lower() == 'true'
+    #         elif field == 'ai_age_rating':
+    #             episode.ai_age_rating = value
             
-            return JsonResponse({
-                'status': 'success',
-                'new_value': getattr(episode, field)
-            })
-        except Episode.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
-
+    #         episode.save()
+            
+    #         return JsonResponse({
+    #             'status': 'success',
+    #             'new_value': getattr(episode, field)
+    #         })
+    #     except Episode.DoesNotExist:
+    #         return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
+    #     except Exception as e:
+    #         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 # views.py
 from django.contrib.admin.views.decorators import staff_member_required
