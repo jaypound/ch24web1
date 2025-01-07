@@ -141,7 +141,7 @@
                                         <th>Title</th>
                                         <th>Creator</th>
                                         <th>Duration</th>
-                                        <th>Rating</th>
+                                        <th class="rating-column">Rating</th>
                                         <th>Genre</th>
                                         <th>Engagement</th>
                                         <th>Ready for Air</th>
@@ -149,12 +149,13 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    
                                     {% for episode in episodes %}
                                         <tr>
                                             <td>{{ episode.title }}</td>
                                             <td>{{ episode.program.creator.channel_name }}</td>
                                             <td>{{ episode.duration_timecode }}</td>
-                                            <td>
+                                            <td class="rating-column">
                                                 <select class="form-select form-select-sm editable-field"
                                                         data-field="ai_age_rating"
                                                         data-episode-id="{{ episode.custom_id }}">
@@ -310,4 +311,16 @@ function scheduleEpisode(episodeId) {
     window.location.href = `/schedule/create/?episode=${episodeId}`;
 }
 </script>
+{% endblock %}
+{% block extra_css %}
+<style>
+    .rating-column {
+        min-width: 150px;
+        width: 150px;
+    }
+    
+    .rating-select {
+        width: 100%;
+    }
+</style>
 {% endblock %}
