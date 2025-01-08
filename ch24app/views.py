@@ -707,6 +707,8 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     
     def post(self, request, *args, **kwargs):
         """Handle POST requests for updating episodes"""
+        logger.info("POST request received")  # Debug print
+        logger.info("POST data:", request.POST)  # Debug print
         print("POST request received")  # Debug print
         print("POST data:", request.POST)  # Debug print
         
@@ -718,6 +720,7 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             field = request.POST.get('field')
             value = request.POST.get('value')
             
+            logger.info(f"Updating episode {episode_id}, field {field} to value {value}")  # Debug print
             print(f"Updating episode {episode_id}, field {field} to value {value}")  # Debug print
             
             episode = Episode.objects.get(custom_id=episode_id)
@@ -728,6 +731,7 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                 episode.ai_age_rating = value
             
             episode.save()
+            logger.info(f"Save successful, new value: {getattr(episode, field)}")  # Debug print
             print(f"Save successful, new value: {getattr(episode, field)}")  # Debug print
             
             return JsonResponse({
@@ -735,9 +739,11 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                 'new_value': getattr(episode, field)
             })
         except Episode.DoesNotExist:
+            logger.info(f"Episode not found: {episode_id}")  # Debug print
             print(f"Episode not found: {episode_id}")  # Debug print
             return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
         except Exception as e:
+            logger.info(f"Error updating episode: {str(e)}")  # Debug print
             print(f"Error updating episode: {str(e)}")  # Debug print
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -755,13 +761,13 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         # If no ready_for_air parameter is provided, show all episodes
 
         # Apply filters from GET parameters
-        genre = self.request.GET.get('genre')
-        if genre:
+        ai_genre = self.request.GET.get('ai_genre')
+        if ai_genre:
             queryset = queryset.filter(ai_genre=genre)
             
-        age_rating = self.request.GET.get('age_rating')
-        if age_rating:
-            queryset = queryset.filter(ai_age_rating=age_rating)
+        ai_age_rating = self.request.GET.get('ai_age_rating')
+        if ai_age_rating:
+            queryset = queryset.filter(ai_age_rating=ai_age_rating)
             
         creator = self.request.GET.get('creator')
         if creator:
@@ -794,16 +800,16 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['current_filters'] = {
-            'genre': self.request.GET.get('genre', ''),
-            'age_rating': self.request.GET.get('age_rating', ''),
+            'ai_genre': self.request.GET.get('ai_genre', ''),
+            'ai_age_rating': self.request.GET.get('ai_age_rating', ''),
             'creator': self.request.GET.get('creator', ''),
             'duration': self.request.GET.get('duration', ''),
             'search': self.request.GET.get('search', ''),
             'sort': self.request.GET.get('sort', '-created_at'),
             'ready_for_air': self.request.GET.get('ready_for_air', ''),  # Add this line
         }
-        context['genres'] = dict(GENRE_CHOICES)
-        context['age_ratings'] = dict(AGE_RATING_CHOICES)
+        context['ai_genres'] = dict(GENRE_CHOICES)
+        context['ai_age_ratings'] = dict(AGE_RATING_CHOICES)
         context['creators'] = Creator.objects.all()
         context['duration_choices'] = [
             ('bumper', 'Bumper (≤15s)'),
