@@ -427,15 +427,19 @@ def schedule_episode(episode: Episode, schedule_date, current_dt, slot_name: str
     return end_dt
 
 
-def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
+def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
     """Enhanced scheduling function with structured slot-based scheduling and limits"""
     
     logger.info(f"******************* Starting scheduling for date: {schedule_date} *******************")
 
     # Build base query
-    base_query = Episode.objects.filter(ready_for_air=True)
+    if all_ready:
+        queryset = Episode.objects.all()
+    else:
+        queryset = Episode.objects.filter(ready_for_air=True)
+        
     if creator_id:
-        base_query = base_query.filter(program__creator_id=creator_id)
+        queryset = queryset.filter(program__creator_id=creator_id)
     elif not all_ready:
         logger.warning("Neither creator_id nor all_ready specified. Exiting.")
         return

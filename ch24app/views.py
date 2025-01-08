@@ -763,7 +763,7 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         # Apply filters from GET parameters
         ai_genre = self.request.GET.get('ai_genre')
         if ai_genre:
-            queryset = queryset.filter(ai_genre=genre)
+            queryset = queryset.filter(ai_genre=ai_genre)
             
         ai_age_rating = self.request.GET.get('ai_age_rating')
         if ai_age_rating:
