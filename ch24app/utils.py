@@ -434,12 +434,12 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
 
     # Build base query
     if all_ready:
-        queryset = Episode.objects.all()
+        base_query = Episode.objects.all()
     else:
-        queryset = Episode.objects.filter(ready_for_air=True)
+        base_query = Episode.objects.filter(ready_for_air=True)
         
     if creator_id:
-        queryset = queryset.filter(program__creator_id=creator_id)
+        base_query = base_query.filter(program__creator_id=creator_id)
     elif not all_ready:
         logger.warning("Neither creator_id nor all_ready specified. Exiting.")
         return
