@@ -662,7 +662,8 @@ def export_playlist(request, schedule_date):
 
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename=\"playlist_{schedule_date}.csv\""
+    response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
+
     return response
 
 
