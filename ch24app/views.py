@@ -624,9 +624,9 @@ import io
 import pytz
 import csv
 
-@login_required
-@user_passes_test(lambda u: u.is_staff)
-def export_playlist(request, schedule_date):
+# @login_required
+# @user_passes_test(lambda u: u.is_staff)
+def export_playlist(schedule_date):
     """
     Export a .ply playlist with lines like:
     "Z:\4bf15aac-059a-4de5-b17f-557703ace10a\ID1_2997_10Mbps.mp4";0.00000;41.07400;;ID1_2997_10Mbps
