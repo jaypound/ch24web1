@@ -616,52 +616,53 @@ def playlist_create(request):
     return render(request, 'playlist_create.html', context)
 
 
+
+# def export_playlist(schedule_date):
+#     """Export playlist with correct timezone handling"""
+#     buffer = io.StringIO()
+#     writer = csv.writer(buffer)
+    
+#     utc = pytz.UTC
+#     local_tz = pytz.timezone('America/New_York')
+
+#     writer.writerow([
+#         'Schedule Date',
+#         'Start Time (UTC)',
+#         'Start Time (Local)',
+#         'Title',
+#         'Duration',
+#         'Rating',
+#         'Genre',
+#         'Creator'
+#     ])
+    
+#     schedule = ScheduledEpisode.objects.filter(
+#         schedule_date=schedule_date
+#     ).order_by('start_time')
+    
+#     for episode in schedule:
+#         # episode.start_time is already a datetime, so just convert:
+#         utc_datetime = episode.start_time.astimezone(utc)
+#         local_datetime = utc_datetime.astimezone(local_tz)
+        
+#         writer.writerow([
+#             schedule_date.strftime('%Y-%m-%d'),
+#             utc_datetime.strftime('%H:%M:%S'),
+#             local_datetime.strftime('%H:%M:%S'),
+#             episode.title,
+#             episode.duration_timecode,
+#             episode.ai_age_rating,
+#             episode.ai_genre,
+#             episode.creator.channel_name
+#         ])
+
+#     buffer.seek(0)
+#     response = HttpResponse(buffer, content_type='text/csv')
+#     response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
+#     return response
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def export_playlist(schedule_date):
-    """Export playlist with correct timezone handling"""
-    buffer = io.StringIO()
-    writer = csv.writer(buffer)
-    
-    utc = pytz.UTC
-    local_tz = pytz.timezone('America/New_York')
-
-    writer.writerow([
-        'Schedule Date',
-        'Start Time (UTC)',
-        'Start Time (Local)',
-        'Title',
-        'Duration',
-        'Rating',
-        'Genre',
-        'Creator'
-    ])
-    
-    schedule = ScheduledEpisode.objects.filter(
-        schedule_date=schedule_date
-    ).order_by('start_time')
-    
-    for episode in schedule:
-        # episode.start_time is already a datetime, so just convert:
-        utc_datetime = episode.start_time.astimezone(utc)
-        local_datetime = utc_datetime.astimezone(local_tz)
-        
-        writer.writerow([
-            schedule_date.strftime('%Y-%m-%d'),
-            utc_datetime.strftime('%H:%M:%S'),
-            local_datetime.strftime('%H:%M:%S'),
-            episode.title,
-            episode.duration_timecode,
-            episode.ai_age_rating,
-            episode.ai_genre,
-            episode.creator.channel_name
-        ])
-
-    buffer.seek(0)
-    response = HttpResponse(buffer, content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
-    return response
-
 def export_playlist(schedule_date):
     """Export playlist with correct timezone handling"""
     buffer = io.StringIO()
@@ -678,7 +679,7 @@ def export_playlist(schedule_date):
         # duration_seconds = convert_timecode_to_seconds(episode.duration_timecode)
         duration_seconds = episode.duration_seconds
         # Assuming there's a file_path field or method to get the video path
-        filepath = f'Z:\\{episode.file_path}'
+        filepath = f'Z:\\{episode.custom_id}\\{episode.file_name}'
         
         # Format: filepath;start_time;duration;;title
         writer.writerow([
