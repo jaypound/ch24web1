@@ -662,6 +662,49 @@ def export_playlist(schedule_date):
     response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
     return response
 
+def export_playlist(schedule_date):
+    """Export playlist with correct timezone handling"""
+    buffer = io.StringIO()
+    
+    # Use semicolon delimiter without quoting
+    writer = csv.writer(buffer, delimiter=';', quoting=csv.QUOTE_NONE, escapechar='\\')
+    
+    schedule = ScheduledEpisode.objects.filter(
+        schedule_date=schedule_date
+    ).order_by('start_time')
+    
+    for episode in schedule:
+        # Convert duration timecode to seconds
+        # duration_seconds = convert_timecode_to_seconds(episode.duration_timecode)
+        duration_seconds = episode.duration_seconds
+        # Assuming there's a file_path field or method to get the video path
+        filepath = f'Z:\\{episode.file_path}'
+        
+        # Format: filepath;start_time;duration;;title
+        writer.writerow([
+            f'"{filepath}"',  # Wrap filepath in quotes
+            f'{0.00000:,.5f}',  # Start time in seconds with 5 decimal places
+            f'{duration_seconds:,.5f}',  # Duration in seconds with 5 decimal places
+            '',  # Empty field before title
+            episode.title
+        ])
+    
+    buffer.seek(0)
+    
+    # Generate filename with local date
+    local_tz = pytz.timezone('America/New_York')
+    local_date = schedule_date.astimezone(local_tz)
+    filename = local_date.strftime('%Y_%m_%d_%H_%M_%S.txt')
+    
+    response = HttpResponse(buffer, content_type='text/plain')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+def convert_timecode_to_seconds(timecode):
+    """Convert HH:MM:SS timecode to seconds with millisecond precision"""
+    hours, minutes, seconds = map(float, timecode.split(':'))
+    return hours * 3600 + minutes * 60 + seconds
+
 
 # views.py
 from django.shortcuts import render, redirect
