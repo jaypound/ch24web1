@@ -618,7 +618,7 @@ def playlist_create(request):
 
 # @login_required
 # @user_passes_test(lambda u: u.is_staff)
-def export_playlist(request, schedule_date):
+def export_playlist(schedule_date):
     """Export playlist with correct timezone handling"""
     # schedule_date is a string if coming from the URL pattern;
     # parse it to a proper date if necessary.
