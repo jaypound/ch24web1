@@ -670,15 +670,21 @@ def export_playlist(schedule_date):
     # Use semicolon delimiter without quoting
     writer = csv.writer(buffer, delimiter=';', quoting=csv.QUOTE_NONE, escapechar='\\')
     
+    # Convert date to datetime at midnight if it's a date object
+    if isinstance(schedule_date, datetime.date):
+        local_tz = pytz.timezone('America/New_York')
+        schedule_date = datetime.datetime.combine(schedule_date, datetime.time.min)
+        schedule_date = local_tz.localize(schedule_date)
+    
     schedule = ScheduledEpisode.objects.filter(
         schedule_date=schedule_date
     ).order_by('start_time')
     
     for episode in schedule:
         # Convert duration timecode to seconds
-        # duration_seconds = convert_timecode_to_seconds(episode.duration_timecode)
-        duration_seconds = episode.duration_seconds
-        # Assuming there's a file_path field or method to get the video path
+        duration_seconds = convert_timecode_to_seconds(episode.duration_timecode)
+        
+        # Construct filepath using custom_id and file_name
         filepath = f'Z:\\{episode.custom_id}\\{episode.file_name}'
         
         # Format: filepath;start_time;duration;;title
@@ -692,10 +698,8 @@ def export_playlist(schedule_date):
     
     buffer.seek(0)
     
-    # Generate filename with local date
-    local_tz = pytz.timezone('America/New_York')
-    local_date = schedule_date.astimezone(local_tz)
-    filename = local_date.strftime('%Y_%m_%d_%H_%M_%S.txt')
+    # Use the schedule_date which is now a datetime for filename
+    filename = schedule_date.strftime('%Y_%m_%d_%H_%M_%S.txt')
     
     response = HttpResponse(buffer, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
