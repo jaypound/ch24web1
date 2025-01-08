@@ -616,62 +616,128 @@ def playlist_create(request):
     return render(request, 'playlist_create.html', context)
 
 
-# @login_required
-# @user_passes_test(lambda u: u.is_staff)
-def export_playlist(schedule_date):
-    """Export playlist with correct timezone handling"""
-    # schedule_date is a string if coming from the URL pattern;
-    # parse it to a proper date if necessary.
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required, user_passes_test
+from datetime import datetime
+import io
+import pytz
+import csv
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def export_playlist(request, schedule_date):
+    """
+    Export a .ply playlist with lines like:
+    "Z:\4bf15aac-059a-4de5-b17f-557703ace10a\ID1_2997_10Mbps.mp4";0.00000;41.07400;;ID1_2997_10Mbps
+    """
+
+    # If schedule_date is a string like "2025-01-08", parse it
     if isinstance(schedule_date, str):
         schedule_date = datetime.strptime(schedule_date, '%Y-%m-%d').date()
 
+    # Prepare StringIO as our in-memory text buffer
     buffer = io.StringIO()
-    writer = csv.writer(buffer)
 
-    utc = pytz.UTC
-    local_tz = pytz.timezone('America/New_York')
-
-    writer.writerow([
-        'Schedule Date',
-        'Start Time (UTC)',
-        'Start Time (Local)',
-        'Title',
-        'Duration',
-        'Rating',
-        'Genre',
-        'Creator'
-    ])
-
+    # Query all ScheduledEpisode for the given date
     schedule = ScheduledEpisode.objects.filter(
         schedule_date=schedule_date
     ).order_by('start_time')
 
+    # Write each line according to your requested format
+    # Example line:
+    # "Z:\{episode.custom_id}\{episode.file_name}";0.00000;{duration};;{title}
     for episode in schedule:
-        utc_datetime = episode.start_time.astimezone(utc)
-        local_datetime = utc_datetime.astimezone(local_tz)
-        writer.writerow([
-            schedule_date.strftime('%Y-%m-%d'),
-            utc_datetime.strftime('%H:%M:%S'),
-            local_datetime.strftime('%H:%M:%S'),
-            episode.title,
-            episode.duration_timecode,
-            episode.ai_age_rating,
-            episode.ai_genre,
-            episode.creator.channel_name
-        ])
+        # Build the file path in quotes
+        file_path = f"\"Z:\\{episode.custom_id}\\{episode.file_name}\""
 
+        # Start time is always 0.00000 in your example
+        start_str = "0.00000"
+
+        # Format duration with five decimals.
+        # If duration_seconds is None, default to zero
+        duration_value = float(episode.duration_seconds or 0)
+        duration_str = f"{duration_value:.5f}"
+
+        # Title (no quotes in your sample, just appended)
+        title_str = episode.title
+
+        # Construct the line
+        line = f"{file_path};{start_str};{duration_str};;{title_str}"
+
+        # Write the line plus a newline
+        buffer.write(line + "\n")
+
+    # Reset buffer pointer to the beginning
     buffer.seek(0)
-    response = HttpResponse(buffer, content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
 
+    # Build the HTTP response for download
+    response = HttpResponse(
+        buffer,
+        content_type='text/plain'  # or 'text/csv', but .ply is not a standard mime type
+    )
+    # Output file named with .ply extension
+    response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.ply"'
     return response
 
 
-# import datetime
-# import io
-# import csv
-# import pytz
-# from django.http import HttpResponse
+
+# @login_required
+# @user_passes_test(lambda u: u.is_staff)
+# def export_playlist(schedule_date):
+#     """Export playlist with correct timezone handling"""
+#     # schedule_date is a string if coming from the URL pattern;
+#     # parse it to a proper date if necessary.
+#     if isinstance(schedule_date, str):
+#         schedule_date = datetime.strptime(schedule_date, '%Y-%m-%d').date()
+
+#     buffer = io.StringIO()
+#     writer = csv.writer(buffer)
+
+#     utc = pytz.UTC
+#     local_tz = pytz.timezone('America/New_York')
+
+#     writer.writerow([
+#         'Schedule Date',
+#         'Start Time (UTC)',
+#         'Start Time (Local)',
+#         'Title',
+#         'Duration',
+#         'Rating',
+#         'Genre',
+#         'Creator'
+#     ])
+
+#     schedule = ScheduledEpisode.objects.filter(
+#         schedule_date=schedule_date
+#     ).order_by('start_time')
+
+#     for episode in schedule:
+#         utc_datetime = episode.start_time.astimezone(utc)
+#         local_datetime = utc_datetime.astimezone(local_tz)
+#         writer.writerow([
+#             schedule_date.strftime('%Y-%m-%d'),
+#             utc_datetime.strftime('%H:%M:%S'),
+#             local_datetime.strftime('%H:%M:%S'),
+#             episode.title,
+#             episode.duration_timecode,
+#             episode.ai_age_rating,
+#             episode.ai_genre,
+#             episode.creator.channel_name
+#         ])
+
+#     buffer.seek(0)
+#     response = HttpResponse(buffer, content_type='text/csv')
+#     response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
+
+#     return response
+
+
+# # import datetime
+# # import io
+# # import csv
+# # import pytz
+# # from django.http import HttpResponse
 
 
 # def export_playlist(schedule_date):
