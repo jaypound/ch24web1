@@ -354,7 +354,7 @@ TIME_SLOTS = {
         'start': '02:00:00',  # 2 AM
         'end': '05:00:00',  # 6 AM
         'seconds': 10800,
-        'ratings': ['TV-MA']
+        'ratings': ['TV-14','TV-MA']
     }
 }
 
@@ -437,7 +437,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
         base_query = Episode.objects.all()
     else:
         base_query = Episode.objects.filter(ready_for_air=True)
-        
+
     if creator_id:
         base_query = base_query.filter(program__creator_id=creator_id)
     elif not all_ready:
