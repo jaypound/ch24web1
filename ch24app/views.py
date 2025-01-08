@@ -661,6 +661,12 @@ def playlist_create(request):
 #     response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
 #     return response
 
+import datetime
+import io
+import csv
+import pytz
+from django.http import HttpResponse
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def export_playlist(schedule_date):
@@ -709,7 +715,6 @@ def convert_timecode_to_seconds(timecode):
     """Convert HH:MM:SS timecode to seconds with millisecond precision"""
     hours, minutes, seconds = map(float, timecode.split(':'))
     return hours * 3600 + minutes * 60 + seconds
-
 
 # views.py
 from django.shortcuts import render, redirect
