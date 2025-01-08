@@ -618,11 +618,16 @@ def playlist_create(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def export_playlist(schedule_date):
+def export_playlist(request, schedule_date):
     """Export playlist with correct timezone handling"""
+    # schedule_date is a string if coming from the URL pattern;
+    # parse it to a proper date if necessary.
+    if isinstance(schedule_date, str):
+        schedule_date = datetime.strptime(schedule_date, '%Y-%m-%d').date()
+
     buffer = io.StringIO()
     writer = csv.writer(buffer)
-    
+
     utc = pytz.UTC
     local_tz = pytz.timezone('America/New_York')
 
@@ -636,16 +641,14 @@ def export_playlist(schedule_date):
         'Genre',
         'Creator'
     ])
-    
+
     schedule = ScheduledEpisode.objects.filter(
         schedule_date=schedule_date
     ).order_by('start_time')
-    
+
     for episode in schedule:
-        # episode.start_time is already a datetime, so just convert:
         utc_datetime = episode.start_time.astimezone(utc)
         local_datetime = utc_datetime.astimezone(local_tz)
-        
         writer.writerow([
             schedule_date.strftime('%Y-%m-%d'),
             utc_datetime.strftime('%H:%M:%S'),
@@ -659,8 +662,9 @@ def export_playlist(schedule_date):
 
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
+    response['Content-Disposition'] = f'attachment; filename=\"playlist_{schedule_date}.csv\""
     return response
+
 
 # import datetime
 # import io
