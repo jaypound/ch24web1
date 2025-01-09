@@ -316,8 +316,8 @@ SHORTFORM_BLOCK_MAX_DURATION = 120
 TIME_SLOTS = {
     'overnight': {
         'start': '00:00:00',  # 12 AM
-        'end': '05:00:00',  # 6 AM
-        'seconds': 10800,
+        'end': '05:00:00',  # 5 AM
+        'seconds': 18000,
         'ratings': ['TV-14','TV-MA']
     },
     'early_morning': {
@@ -353,7 +353,7 @@ TIME_SLOTS = {
     'late_night': {
         'start': '23:00:00',  # 11 PM
         'end': '00:00:00',  # 12 AM
-        'seconds': 10800,
+        'seconds': 3600,
         'ratings': ['TV-14', 'TV-MA']
     }
 }
