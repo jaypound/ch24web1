@@ -314,6 +314,12 @@ SHORTFORM_BLOCK_MAX_DURATION = 120
 
 # Define time slots with their specific times and content ratings
 TIME_SLOTS = {
+    'overnight': {
+        'start': '00:00:00',  # 12 AM
+        'end': '05:00:00',  # 6 AM
+        'seconds': 10800,
+        'ratings': ['TV-14','TV-MA']
+    },
     'early_morning': {
         'start': '05:00:00',
         'end': '09:00:00',
@@ -346,15 +352,9 @@ TIME_SLOTS = {
     },
     'late_night': {
         'start': '23:00:00',  # 11 PM
-        'end': '02:00:00',  # 2 AM
+        'end': '00:00:00',  # 12 AM
         'seconds': 10800,
         'ratings': ['TV-14', 'TV-MA']
-    },
-    'overnight': {
-        'start': '02:00:00',  # 2 AM
-        'end': '05:00:00',  # 6 AM
-        'seconds': 10800,
-        'ratings': ['TV-14','TV-MA']
     }
 }
 
