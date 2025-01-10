@@ -1,0 +1,61 @@
+<!-- update_program.html -->
+
+{% extends "base.html" %}
+{% block title %} Update Analysis {% endblock %}
+{% block content %}
+<br/>
+<div class="shadow p-4 mb-5 bg-body rounded">
+    <h1>Update Analysis for {{ episode.title }}</h1>
+ 
+    {% if submitted %}
+        Analysis Updated Successfully!
+        <br/><br/><br/>
+        <!-- <a href="{% url 'my-programs' %}">
+            <button type="button" class="btn btn-primary btn-lg px-3 gap-3">My Programs</button>
+        </a> -->
+    {% else %}
+        {% if user.is_authenticated %}
+            <form action="" method="POST">
+                {% csrf_token %}
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.ready_for_air.label }}:</label>
+                        <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">AI Time Slots Recommended:</label>
+                        <textarea class="form-control" readonly rows="2">{{ form.ai_time_slots_recommended.value }}</textarea>
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.ai_genre.label }}:</label>
+                        <input type="text" readonly class="form-control-plaintext" value="{{ form.ai_genre.value }}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.ai_age_rating.label }}:</label>
+                        <input type="text" readonly class="form-control-plaintext" value="{{ form.ai_age_rating.value }}">
+                    </div>
+
+                </div>
+
+                <br/>
+                <input type="submit" value="Update Analysis" class="btn btn-secondary">
+            </form>
+        {% else %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                You must be logged in to view this page
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

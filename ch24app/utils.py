@@ -501,6 +501,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
 
             # Try BUMPER
             bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot)
+            logger.info(f"Bumper: {bumper}")
             if bumper and previous_type != ContentType.BUMPER and validate_episode(bumper):
                 previous_type = ContentType.BUMPER
                 try:
@@ -523,6 +524,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
 
             # Try SHORTFORM 
             shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
+            logger.info(f"Shortform: {shortform}")
             if consecutive_shortform < MAX_CONSECUTIVE_SHORTFORM:
                 logger.info(f"Consecutive shortform count: {consecutive_shortform}")
                 if shortform and validate_episode(shortform):

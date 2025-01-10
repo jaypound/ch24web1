@@ -16,6 +16,7 @@ urlpatterns = [
     path('update_creator/<creator_id>', views.update_creator, name="update-creator"),
     path('update_program/<program_id>', views.update_program, name="update-program"),
     path('update_episode/<episode_id>', views.update_episode, name="update-episode"),
+    path('update_analysis/<str:custom_id>/', views.update_analysis, name='update-analysis'),
     path('upload_episode/<episode_id>/', views.upload_episode, name='upload_episode'),
     path('upload_success/', views.upload_success, name='upload_success'),
     path('upload_failed/', views.upload_failed, name='upload_failed'),
