@@ -55,27 +55,14 @@
                     <div class="col-md-6 mb-3">
                         <label for="id_ai_age_rating" class="form-label">{{ form.ai_age_rating.label }}:</label>
                         <select class="form-control" name="ai_age_rating" id="id_ai_age_rating">
-                            <!-- {% set all_ratings = "" %} -->
-                            <!-- Build a union of time_slots[].ratings. Or just loop them all unconditionally. -->
-                            {% comment %} For a simple approach, gather all rating values from the dictionary. {% endcomment %}
-
-                            {% for slot_key, slot_value in time_slots.items %}  
-                                {% for rating in slot_value.ratings %}
-                                    {% if not all_ratings|default_if_none:""|contains:rating %}
-                                        {% set all_ratings = all_ratings|add:rating|add:"," %}
-                                    {% endif %}
+                            {% for rating in all_ratings %}
+                                <option value="{{ rating }}" {% if form.ai_age_rating.value == rating %} selected {% endif %}>
+                                    {{ rating }}
+                                </option>
                                 {% endfor %}
-                            {% endfor %}
-                            {% comment %} Now build distinct list. For clarity, we'll do a second pass. You could also do it in Python code if you like. {% endcomment %}
-                            {% for rating_item in all_ratings|slice:":"|uniq %}
-                                {% if rating_item %}
-                                    <option value="{{ rating_item }}" {% if form.ai_age_rating.value == rating_item %} selected {% endif %}>
-                                        {{ rating_item }}
-                                    </option>
-                                {% endif %}
-                            {% endfor %}
                         </select>
                     </div>
+
                 </div>
 
                 <br/>
