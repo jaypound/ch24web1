@@ -204,6 +204,9 @@ def update_creator(request, creator_id):
         'submitted': False
     })
 
+from django.shortcuts import render, get_object_or_404
+from .models import Episode, TIME_SLOTS
+from .forms import EpisodeAnalysisForm
 
 def update_analysis(request, custom_id):
     episode = get_object_or_404(Episode, custom_id=custom_id)
@@ -221,7 +224,8 @@ def update_analysis(request, custom_id):
     
     return render(request, 'update_analysis.html', {
         'form': form,
-        'submitted': False
+        'submitted': False,
+        'time_slots': TIME_SLOTS
     })
 
 # views.py
