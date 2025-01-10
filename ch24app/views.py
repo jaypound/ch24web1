@@ -209,7 +209,7 @@ def update_analysis(request, custom_id):
     episode = get_object_or_404(Episode, custom_id=custom_id)
 
     if request.method == "POST":
-        form = EpisodeAnalysisForm(instance=episode)
+        form = EpisodeAnalysisForm(request.POST, instance=episode)
         if form.is_valid():
             form.save()
             return render(request, 'update_analysis.html', {

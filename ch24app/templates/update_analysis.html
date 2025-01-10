@@ -19,14 +19,20 @@
                 <div class="row">
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">{{ form.ready_for_air.label }}:</label>
-                        <p>{{ form.ready_for_air.value|yesno:"Yes,No" }}</p>
-
+                        <label for="id_ready_for_air" class="form-label">Ready for Air:</label>
+                        <input type="checkbox"
+                        name="ready_for_air"
+                        id="id_ready_for_air"
+                        value="True"
+                        {% if form.ready_for_air.value %}checked{% endif %}>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">AI Time Slots Recommended:</label>
-                        <textarea class="form-control" rows="2">{{ form.ai_time_slots_recommended.value }}</textarea>
+                        <label for="id_ai_time_slots_recommended" class="form-label">AI Time Slots Recommended:</label>
+                        <textarea class="form-control"
+                        rows="2"
+                        name="ai_time_slots_recommended"
+                        id="id_ai_time_slots_recommended">{{ form.ai_time_slots_recommended.value }}</textarea>
                     </div>
 
                 </div>
@@ -35,7 +41,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">{{ form.ai_genre.label }}:</label>
-                        <input type="text" class="form-control-plaintext" value="{{ form.ai_genre.value }}">
+                        <input type="text" class="form-control-plaintext" value="{{ form.ai_genre }}">
                     </div>
 
                     <div class="col-md-6 mb-3">
