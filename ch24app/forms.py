@@ -166,11 +166,11 @@ class EpisodeAnalysisForm(forms.ModelForm):
             'duration_timecode': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super(EpisodeAnalysisForm, self).__init__(*args, **kwargs)
-        # Disable all fields to make them read-only
-        for field in self.fields.values():
-            field.disabled = True
+    # def __init__(self, *args, **kwargs):
+    #     super(EpisodeAnalysisForm, self).__init__(*args, **kwargs)
+    #     # Disable all fields to make them read-only
+    #     for field in self.fields.values():
+    #         field.disabled = True
 
 
 
