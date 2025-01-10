@@ -489,6 +489,7 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
         while (current_dt < slot_end_dt) and (steps < MAX_STEPS):
             steps += 1
             remaining_in_slot = (slot_end_dt - current_dt).total_seconds()
+            previous_type = None
             
             if remaining_in_slot < MIN_REMAINING_TIME:
                 logger.info(f"Not enough time left in slot ({remaining_in_slot}s). Moving to next slot.")
@@ -497,6 +498,17 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
 
             # Try to schedule content in order: LONGFORM, SHORTFORM, BUMPER
             content_scheduled = False
+
+            # Try BUMPER
+            bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot)
+            if bumper and previous_type != ContentType.BUMPER and validate_episode(bumper):
+                previous_type = ContentType.BUMPER
+                try:
+                    current_dt = schedule_episode(bumper, schedule_date, current_dt, slot_name)
+                    content_scheduled = True
+                    consecutive_shortform = 0
+                except Exception as e:
+                    logger.error(f"Failed to schedule bumper: {str(e)}")
             
             # Try LONGFORM
             longform = get_suitable_content(base_query, slot_name, ContentType.LONGFORM, remaining_in_slot)
@@ -505,30 +517,22 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
                     current_dt = schedule_episode(longform, schedule_date, current_dt, slot_name)
                     content_scheduled = True
                     consecutive_shortform = 0
+                    previous_type = ContentType.LONGFORM
                 except Exception as e:
                     logger.error(f"Failed to schedule longform: {str(e)}")
 
-            # Try SHORTFORM if no longform was scheduled
-            if not content_scheduled and consecutive_shortform < MAX_CONSECUTIVE_SHORTFORM:
-                shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
+            # Try SHORTFORM 
+            shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
+            if consecutive_shortform < MAX_CONSECUTIVE_SHORTFORM:
+                logger.info(f"Consecutive shortform count: {consecutive_shortform}")
                 if shortform and validate_episode(shortform):
                     try:
                         current_dt = schedule_episode(shortform, schedule_date, current_dt, slot_name)
                         content_scheduled = True
                         consecutive_shortform += 1
+                        previous_type = ContentType.SHORTFORM
                     except Exception as e:
                         logger.error(f"Failed to schedule shortform: {str(e)}")
-
-            # Try BUMPER if nothing else was scheduled
-            if not content_scheduled:
-                bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot)
-                if bumper and validate_episode(bumper):
-                    try:
-                        current_dt = schedule_episode(bumper, schedule_date, current_dt, slot_name)
-                        content_scheduled = True
-                        consecutive_shortform = 0
-                    except Exception as e:
-                        logger.error(f"Failed to schedule bumper: {str(e)}")
 
             # If no content could be scheduled at all, move to the next slot
             if not content_scheduled:
