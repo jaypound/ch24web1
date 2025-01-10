@@ -205,7 +205,8 @@ def update_creator(request, creator_id):
     })
 
 from django.shortcuts import render, get_object_or_404
-from .models import Episode, TIME_SLOTS
+from .models import Episode
+from .utils import TIME_SLOTS
 from .forms import EpisodeAnalysisForm
 
 def update_analysis(request, custom_id):
