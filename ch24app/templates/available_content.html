@@ -202,8 +202,9 @@
                                     </td>
                                     <td>
                                         <div class="d-flex gap-2">
-                                            <a href="{% url 'episode_analysis' episode.custom_id %}" class="btn btn-sm btn-primary">Details</a>
+                                            <a href="{% url 'episode_analysis' episode.custom_id %}" class="btn btn-sm btn-primary">Analysis</a>
                                             <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-sm btn-primary">Preview</a>
+                                            <a href="{% url 'update-analysis' episode.custom_id %}" class="btn btn-outline-secondary me-2">Update</a>
                                         </div>
                                     </td>
                                 </tr>
