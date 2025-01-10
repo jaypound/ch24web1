@@ -5,7 +5,7 @@
 {% block content %}
 <br/>
 <div class="shadow p-4 mb-5 bg-body rounded">
-    <h1>Update Analysis for {{ episode.title }}</h1>
+    <h1>Update Analysis for {{ form.title }}</h1>
  
     {% if submitted %}
         Analysis Updated Successfully!
@@ -41,7 +41,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">{{ form.ai_genre.label }}:</label>
-                        <input type="text" class="form-control-plaintext" value="{{ form.ai_genre }}">
+                        <input type="text" class="form-control-plaintext" value="{{ form.ai_genre.value  }}">
                     </div>
 
                     <div class="col-md-6 mb-3">
