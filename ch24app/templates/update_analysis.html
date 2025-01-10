@@ -3,51 +3,17 @@
 {% extends "base.html" %}
 {% block title %}Update Analysis{% endblock %}
 {% block content %}
-<br/>
 <div class="shadow p-4 mb-5 bg-body rounded">
     <h1>Update Analysis for {{ form.title.value }}</h1>
-    <br/>
 
     {% if submitted %}
         <div class="alert alert-success">Analysis Updated Successfully!</div>
-        <br/><br/>
     {% else %}
-        {% if user.is_authenticated %}
-            <form action="" method="POST">
-                {% csrf_token %}
-
-                <!-- Ready for Air Checkbox -->
-                <div class="form-check mb-3">
-                    {{ form.ready_for_air.label_tag }}
-                    {{ form.ready_for_air }}
-                </div>
-
-                <!-- AI Time Slots Recommended -->
-                <div class="mb-3">
-                    {{ form.ai_time_slots_recommended.label_tag }}
-                    {{ form.ai_time_slots_recommended }}
-                </div>
-
-                <!-- AI Genre Dropdown -->
-                <div class="mb-3">
-                    {{ form.ai_genre.label_tag }}
-                    {{ form.ai_genre }}
-                </div>
-
-                <!-- AI Age Rating Dropdown -->
-                <div class="mb-3">
-                    {{ form.ai_age_rating.label_tag }}
-                    {{ form.ai_age_rating }}
-                </div>
-
-                <input type="submit" value="Update Analysis" class="btn btn-primary">
-            </form>
-        {% else %}
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                You must be logged in to view this page.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endif %}
+        <form action="" method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Update Analysis" class="btn btn-primary">
+        </form>
     {% endif %}
 </div>
 {% endblock %}

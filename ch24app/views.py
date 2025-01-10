@@ -209,33 +209,27 @@ from .models import Episode, TIME_SLOTS_CHOICES
 # from .utils import TIME_SLOTS
 from .forms import EpisodeAnalysisForm
 
+from django.shortcuts import render, get_object_or_404
+from .forms import EpisodeAnalysisForm
+from .models import Episode
+
 def update_analysis(request, custom_id):
     episode = get_object_or_404(Episode, custom_id=custom_id)
-    time_slots = episode.ai_time_slots_recommended.split(",")  # Convert the string to a list
-    all_ratings = set()
-
-    # Loop through the selected time slots and add the corresponding ratings
-    for slot in time_slots:
-        ratings = dict(TIME_SLOTS_CHOICES).get(slot.strip(), "")
-        if ratings:
-            all_ratings.add(ratings)
-
-    context = {
-        'form': EpisodeAnalysisForm(instance=episode),
-        'submitted': False,
-        'time_slots': time_slots,
-        'all_ratings': sorted(all_ratings),  # Sorting is optional
-    }
 
     if request.method == "POST":
         form = EpisodeAnalysisForm(request.POST, instance=episode)
         if form.is_valid():
+            print("Form is valid!")
             form.save()
-            context['submitted'] = True
+            return render(request, 'update_analysis.html', {'form': form, 'submitted': True})
+        else:
+            print(form.errors)
+
     else:
         form = EpisodeAnalysisForm(instance=episode)
-    
-    return render(request, 'update_analysis.html', context)
+
+    return render(request, 'update_analysis.html', {'form': form, 'submitted': False})
+
 
 # views.py
 
