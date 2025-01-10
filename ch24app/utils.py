@@ -499,17 +499,24 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
             # Try to schedule content in order: LONGFORM, SHORTFORM, BUMPER
             content_scheduled = False
 
-            # Try BUMPER
+            # Try to schedule a bumper
+            logger.info("Attempting to schedule bumper content...")
+
             bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot)
-            logger.info(f"Bumper: {bumper}")
-            if bumper and previous_type != ContentType.BUMPER and validate_episode(bumper):
-                previous_type = ContentType.BUMPER
-                try:
-                    current_dt = schedule_episode(bumper, schedule_date, current_dt, slot_name)
-                    content_scheduled = True
-                    consecutive_shortform = 0
-                except Exception as e:
-                    logger.error(f"Failed to schedule bumper: {str(e)}")
+            if bumper:
+                logger.info(f"Scheduling bumper: {bumper.title} (Duration: {bumper.duration_seconds}s)")
+
+                if previous_type != ContentType.BUMPER and validate_episode(bumper):
+                    try:
+                        current_dt = schedule_episode(bumper, schedule_date, current_dt, slot_name)
+                        content_scheduled = True
+                        consecutive_shortform = 0
+                        previous_type = ContentType.BUMPER
+                    except Exception as e:
+                        logger.error(f"Failed to schedule bumper: {e}")
+            else:
+                logger.warning("No suitable bumper found!")
+
             
             # Try LONGFORM
             longform = get_suitable_content(base_query, slot_name, ContentType.LONGFORM, remaining_in_slot)
@@ -548,21 +555,21 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
 
 
 def validate_episode(episode):
-    """Validate that an episode has all required fields"""
+    """Validate that an episode has all required fields for scheduling"""
     required_fields = [
         'episode_number',
         'title',
-        'ai_genre',
-        'ai_age_rating',
         'duration_seconds',
         'duration_timecode'
     ]
-    
+
     for field in required_fields:
         if not getattr(episode, field):
             logger.warning(f"Episode {episode.custom_id} missing required field: {field}")
             return False
+
     return True
+
 
 
 def get_slot_for_time(current_time):
@@ -601,36 +608,29 @@ def _add_time(time, delta):
     return new_datetime.time()
 
 
-def get_suitable_content(query, slot_name: str, content_type: ContentType, 
-                        remaining_time: int) -> Episode:
+def get_suitable_content(query, slot_name: str, content_type: ContentType, remaining_time: int) -> Episode:
     """Get appropriate content for the current slot and time"""
     ratings = TIME_SLOTS[slot_name]['ratings']
-    
-    duration_filter = {}
-    if content_type == ContentType.BUMPER:
-         max_duration = min(remaining_time, 15)
-         duration_filter = {'duration_seconds__lte': max_duration}
 
+    # Filter by duration and remaining time
+    if content_type == ContentType.BUMPER:
+        duration_filter = {'duration_seconds__lte': min(remaining_time, 15)}
     elif content_type == ContentType.SHORTFORM:
-        # "somewhere between >15 and ≤900" 
-        # BUT also must not exceed remaining_time
-        # so unify the lte constraint into min(900, remaining_time)
-        duration_filter = {
-            'duration_seconds__gt': 15,
-            'duration_seconds__lte': min(900, remaining_time),
-        }
+        duration_filter = {'duration_seconds__gt': 15, 'duration_seconds__lte': min(900, remaining_time)}
     else:  # LONGFORM
         duration_filter = {'duration_seconds__gt': 900}
-        
+
+    # Query the database for content that matches the criteria
     return query.filter(
         ai_age_rating__in=ratings,
         **duration_filter
     ).order_by(
         'priority_score',             # Prioritize less-scheduled content
-        '-audience_engagement_score', # Then by engagement
+        '-audience_engagement_score', # Then by engagement score
         'schedule_count',             # Then by frequency
         'last_scheduled'              # Then by recency
     ).first()
+
 
 
 
