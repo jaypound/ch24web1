@@ -51,6 +51,11 @@ GENRE_CHOICES = [
     ('Handicraft', 'Handicraft'),
     ('Fitness and Health', 'Fitness and Health'),
     ('Cooking', 'Cooking'),
+    ('Bumper', 'Bumper'),
+    ('ID', 'ID'),
+    ('Promo', 'Promo'),
+    ('PSA', 'Public Service Announcement'),
+    ('Shortform', 'Shortform'),
 ]
 
 
