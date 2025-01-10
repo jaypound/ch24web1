@@ -1,4 +1,4 @@
-<!-- update_program.html -->
+<!-- update_analysis.html -->
 
 {% extends "base.html" %}
 {% block title %} Update Analysis {% endblock %}
@@ -10,9 +10,7 @@
     {% if submitted %}
         Analysis Updated Successfully!
         <br/><br/><br/>
-        <!-- <a href="{% url 'my-programs' %}">
-            <button type="button" class="btn btn-primary btn-lg px-3 gap-3">My Programs</button>
-        </a> -->
+
     {% else %}
         {% if user.is_authenticated %}
             <form action="" method="POST">
@@ -28,7 +26,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">AI Time Slots Recommended:</label>
-                        <textarea class="form-control" readonly rows="2">{{ form.ai_time_slots_recommended.value }}</textarea>
+                        <textarea class="form-control" rows="2">{{ form.ai_time_slots_recommended.value }}</textarea>
                     </div>
 
                 </div>
@@ -37,12 +35,12 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">{{ form.ai_genre.label }}:</label>
-                        <input type="text" readonly class="form-control-plaintext" value="{{ form.ai_genre.value }}">
+                        <input type="text" class="form-control-plaintext" value="{{ form.ai_genre.value }}">
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">{{ form.ai_age_rating.label }}:</label>
-                        <input type="text" readonly class="form-control-plaintext" value="{{ form.ai_age_rating.value }}">
+                        <input type="text" class="form-control-plaintext" value="{{ form.ai_age_rating.value }}">
                     </div>
 
                 </div>
