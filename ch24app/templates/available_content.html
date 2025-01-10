@@ -157,7 +157,7 @@
         </div>
 
  <!-- Content List -->
-<div class="col-md-9">
+<div class="col-md-10">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Available Content</h5>
@@ -204,7 +204,7 @@
                                         <div class="d-flex gap-2">
                                             <a href="{% url 'episode_analysis' episode.custom_id %}" class="btn btn-sm btn-primary">Analysis</a>
                                             <a href="{% url 'view_episode' episode.custom_id %}" class="btn btn-sm btn-primary">Preview</a>
-                                            <a href="{% url 'update-analysis' episode.custom_id %}" class="btn btn-outline-secondary me-2">Update</a>
+                                            <a href="{% url 'update-analysis' episode.custom_id %}" class="btn btn-sm btn-primary">Update</a>
                                         </div>
                                     </td>
                                 </tr>
