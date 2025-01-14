@@ -705,8 +705,8 @@ def export_playlist(schedule_date):
     )
     # Output file named with .ply extension
     filename = f"{schedule_date.strftime('%Y_%m_%d')}_00_00_00.ply"
-    
-    response['Content-Disposition'] = f'attachment; filename="{filename}.ply"'
+
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
 
