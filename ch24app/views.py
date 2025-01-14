@@ -677,6 +677,7 @@ def export_playlist(schedule_date):
     for episode in schedule:
         # Build the file path in quotes
         file_path = f"\"Z:\\{episode.custom_id}\\{episode.file_name}\""
+        file_path = f"\"Z:\\{episode.file_name}\""
 
         # Start time is always 0.00000 in your example
         start_str = "0.00000"
