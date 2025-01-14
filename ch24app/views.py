@@ -704,7 +704,7 @@ def export_playlist(schedule_date):
         content_type='text/plain'  # or 'text/csv', but .ply is not a standard mime type
     )
     # Output file named with .ply extension
-    response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.ply"'
+    response['Content-Disposition'] = f'attachment; filename="{schedule_date}.ply"'
     return response
 
 
