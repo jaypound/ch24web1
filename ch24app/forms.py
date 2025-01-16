@@ -140,6 +140,7 @@ class EpisodeAnalysisForm(forms.ModelForm):
             'last_timeslot',
             'last_scheduled',
             'schedule_count',
+            'priority_score',
             'duration_seconds',
             'duration_timecode',
         ]
@@ -162,6 +163,7 @@ class EpisodeAnalysisForm(forms.ModelForm):
             'last_timeslot': forms.TextInput(attrs={'class': 'form-control'}),
             'last_scheduled': forms.DateTimeInput(attrs={'class': 'form-control'}),
             'schedule_count': forms.TextInput(attrs={'class': 'form-control'}),
+            'priority_score': forms.TextInput(attrs={'class': 'form-control'}),
             'duration_seconds': forms.TextInput(attrs={'class': 'form-control'}),
             'duration_timecode': forms.TextInput(attrs={'class': 'form-control'}),
         }
