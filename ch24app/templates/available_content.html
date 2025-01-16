@@ -171,6 +171,7 @@
                             <tr>
                                 <th>Title</th>
                                 <th>Creator</th>
+                                <th>Episode</th>
                                 <th>Duration</th>
                                 <!-- <th>Manual Rating</th> -->
                                 <th>AI Rating</th>
@@ -186,6 +187,7 @@
                                 <tr>
                                     <td>{{ episode.title }}</td>
                                     <td>{{ episode.program.creator.channel_name }}</td>
+                                    <td>{{ episode.episode_number }}</td>
                                     <td>{{ episode.duration_timecode }}</td>
                                     <!-- <td>{{ episode.age_rating }}</td> -->
                                     <td>{{ episode.ai_age_rating }}</td>
