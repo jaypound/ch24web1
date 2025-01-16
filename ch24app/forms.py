@@ -158,7 +158,7 @@ class EpisodeAnalysisForm(forms.ModelForm):
             'ai_time_slots_recommended': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'audience_engagement_score': forms.TextInput(attrs={'class': 'form-control'}),
             'audience_engagement_reasons': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'prohibited_content': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'prohibited_content': forms.TextInput(attrs={'class': 'form-control'}),
             'prohibited_content_reasons': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'ready_for_air': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'last_timeslot': forms.TextInput(attrs={'class': 'form-control'}),
