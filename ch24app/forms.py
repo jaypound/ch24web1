@@ -143,6 +143,7 @@ class EpisodeAnalysisForm(forms.ModelForm):
             'priority_score',
             'duration_seconds',
             'duration_timecode',
+            'file_name',
         ]
         widgets = {
             'program': forms.Select(attrs={'class': 'form-control'}),
@@ -166,7 +167,8 @@ class EpisodeAnalysisForm(forms.ModelForm):
             'priority_score': forms.TextInput(attrs={'class': 'form-control'}),
             'duration_seconds': forms.TextInput(attrs={'class': 'form-control'}),
             'duration_timecode': forms.TextInput(attrs={'class': 'form-control'}),
-        }
+            'file_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }   
 
     # def __init__(self, *args, **kwargs):
     #     super(EpisodeAnalysisForm, self).__init__(*args, **kwargs)
