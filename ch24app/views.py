@@ -839,16 +839,17 @@ def scheduled_episode_create(request):
     
     return render(request, 'scheduled_episode_form.html', {'form': form})
 
-# views.py
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import Q
-from .models import Episode, GENRE_CHOICES, AGE_RATING_CHOICES, Creator
-
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
-from django.urls import path
+from django.views.decorators.http import require_POST
+from .models import Episode, GENRE_CHOICES, AGE_RATING_CHOICES, Creator
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Episode
@@ -858,97 +859,79 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def test_func(self):
         return self.request.user.is_staff
-    
+
+    # (1) This method is optional if we rely on the mixin’s test_func already,
+    #     but we can keep it to ensure a 403 response if staff check fails.
+    #     Otherwise, a non-staff user would be redirected by default. 
+    #     That might be enough for your use case.
+
+    @method_decorator(require_POST)
     def post(self, request, *args, **kwargs):
-        """Handle POST requests for updating episodes"""
-        logger.info("POST request received")  # Debug print
-        logger.info("POST data:", request.POST)  # Debug print
-        print("POST request received")  # Debug print
-        print("POST data:", request.POST)  # Debug print
-        
-        if not request.user.is_staff:
-            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
-            
+        # user must already be staff by the time this is reached
+        episode_id = request.POST.get('episode_id')
+        field = request.POST.get('field')
+        value = request.POST.get('value')
+
+        logger.info(f"Updating Episode: {episode_id}, Field: {field}, Value: {value}")
+
         try:
-            episode_id = request.POST.get('episode_id')
-            field = request.POST.get('field')
-            value = request.POST.get('value')
-            
-            logger.info(f"Updating episode {episode_id}, field {field} to value {value}")  # Debug print
-            print(f"Updating episode {episode_id}, field {field} to value {value}")  # Debug print
-            
-            episode = Episode.objects.get(custom_id=episode_id)
-            
+            episode = get_object_or_404(Episode, custom_id=episode_id)
             if field == 'ready_for_air':
-                episode.ready_for_air = value.lower() == 'true'
+                episode.ready_for_air = (value.lower() == 'true')
             elif field == 'ai_age_rating':
                 episode.ai_age_rating = value
-            
+            # Add more fields as needed
+
             episode.save()
-            logger.info(f"Save successful, new value: {getattr(episode, field)}")  # Debug print
-            print(f"Save successful, new value: {getattr(episode, field)}")  # Debug print
-            
-            return JsonResponse({
-                'status': 'success',
-                'new_value': getattr(episode, field)
-            })
-        except Episode.DoesNotExist:
-            logger.info(f"Episode not found: {episode_id}")  # Debug print
-            print(f"Episode not found: {episode_id}")  # Debug print
-            return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
+            return JsonResponse({'status': 'success', 'new_value': getattr(episode, field)})
+
         except Exception as e:
-            logger.info(f"Error updating episode: {str(e)}")  # Debug print
-            print(f"Error updating episode: {str(e)}")  # Debug print
+            logger.error(f"Error updating episode {episode_id}: {str(e)}", exc_info=True)
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-
     def get_queryset(self):
-        # queryset = Episode.objects.filter(ready_for_air=True)
+        # Normal GET filtering logic
         queryset = Episode.objects.all()
-        # Add ready_for_air filter from GET parameters
+
         ready_for_air = self.request.GET.get('ready_for_air')
         if ready_for_air:
             if ready_for_air.lower() == 'true':
                 queryset = queryset.filter(ready_for_air=True)
             elif ready_for_air.lower() == 'false':
                 queryset = queryset.filter(ready_for_air=False)
-        # If no ready_for_air parameter is provided, show all episodes
 
-        # Apply filters from GET parameters
         ai_genre = self.request.GET.get('ai_genre')
         if ai_genre:
             queryset = queryset.filter(ai_genre=ai_genre)
-            
+
         ai_age_rating = self.request.GET.get('ai_age_rating')
         if ai_age_rating:
             queryset = queryset.filter(ai_age_rating=ai_age_rating)
-            
+
         creator = self.request.GET.get('creator')
         if creator:
             queryset = queryset.filter(program__creator=creator)
-            
-        duration = self.request.GET.get('duration')
-        if duration:
-            if duration == 'bumper':
-                queryset = queryset.filter(duration_seconds__lte=15)
-            elif duration == 'shortform':
-                queryset = queryset.filter(duration_seconds__gt=15, duration_seconds__lte=900)
-            elif duration == 'longform':
-                queryset = queryset.filter(duration_seconds__gt=900)
 
-        # Apply search if provided
+        duration = self.request.GET.get('duration')
+        if duration == 'bumper':
+            queryset = queryset.filter(duration_seconds__lte=15)
+        elif duration == 'shortform':
+            queryset = queryset.filter(duration_seconds__gt=15, duration_seconds__lte=900)
+        elif duration == 'longform':
+            queryset = queryset.filter(duration_seconds__gt=900)
+
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(
-                Q(title__icontains=search) |
-                Q(program__program_name__icontains=search) |
-                Q(program__creator__channel_name__icontains=search)
+                Q(title__icontains=search)
+                | Q(program__program_name__icontains=search)
+                | Q(program__creator__channel_name__icontains=search)
             )
 
-        # Apply sorting
         sort = self.request.GET.get('sort', '-created_at')
+        # Optional: Validate sort to avoid malicious input
         queryset = queryset.order_by(sort)
-        
+
         return queryset.select_related('program', 'program__creator')
 
     def get_context_data(self, **kwargs):
@@ -960,7 +943,7 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             'duration': self.request.GET.get('duration', ''),
             'search': self.request.GET.get('search', ''),
             'sort': self.request.GET.get('sort', '-created_at'),
-            'ready_for_air': self.request.GET.get('ready_for_air', ''),  # Add this line
+            'ready_for_air': self.request.GET.get('ready_for_air', ''),
         }
         context['ai_genres'] = dict(GENRE_CHOICES)
         context['ai_age_ratings'] = dict(AGE_RATING_CHOICES)
@@ -976,59 +959,171 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             ('false', 'Not Ready'),
         ]
         return context
+
+
+# views.py
+# from django.views.generic import ListView
+# from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+# from django.db.models import Q
+# from .models import Episode, GENRE_CHOICES, AGE_RATING_CHOICES, Creator
+
+# from django.http import JsonResponse
+# from django.views.decorators.http import require_POST
+# from django.utils.decorators import method_decorator
+# from django.urls import path
+
+# class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+#     model = Episode
+#     template_name = 'available_content.html'
+#     context_object_name = 'episodes'
+#     paginate_by = 20
+
+#     def test_func(self):
+#         return self.request.user.is_staff
     
-    @method_decorator(require_POST)
-    def update_episode(self, request, *args, **kwargs):
-        try:
-            episode_id = request.POST.get('episode_id')
-            field = request.POST.get('field')
-            value = request.POST.get('value')
-            
-            episode = Episode.objects.get(custom_id=episode_id)
-            
-            if field == 'ready_for_air':
-                episode.ready_for_air = value.lower() == 'true'
-            elif field == 'ai_age_rating':
-                episode.ai_age_rating = value
-            
-            episode.save()
-            
-            return JsonResponse({
-                'status': 'success',
-                'new_value': getattr(episode, field)
-            })
-        except Episode.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+#     def post(self, request, *args, **kwargs):
+#         """Handle POST requests for updating episodes"""
+#         logger.info("POST request received")  # Debug print
+#         logger.info("POST data:", request.POST)  # Debug print
+#         print("POST request received")  # Debug print
+#         print("POST data:", request.POST)  # Debug print
         
-    # def post(self, request, *args, **kwargs):
-    #     """Handle POST requests for updating episodes"""
-    #     if not request.user.is_staff:
-    #         return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+#         if not request.user.is_staff:
+#             return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
             
-    #     try:
-    #         episode_id = request.POST.get('episode_id')
-    #         field = request.POST.get('field')
-    #         value = request.POST.get('value')
+#         try:
+#             episode_id = request.POST.get('episode_id')
+#             field = request.POST.get('field')
+#             value = request.POST.get('value')
             
-    #         episode = Episode.objects.get(custom_id=episode_id)
+#             logger.info(f"Updating episode {episode_id}, field {field} to value {value}")  # Debug print
+#             print(f"Updating episode {episode_id}, field {field} to value {value}")  # Debug print
             
-    #         if field == 'ready_for_air':
-    #             episode.ready_for_air = value.lower() == 'true'
-    #         elif field == 'ai_age_rating':
-    #             episode.ai_age_rating = value
+#             episode = Episode.objects.get(custom_id=episode_id)
             
-    #         episode.save()
+#             if field == 'ready_for_air':
+#                 episode.ready_for_air = value.lower() == 'true'
+#             elif field == 'ai_age_rating':
+#                 episode.ai_age_rating = value
             
-    #         return JsonResponse({
-    #             'status': 'success',
-    #             'new_value': getattr(episode, field)
-    #         })
-    #     except Episode.DoesNotExist:
-    #         return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
-    #     except Exception as e:
-    #         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+#             episode.save()
+#             logger.info(f"Save successful, new value: {getattr(episode, field)}")  # Debug print
+#             print(f"Save successful, new value: {getattr(episode, field)}")  # Debug print
+            
+#             return JsonResponse({
+#                 'status': 'success',
+#                 'new_value': getattr(episode, field)
+#             })
+#         except Episode.DoesNotExist:
+#             logger.info(f"Episode not found: {episode_id}")  # Debug print
+#             print(f"Episode not found: {episode_id}")  # Debug print
+#             return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
+#         except Exception as e:
+#             logger.info(f"Error updating episode: {str(e)}")  # Debug print
+#             print(f"Error updating episode: {str(e)}")  # Debug print
+#             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+#     def get_queryset(self):
+#         # queryset = Episode.objects.filter(ready_for_air=True)
+#         queryset = Episode.objects.all()
+#         # Add ready_for_air filter from GET parameters
+#         ready_for_air = self.request.GET.get('ready_for_air')
+#         if ready_for_air:
+#             if ready_for_air.lower() == 'true':
+#                 queryset = queryset.filter(ready_for_air=True)
+#             elif ready_for_air.lower() == 'false':
+#                 queryset = queryset.filter(ready_for_air=False)
+#         # If no ready_for_air parameter is provided, show all episodes
+
+#         # Apply filters from GET parameters
+#         ai_genre = self.request.GET.get('ai_genre')
+#         if ai_genre:
+#             queryset = queryset.filter(ai_genre=ai_genre)
+            
+#         ai_age_rating = self.request.GET.get('ai_age_rating')
+#         if ai_age_rating:
+#             queryset = queryset.filter(ai_age_rating=ai_age_rating)
+            
+#         creator = self.request.GET.get('creator')
+#         if creator:
+#             queryset = queryset.filter(program__creator=creator)
+            
+#         duration = self.request.GET.get('duration')
+#         if duration:
+#             if duration == 'bumper':
+#                 queryset = queryset.filter(duration_seconds__lte=15)
+#             elif duration == 'shortform':
+#                 queryset = queryset.filter(duration_seconds__gt=15, duration_seconds__lte=900)
+#             elif duration == 'longform':
+#                 queryset = queryset.filter(duration_seconds__gt=900)
+
+#         # Apply search if provided
+#         search = self.request.GET.get('search')
+#         if search:
+#             queryset = queryset.filter(
+#                 Q(title__icontains=search) |
+#                 Q(program__program_name__icontains=search) |
+#                 Q(program__creator__channel_name__icontains=search)
+#             )
+
+#         # Apply sorting
+#         sort = self.request.GET.get('sort', '-created_at')
+#         queryset = queryset.order_by(sort)
+        
+#         return queryset.select_related('program', 'program__creator')
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['current_filters'] = {
+#             'ai_genre': self.request.GET.get('ai_genre', ''),
+#             'ai_age_rating': self.request.GET.get('ai_age_rating', ''),
+#             'creator': self.request.GET.get('creator', ''),
+#             'duration': self.request.GET.get('duration', ''),
+#             'search': self.request.GET.get('search', ''),
+#             'sort': self.request.GET.get('sort', '-created_at'),
+#             'ready_for_air': self.request.GET.get('ready_for_air', ''),  # Add this line
+#         }
+#         context['ai_genres'] = dict(GENRE_CHOICES)
+#         context['ai_age_ratings'] = dict(AGE_RATING_CHOICES)
+#         context['creators'] = Creator.objects.all()
+#         context['duration_choices'] = [
+#             ('bumper', 'Bumper (≤15s)'),
+#             ('shortform', 'Short Form (15s-15m)'),
+#             ('longform', 'Long Form (>15m)'),
+#         ]
+#         context['ready_for_air_choices'] = [
+#             ('', 'All Content'),
+#             ('true', 'Ready for Air'),
+#             ('false', 'Not Ready'),
+#         ]
+#         return context
+    
+#     @method_decorator(require_POST)
+#     def update_episode(self, request, *args, **kwargs):
+#         try:
+#             episode_id = request.POST.get('episode_id')
+#             field = request.POST.get('field')
+#             value = request.POST.get('value')
+            
+#             episode = Episode.objects.get(custom_id=episode_id)
+            
+#             if field == 'ready_for_air':
+#                 episode.ready_for_air = value.lower() == 'true'
+#             elif field == 'ai_age_rating':
+#                 episode.ai_age_rating = value
+            
+#             episode.save()
+            
+#             return JsonResponse({
+#                 'status': 'success',
+#                 'new_value': getattr(episode, field)
+#             })
+#         except Episode.DoesNotExist:
+#             return JsonResponse({'status': 'error', 'message': 'Episode not found'}, status=404)
+#         except Exception as e:
+#             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        
 
 # views.py
 from django.contrib.admin.views.decorators import staff_member_required
