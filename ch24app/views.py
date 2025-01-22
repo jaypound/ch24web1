@@ -646,19 +646,33 @@ def playlist_create(request):
             messages.error(request, f'Error: {str(e)}')
             logger.exception("An error occurred in playlist_create view.")
 
-    # Get today's schedule for display in all cases
-    today = timezone.now().date()
+    # Instead of always using 'today', parse the selected date from POST or GET.
+    selected_date_str = request.POST.get('playlist_date') or request.GET.get('playlist_date')
+    if selected_date_str:
+        try:
+            selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            # Fallback if parsing fails
+            selected_date = timezone.now().date()
+    else:
+        selected_date = timezone.now().date()
+
+    # Query the schedule using the selected date
     scheduled_episodes = ScheduledEpisode.objects.filter(
-        schedule_date=today
+        schedule_date=selected_date
     ).select_related('episode', 'program', 'creator').order_by('start_time')
 
     context = {
         'scheduled_episodes': scheduled_episodes,
-        'selected_date': request.POST.get('playlist_date', today.strftime('%Y-%m-%d'))
+        'selected_date': selected_date.strftime('%Y-%m-%d'),
     }
-    
-    logger.debug("Rendering playlist_create.html with %s scheduled episodes for today (%s).", 
-                 scheduled_episodes.count(), today)
+
+    logger.debug(
+        "Rendering playlist_create.html with %s scheduled episodes for date: %s",
+        scheduled_episodes.count(),
+        selected_date
+    )
+
     return render(request, 'playlist_create.html', context)
 
 
