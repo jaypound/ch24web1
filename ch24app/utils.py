@@ -520,28 +520,39 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
             
             # Try LONGFORM
             longform = get_suitable_content(base_query, slot_name, ContentType.LONGFORM, remaining_in_slot)
+            logger.info(f"Found longform content: {longform.title if longform else None}")
+            
             if longform and validate_episode(longform):
                 try:
+                    logger.info(f"Scheduling longform: {longform.title} ({longform.duration_seconds}s)")
                     current_dt = schedule_episode(longform, schedule_date, current_dt, slot_name)
                     content_scheduled = True
                     consecutive_shortform = 0
                     previous_type = ContentType.LONGFORM
+                    logger.info("Successfully scheduled longform, resetting consecutive_shortform count")
                 except Exception as e:
                     logger.error(f"Failed to schedule longform: {str(e)}")
 
-            # Try SHORTFORM 
-            shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
-            logger.info(f"Shortform: {shortform}")
-            if consecutive_shortform < MAX_CONSECUTIVE_SHORTFORM:
-                logger.info(f"Consecutive shortform count: {consecutive_shortform}")
-                if shortform and validate_episode(shortform):
-                    try:
-                        current_dt = schedule_episode(shortform, schedule_date, current_dt, slot_name)
-                        content_scheduled = True
-                        consecutive_shortform += 1
-                        previous_type = ContentType.SHORTFORM
-                    except Exception as e:
-                        logger.error(f"Failed to schedule shortform: {str(e)}")
+            # Try SHORTFORM after LONGFORM
+            if previous_type == ContentType.LONGFORM:
+                logger.info("Previous content was LONGFORM, attempting to schedule SHORTFORM...")
+                shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
+                logger.info(f"Found shortform candidate: {shortform.title if shortform else None}")
+                logger.info(f"Shortform rating: {shortform.ai_age_rating if shortform else None}")
+                
+                if consecutive_shortform < MAX_CONSECUTIVE_SHORTFORM:
+                    logger.info(f"Consecutive shortform count: {consecutive_shortform}")
+                    if shortform and validate_episode(shortform):
+                        try:
+                            logger.info(f"Scheduling shortform: {shortform.title} ({shortform.duration_seconds}s)")
+                            current_dt = schedule_episode(shortform, schedule_date, current_dt, slot_name)
+                            content_scheduled = True
+                            consecutive_shortform += 1
+                            previous_type = ContentType.SHORTFORM
+                        except Exception as e:
+                            logger.error(f"Failed to schedule shortform: {str(e)}")
+                    else:
+                        logger.warning(f"Shortform validation failed or no content found")
 
             # If no content could be scheduled at all, move to the next slot
             if not content_scheduled:
