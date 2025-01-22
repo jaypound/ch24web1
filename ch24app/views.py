@@ -307,10 +307,19 @@ from .models import Episode, EpisodeMediaInfo
 
 AWS_STORAGE_BUCKET_NAME = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
 
+def sanitize_filename(filename):
+    """
+    Remove all characters outside of ASCII range.
+    You can make this more selective as needed
+    (e.g., only remove specific emoji ranges).
+    """
+    # Encode to ASCII and ignore errors, then decode back to str
+    return filename.encode('ascii', errors='ignore').decode()
+
 def upload_episode(request, episode_id):
     episode = get_object_or_404(Episode, custom_id=episode_id)
 
-    # Security check: Ensure the user is the creator of the episode
+    # Security check
     if episode.created_by != request.user:
         return HttpResponse("Unauthorized", status=401)
 
@@ -320,13 +329,18 @@ def upload_episode(request, episode_id):
             # Delete previous EpisodeMediaInfo instances
             EpisodeMediaInfo.objects.filter(episode=episode).delete()
 
+            # Original filename from the uploaded file
             file = form.cleaned_data['file']
-            file_name = file.name
+            original_file_name = file.name
 
+            # Sanitize the filename to remove emoji/unwanted unicode
+            sanitized_file_name = sanitize_filename(original_file_name)
+
+            # Construct the unique path: e.g. "episode123/myfile.mp4"
             bucket_name = AWS_STORAGE_BUCKET_NAME
-            unique_file_name = f'{episode.custom_id}/{file_name}'
+            unique_file_name = f'{episode.custom_id}/{sanitized_file_name}'
 
-            # Initialize the S3 client
+            # Initialize S3 client
             s3_client = boto3.client('s3')
 
             # Upload the file to S3
@@ -337,65 +351,57 @@ def upload_episode(request, episode_id):
                 messages.error(request, f"Upload failed: {e}")
                 return redirect('upload_failed')
 
-            # If we reach here, the upload was successful.
-            # Get media info from the uploaded file
+            # (Optional) Log or display if the file was changed due to sanitization
+            if original_file_name != sanitized_file_name:
+                messages.info(request, 
+                              f"Filename changed from '{original_file_name}' "
+                              f"to '{sanitized_file_name}' to remove invalid characters.")
+
+            # Fetch media info
             media_info = get_mediainfo_from_s3(bucket_name, unique_file_name)
 
-            # Save media info to the database
+            # Save media info to DB
             track_id = 0
             for track in media_info.tracks:
                 track_id += 1
                 track_metadata = {
                     key: value for key, value in track.to_data().items() if value is not None
                 }
-
                 EpisodeMediaInfo.objects.create(
                     episode=episode,
                     track_id=track_id,
                     metadata=track_metadata
                 )
 
-            # Retrieve the saved media_infos
+            # Validate media info
             media_infos = episode.media_infos.all()
-
-            # Use the validation function
             unique_errors, unique_warnings = validate_media_info(media_infos)
-
-            # Set the has_mediainfo_errors field based on validation
             episode.has_mediainfo_errors = bool(unique_errors)
 
-            # Update the episode with the file name
+            # IMPORTANT: Store the sanitized filename in the DB
             episode.file_name = unique_file_name
             episode.save()
 
-            messages.success(request, "File uploaded successfully.")
-
-            # At the end of upload_episode, after media_info is created:
+            # Calculate duration if track 1 is present
             try:
                 media_info_track1 = EpisodeMediaInfo.objects.get(episode=episode, track_id=1)
                 duration_ms = media_info_track1.metadata.get('duration')
-
                 if duration_ms:
-                    # Convert to seconds
                     duration_sec = float(duration_ms) / 1000
-                    
-                    # Populate the episode fields
                     episode.duration_seconds = duration_sec
                     episode.duration_timecode = convert_seconds_to_timecode(duration_sec)
                     episode.save()
             except EpisodeMediaInfo.DoesNotExist:
-                pass  # Handle the case where track_id=1 doesn't exist
+                pass
 
-            # Redirect without the mediainfo_errors flag
+            messages.success(request, "File uploaded successfully.")
             return redirect(f"{reverse('upload_success')}?episode_id={episode.custom_id}")
-        
         else:
             messages.error(request, "Form is invalid.")
     else:
         form = EpisodeUploadForm()
 
     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})
-
 
 
 
