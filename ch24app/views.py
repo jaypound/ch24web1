@@ -316,6 +316,18 @@ def sanitize_filename(filename):
     # Encode to ASCII and ignore errors, then decode back to str
     return filename.encode('ascii', errors='ignore').decode()
 
+def verify_s3_object(bucket_name, object_key):
+    """
+    Check if an object with the specified key exists in S3.
+    Returns True if it exists, False otherwise.
+    """
+    s3_client = boto3.client('s3')
+    try:
+        s3_client.head_object(Bucket=bucket_name, Key=object_key)
+        return True
+    except Exception:
+        return False
+
 def upload_episode(request, episode_id):
     episode = get_object_or_404(Episode, custom_id=episode_id)
 
@@ -333,14 +345,14 @@ def upload_episode(request, episode_id):
             file = form.cleaned_data['file']
             original_file_name = file.name
 
-            # Sanitize the filename to remove emoji/unwanted unicode
+            # Sanitize filename to remove emojis/unwanted unicode
             sanitized_file_name = sanitize_filename(original_file_name)
 
-            # Construct the unique path: e.g. "episode123/myfile.mp4"
+            # Construct S3 path: e.g. "episode123/myfile.mp4"
             bucket_name = AWS_STORAGE_BUCKET_NAME
             unique_file_name = f'{episode.custom_id}/{sanitized_file_name}'
 
-            # Initialize S3 client
+            # Initialize the S3 client
             s3_client = boto3.client('s3')
 
             # Upload the file to S3
@@ -351,16 +363,24 @@ def upload_episode(request, episode_id):
                 messages.error(request, f"Upload failed: {e}")
                 return redirect('upload_failed')
 
-            # (Optional) Log or display if the file was changed due to sanitization
-            if original_file_name != sanitized_file_name:
-                messages.info(request, 
-                              f"Filename changed from '{original_file_name}' "
-                              f"to '{sanitized_file_name}' to remove invalid characters.")
+            # Verify the object is actually in S3 after upload
+            if not verify_s3_object(bucket_name, unique_file_name):
+                messages.error(request, 
+                    f"Upload failed: Could not verify '{unique_file_name}' in S3.")
+                return redirect('upload_failed')
 
-            # Fetch media info
+            # Optional message if sanitization changed the file name
+            if original_file_name != sanitized_file_name:
+                messages.info(
+                    request,
+                    f"Filename changed from '{original_file_name}' "
+                    f"to '{sanitized_file_name}' to remove invalid characters."
+                )
+
+            # Retrieve the media info from the uploaded file
             media_info = get_mediainfo_from_s3(bucket_name, unique_file_name)
 
-            # Save media info to DB
+            # Save the media info to the database
             track_id = 0
             for track in media_info.tracks:
                 track_id += 1
@@ -378,11 +398,11 @@ def upload_episode(request, episode_id):
             unique_errors, unique_warnings = validate_media_info(media_infos)
             episode.has_mediainfo_errors = bool(unique_errors)
 
-            # IMPORTANT: Store the sanitized filename in the DB
+            # IMPORTANT: store the sanitized file name in the DB
             episode.file_name = unique_file_name
             episode.save()
 
-            # Calculate duration if track 1 is present
+            # Attempt to populate episode duration fields
             try:
                 media_info_track1 = EpisodeMediaInfo.objects.get(episode=episode, track_id=1)
                 duration_ms = media_info_track1.metadata.get('duration')
@@ -396,13 +416,13 @@ def upload_episode(request, episode_id):
 
             messages.success(request, "File uploaded successfully.")
             return redirect(f"{reverse('upload_success')}?episode_id={episode.custom_id}")
+
         else:
             messages.error(request, "Form is invalid.")
     else:
         form = EpisodeUploadForm()
 
     return render(request, 'episode_upload.html', {'form': form, 'episode': episode})
-
 
 
 def upload_success(request):
