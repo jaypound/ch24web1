@@ -39,21 +39,6 @@
                             </select>
                         </div>
 
-                        <!-- Genre Filter -->
-                        <div class="mb-3">
-                            <label for="genre" class="form-label">Genre</label>
-                            <select class="form-select" id="genre" name="genre">
-                                <option value="">All Genres</option>
-                                {% for code, name in genres.items %}
-                                    <option value="{{ code }}" 
-                                            {% if code == current_filters.genre %}selected{% endif %}>
-                                        {{ name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-
                         <!-- AI Genre Filter -->
                         <div class="mb-3">
                             <label for="ai_genre" class="form-label">AI Genre</label>
@@ -68,26 +53,12 @@
                             </select>
                         </div>
 
-                        <!-- Age Rating Filter -->
-                        <div class="mb-3">
-                            <label for="age_rating" class="form-label">Age Rating</label>
-                            <select class="form-select" id="age_rating" name="age_rating">
-                                <option value="">All Ratings</option>
-                                {% for code, name in age_ratings.items %}
-                                    <option value="{{ code }}"
-                                            {% if code == current_filters.age_rating %}selected{% endif %}>
-                                        {{ name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
                         <!-- AI Age Rating Filter -->
                         <div class="mb-3">
                             <label for="ai_age_rating" class="form-label">AI Age Rating</label>
                             <select class="form-select" id="ai_age_rating" name="ai_age_rating">
                                 <option value="">All Ratings</option>
-                                {% for code, name in age_ratings.items %}
+                                {% for code, name in ai_age_ratings.items %}
                                     <option value="{{ code }}"
                                             {% if code == current_filters.ai_age_rating %}selected{% endif %}>
                                         {{ name }}
