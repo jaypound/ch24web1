@@ -597,49 +597,68 @@ import pytz
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def playlist_create(request):
+    logger.debug("Entered playlist_create view. Request method: %s", request.method)
+
     if request.method == 'POST':
-        action = request.POST.get('action')
-        playlist_date_str = request.POST.get('playlist_date')
-        
+        action = request.POST.get('action', '')
+        playlist_date_str = request.POST.get('playlist_date', '')
+
+        # Log the form submission details
+        logger.debug("Form POST data -> action: '%s', playlist_date: '%s'", action, playlist_date_str)
+
         if not playlist_date_str:
             messages.error(request, 'Please select a date')
+            logger.debug("No date provided in POST. Returning with error message.")
             return render(request, 'playlist_create.html')
-            
+
         try:
             playlist_date = datetime.strptime(playlist_date_str, '%Y-%m-%d').date()
-            
+            logger.debug("Parsed playlist_date as: %s", playlist_date)
+
             if action == 'create':
-                # Check if schedule already exists
+                logger.debug("Checking if schedule already exists for %s", playlist_date)
                 existing_schedule = ScheduledEpisode.objects.filter(schedule_date=playlist_date).exists()
+                logger.debug("existing_schedule = %s", existing_schedule)
+
                 if existing_schedule:
                     messages.warning(request, f'Schedule already exists for {playlist_date}. Clear it first.')
+                    logger.debug("Schedule already exists. Skipping creation.")
                 else:
+                    logger.debug("Calling schedule_episodes() for date %s", playlist_date)
                     schedule_episodes(playlist_date, all_ready=True)
                     messages.success(request, f'Playlist created for {playlist_date}')
-                
+
             elif action == 'clear':
-                # deleted_count = ScheduledEpisode.objects.filter(schedule_date=playlist_date).delete()[0]
-                # messages.success(request, f'Cleared {deleted_count} scheduled episodes for {playlist_date}')
+                logger.debug("Clearing all scheduled episodes for date %s. (Currently clearing ALL, per your code.)", playlist_date)
                 deleted_count = ScheduledEpisode.objects.all().delete()[0]
                 messages.success(request, f'Cleared ALL {deleted_count} scheduled episodes!')
-                
+                logger.debug("Deleted %s scheduled episodes (all dates).", deleted_count)
+
             elif action == 'export':
+                logger.debug("Exporting playlist for %s", playlist_date)
                 return export_playlist(playlist_date)
-                
+
+            else:
+                # If the action isn't recognized, it's probably just the date auto-submit
+                logger.debug("No recognized action. Possibly the form auto-submitted on date change.")
+
         except Exception as e:
             messages.error(request, f'Error: {str(e)}')
-    
-    # Get today's schedule for display
+            logger.exception("An error occurred in playlist_create view.")
+
+    # Get today's schedule for display in all cases
     today = timezone.now().date()
     scheduled_episodes = ScheduledEpisode.objects.filter(
         schedule_date=today
     ).select_related('episode', 'program', 'creator').order_by('start_time')
-    
+
     context = {
         'scheduled_episodes': scheduled_episodes,
         'selected_date': request.POST.get('playlist_date', today.strftime('%Y-%m-%d'))
     }
     
+    logger.debug("Rendering playlist_create.html with %s scheduled episodes for today (%s).", 
+                 scheduled_episodes.count(), today)
     return render(request, 'playlist_create.html', context)
 
 
