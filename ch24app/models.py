@@ -459,3 +459,12 @@ class ScheduledEpisode(models.Model):
                 raise ValidationError(
                     'This timeslot overlaps with another scheduled episode'
                 )
+           
+            
+class HomeMessage(models.Model):
+    message = models.TextField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']

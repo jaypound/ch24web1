@@ -14,6 +14,7 @@ from django.core.exceptions import ValidationError
 
 import os
 from django.conf import settings
+from .models import HomeMessage
 
 AWS_STORAGE_BUCKET_NAME = settings.AWS_STORAGE_BUCKET_NAME
 
@@ -33,7 +34,13 @@ def home(request):
         print(f"user_has_creator: {user_has_creator}")
         print(f"user_has_programs: {user_has_programs}")
 
-    return render(request, 'home.html', {'user_has_creator': user_has_creator, 'user_has_programs': user_has_programs})
+    active_message = HomeMessage.objects.filter(is_active=True).first()
+
+    return render(request, 'home.html', {
+        'user_has_creator': user_has_creator, 
+        'user_has_programs': user_has_programs,
+        'active_message': active_message
+    })
 
 def all_creators(request):
     creator_list = Creator.objects.all()
