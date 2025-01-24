@@ -468,3 +468,12 @@ class HomeMessage(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+
+
+class StreamSettings(models.Model):
+    is_stream_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Stream Settings'
+        verbose_name_plural = 'Stream Settings'

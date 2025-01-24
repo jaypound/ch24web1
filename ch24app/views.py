@@ -24,6 +24,8 @@ AWS_STORAGE_BUCKET_NAME = settings.AWS_STORAGE_BUCKET_NAME
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+from django.shortcuts import render
+from .models import StreamSettings
 # Create your views here.
 def home(request):
     user_has_creator = False
@@ -36,11 +38,18 @@ def home(request):
 
     active_message = HomeMessage.objects.filter(is_active=True).first()
 
-    return render(request, 'home.html', {
+    stream_settings, created = StreamSettings.objects.get_or_create(
+        defaults={'is_stream_active': True}
+    )
+
+    context = {
+        'show_stream': stream_settings.is_stream_active,
         'user_has_creator': user_has_creator, 
         'user_has_programs': user_has_programs,
         'active_message': active_message
-    })
+    }
+
+    return render(request, 'home.html', context)
 
 def all_creators(request):
     creator_list = Creator.objects.all()
