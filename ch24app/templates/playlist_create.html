@@ -68,6 +68,7 @@
                                     <th>Start Time</th>
                                     <th>End Time</th>
                                     <th>Title</th>
+                                    <th>Episode</th>
                                     <th>Duration</th>
                                     <th>Rating</th>
                                     <th>Genre</th>
@@ -80,6 +81,7 @@
                                         <td>{{ episode.start_time|date:"Y-m-d H:i:s" }}</td>
                                         <td>{{ episode.end_time|date:"Y-m-d H:i:s" }}</td>
                                         <td>{{ episode.title }}</td>
+                                        <td>{{ episode.episode_number }}</td>
                                         <td>{{ episode.duration_timecode }}</td>
                                         <td>{{ episode.ai_age_rating }}</td>
                                         <td>{{ episode.ai_genre }}</td>
