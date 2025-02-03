@@ -1377,6 +1377,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
 import environ
+import os
+from concurrent.futures import ThreadPoolExecutor
 
 env = environ.Env()
 environ.Env.read_env()  # This loads variables from your .env file
@@ -1413,11 +1415,58 @@ def export_and_copy_to_s3(request, schedule_date):
                 Body=playlist_content.encode('utf-8'),
                 ContentType='text/plain'
             )
+
+            # Initialize Storage Gateway client
+            sgw_client = boto3.client('storagegateway',
+                aws_access_key_id = env('AWS_ACCESS_KEY_ID', default=None),
+                aws_secret_access_key = env('AWS_SECRET_ACCESS_KEY', default=None),
+                region_name = env('AWS_REGION', default='us-east-1')  # Optional default region
+            )
+            
+            # Function to refresh a single file share
+            def refresh_file_share(file_share_id):
+                try:
+                    response = sgw_client.refresh_cache(
+                        FileShareARN=file_share_id,
+                        FolderList=['/']  # Refresh the entire share
+                    )
+                    return {
+                        'file_share_id': file_share_id,
+                        'status': 'success',
+                        'refresh_job_id': response.get('RefreshCacheJobId')
+                    }
+                except Exception as e:
+                    return {
+                        'file_share_id': file_share_id,
+                        'status': 'error',
+                        'error': str(e)
+                    }
+            
+            # Get file shares from settings and split into list
+            storage_gateway_file_shares_str = env('STORAGE_GATEWAY_FILE_SHARES_STR', default=None)
+            file_shares = storage_gateway_file_shares_str.split(',')
+            
+            # Use ThreadPoolExecutor to refresh cache in parallel
+            refresh_results = []
+            with ThreadPoolExecutor(max_workers=len(file_shares)) as executor:
+                refresh_results = list(executor.map(refresh_file_share, file_shares))
+            
+            # Check if any refreshes failed
+            failed_refreshes = [r for r in refresh_results if r['status'] == 'error']
+            
+            if failed_refreshes:
+                return JsonResponse({
+                    'status': 'partial_success',
+                    'message': f'Playlist exported to S3, but some cache refreshes failed',
+                    'filename': filename,
+                    'refresh_results': refresh_results
+                })
             
             return JsonResponse({
                 'status': 'success',
-                'message': f'Playlist exported and copied to S3: s3://{bucket}/{s3_key}',
-                'filename': filename
+                'message': f'Playlist exported to S3 and cache refreshed successfully',
+                'filename': filename,
+                'refresh_results': refresh_results
             })
             
         except ClientError as e:

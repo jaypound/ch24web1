@@ -132,7 +132,13 @@ document.getElementById('exportToS3Button').addEventListener('click', function()
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                alert('Successfully exported and copied to S3: ' + data.message);
+                alert('Success: ' + data.message + '\n\nCache refresh jobs initiated for all file shares.');
+            } else if (data.status === 'partial_success') {
+                const failedShares = data.refresh_results
+                    .filter(r => r.status === 'error')
+                    .map(r => r.file_share_id)
+                    .join('\n');
+                alert('Warning: ' + data.message + '\n\nFailed refreshes for:\n' + failedShares);
             } else {
                 throw new Error(data.message);
             }
