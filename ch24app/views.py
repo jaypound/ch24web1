@@ -1369,3 +1369,62 @@ def delete_program(request, program_id):
         logger.error(f"Unexpected error in delete_program: {str(e)}", exc_info=True)
         messages.error(request, f"An unexpected error occurred: {str(e)}")
         return redirect('my-programs')
+    
+
+import boto3
+from botocore.exceptions import ClientError
+from django.conf import settings
+from django.contrib import messages
+from django.http import JsonResponse
+import os
+
+def export_and_copy_to_s3(request, schedule_date):
+    """
+    Export playlist and copy to S3 bucket
+    Returns JSON response with success/error status
+    """
+    try:
+        # First generate the playlist file using existing export function
+        response = export_playlist(schedule_date)
+        
+        # Get the file content from the response
+        playlist_content = response.content.decode('utf-8')
+        filename = response.get('Content-Disposition').split('filename=')[1].strip('"')
+        
+        # Initialize S3 client
+        s3_client = boto3.client('s3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_DEFAULT_REGION
+        )
+        
+        # S3 bucket and key
+        bucket = 'channel24-playlist-9cf77ba1-577f-4924-80c0-3f0c12c6ac07'
+        s3_key = filename
+        
+        # Upload to S3
+        try:
+            s3_client.put_object(
+                Bucket=bucket,
+                Key=s3_key,
+                Body=playlist_content.encode('utf-8'),
+                ContentType='text/plain'
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Playlist exported and copied to S3: s3://{bucket}/{s3_key}',
+                'filename': filename
+            })
+            
+        except ClientError as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Failed to upload to S3: {str(e)}'
+            }, status=500)
+            
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Error processing request: {str(e)}'
+        }, status=500)

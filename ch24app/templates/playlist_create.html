@@ -55,6 +55,13 @@
                             class="btn btn-success">
                         Export Playlist
                     </button>
+
+                    <button type="button"
+                        id="exportToS3Button"
+                        class="btn btn-info">
+                Export & Copy to S3
+                    </button>
+
                 </div>
             </form>
             
@@ -106,6 +113,40 @@
 document.getElementById('playlist_date').addEventListener('change', function() {
     this.form.submit();
 });
+
+document.getElementById('exportToS3Button').addEventListener('click', function() {
+    const date = document.getElementById('playlist_date').value;
+    if (!date) {
+        alert('Please select a date first');
+        return;
+    }
+    
+    // Show loading state
+    const button = this;
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = 'Exporting...';
+    
+    // Make API call
+    fetch(`/export-to-s3/${date}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Successfully exported and copied to S3: ' + data.message);
+            } else {
+                throw new Error(data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        })
+        .finally(() => {
+            // Reset button state
+            button.disabled = false;
+            button.innerHTML = originalText;
+        });
+});
+
 </script>
 {% endblock %}
 

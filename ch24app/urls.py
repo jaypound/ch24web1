@@ -48,6 +48,7 @@ urlpatterns = [
     #      name='update_episode'),
     path('delete-episode/<str:episode_id>/', views.delete_episode, name='delete-episode'),
     path('delete-program/<str:program_id>/', views.delete_program, name='delete-program'),
+    path('export-to-s3/<str:schedule_date>/', views.export_and_copy_to_s3, name='export_to_s3'),
     # path('env/', views.environment, name='environment_variables'),
 ]
 
