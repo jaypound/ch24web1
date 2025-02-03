@@ -1377,7 +1377,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
 import environ
-import os
 
 env = environ.Env()
 environ.Env.read_env()  # This loads variables from your .env file
@@ -1397,9 +1396,9 @@ def export_and_copy_to_s3(request, schedule_date):
         
         # Initialize S3 client
         s3_client = boto3.client('s3',
-                aws_access_key_id = env('AWS_ACCESS_KEY_ID', default=None),
-                aws_secret_access_key = env('AWS_SECRET_ACCESS_KEY', default=None),
-                aws_region = env('AWS_REGION', default='us-east-1')  # Optional default region
+            aws_access_key_id = env('AWS_ACCESS_KEY_ID', default=None),
+            aws_secret_access_key = env('AWS_SECRET_ACCESS_KEY', default=None),
+            region_name = env('AWS_REGION', default='us-east-1')  # Optional default region
         )
 
         # S3 bucket and key
