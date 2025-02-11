@@ -57,6 +57,11 @@ def all_creators(request):
 
 def all_programs(request):
     program_list = Program.objects.all()
+
+    program_list = program_list.annotate(
+        episode_count=models.Count('episode')
+    )
+    
     return render(request, 'program_list.html', {'program_list': program_list})
 
 def all_episodes(request):
