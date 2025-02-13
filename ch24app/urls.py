@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .views import health_check, AvailableContentView
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.home, name="home"),
@@ -50,6 +51,47 @@ urlpatterns = [
     path('delete-program/<str:program_id>/', views.delete_program, name='delete-program'),
     path('export-to-s3/<str:schedule_date>/', views.export_and_copy_to_s3, name='export_to_s3'),
     # path('env/', views.environment, name='environment_variables'),
+    path(
+        'password_reset/',
+        auth_views.PasswordResetView.as_view(
+            template_name='registration/password_reset_form.html',
+            email_template_name='registration/password_reset_email.html',
+            subject_template_name='registration/password_reset_subject.txt',
+            success_url='/password_reset/done/'
+        ),
+        name='password_reset'
+    ),
+    
+    # Confirm reset link sent
+    path(
+        'password_reset/done/',
+        auth_views.PasswordResetDoneView.as_view(
+            template_name='registration/password_reset_done.html'
+        ),
+        name='password_reset_done'
+    ),
+    
+    # Link from the email to reset the password
+    path(
+        'reset/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name='registration/password_reset_confirm.html',
+            success_url='/reset/done/'
+        ),
+        name='password_reset_confirm'
+    ),
+    
+    # Confirmation that the password was changed
+    path(
+        'reset/done/',
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name='registration/password_reset_complete.html'
+        ),
+        name='password_reset_complete'
+    )
+
+
+
 ]
 
 
