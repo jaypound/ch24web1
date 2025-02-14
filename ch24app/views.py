@@ -676,10 +676,10 @@ def playlist_create(request):
                     messages.success(request, f'Playlist created for {playlist_date}')
 
             elif action == 'clear':
-                logger.debug("Clearing all scheduled episodes for date %s. (Currently clearing ALL, per your code.)", playlist_date)
-                deleted_count = ScheduledEpisode.objects.all().delete()[0]
-                messages.success(request, f'Cleared ALL {deleted_count} scheduled episodes!')
-                logger.debug("Deleted %s scheduled episodes (all dates).", deleted_count)
+                logger.debug("Clearing scheduled episodes for date %s", playlist_date)
+                deleted_count = ScheduledEpisode.objects.filter(schedule_date=playlist_date).delete()[0]
+                messages.success(request, f'Cleared {deleted_count} scheduled episodes for {playlist_date}!')
+                logger.debug("Deleted %s scheduled episodes for date %s.", deleted_count, playlist_date)
 
             elif action == 'export':
                 logger.debug("Exporting playlist for %s", playlist_date)
