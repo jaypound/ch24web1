@@ -4,6 +4,8 @@ from .views import health_check, AvailableContentView
 from django.contrib.auth import views as auth_views
 from .forms import CreatorEmailPasswordResetForm
 from django.urls import reverse_lazy
+from django.urls import path
+from .views import test_email
 
 
 urlpatterns = [
@@ -91,9 +93,9 @@ urlpatterns = [
             template_name='registration/password_reset_complete.html'
         ),
         name='password_reset_complete'
-    )
+    ),
 
-
+    path('test-email/', test_email, name='test_email'),
 
 ]
 

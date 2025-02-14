@@ -1485,3 +1485,16 @@ def export_and_copy_to_s3(request, schedule_date):
             'status': 'error',
             'message': f'Error processing request: {str(e)}'
         }, status=500)
+    
+from django.http import HttpResponse
+from django.core.mail import send_mail
+
+def test_email(request):
+    send_mail(
+        'Test Email from Django and SES',
+        'This is a test email.',
+        'no-reply@atlanta24communitymedia.com',
+        ['jpound@AtlantaGa.Gov'],
+        fail_silently=False
+    )
+    return HttpResponse("Test email sent!")
