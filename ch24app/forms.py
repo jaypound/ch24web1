@@ -376,3 +376,17 @@ class ScheduledEpisodeForm(forms.ModelForm):
            for field_name in read_only_fields:
                if field_name in self.fields:
                    self.fields[field_name].widget.attrs['readonly'] = True
+
+
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth import get_user_model
+from .models import Creator
+
+class CreatorEmailPasswordResetForm(PasswordResetForm):
+    def get_users(self, email):
+        creators = Creator.objects.filter(email__iexact=email)
+        for creator in creators:
+            # Use 'created_by' since that is the ForeignKey to User.
+            user = creator.created_by
+            if user and user.is_active:
+                yield user

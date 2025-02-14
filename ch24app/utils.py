@@ -427,7 +427,7 @@ def schedule_episode(episode: Episode, schedule_date, current_dt, slot_name: str
     return end_dt
 
 
-def schedule_episodes(schedule_date, creator_id=None, all_ready=True):
+def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     """Enhanced scheduling function with structured slot-based scheduling and limits"""
     
     logger.info(f"******************* Starting scheduling for date: {schedule_date} *******************")

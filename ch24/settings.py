@@ -34,6 +34,8 @@ AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default='')
 AWS_SES_REGION_NAME = env('AWS_REGION', default='us-east-1')
 AWS_SES_REGION_ENDPOINT = env('AWS_SES_REGION_ENDPOINT', default='email.us-east-1.amazonaws.com')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='no-reply@atlanta24communitymedia.com')
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 logger.info(f'TMPDIR: {TMPDIR}')
 print(f'TMPDIR: {TMPDIR}')
@@ -77,7 +79,6 @@ if APPLICATION_ENV == 'development':
     FILE_UPLOAD_TEMP_DIR = '/tmp' 
     
 
-
 # Add STATIC_ROOT setting
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -108,7 +109,13 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'WARNING',
+            'level': 'WARNING',  # existing console handler (for most logs)
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        # New console handler for debugging botocore and django_ses
+        'console_debug': {
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
@@ -159,7 +166,19 @@ LOGGING = {
             'handlers': ['console', 'scheduling_file'],
             'level': 'INFO',
             'propagate': False,
-        }
+        },
+        # New logger for botocore
+        'botocore': {
+            'handlers': ['console_debug', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        # New logger for django_ses
+        'django_ses': {
+            'handlers': ['console_debug', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     }
 }
 
