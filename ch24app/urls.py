@@ -6,6 +6,7 @@ from .forms import CreatorEmailPasswordResetForm
 from django.urls import reverse_lazy
 from django.urls import path
 from .views import test_email
+from django.views.generic.base import RedirectView
 
 
 urlpatterns = [
@@ -96,6 +97,8 @@ urlpatterns = [
     ),
 
     path('test-email/', test_email, name='test_email'),
+
+    path('accounts/login/', RedirectView.as_view(url='/creators/login_user', permanent=False), name='login'),
 
 ]
 
