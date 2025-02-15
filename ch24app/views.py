@@ -672,7 +672,7 @@ def playlist_create(request):
                     logger.debug("Schedule already exists. Skipping creation.")
                 else:
                     logger.debug("Calling schedule_episodes() for date %s", playlist_date)
-                    schedule_episodes(playlist_date, all_ready=True)
+                    schedule_episodes(playlist_date, all_ready=False)
                     messages.success(request, f'Playlist created for {playlist_date}')
 
             elif action == 'clear':
