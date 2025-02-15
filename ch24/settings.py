@@ -34,8 +34,13 @@ AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default='')
 AWS_SES_REGION_NAME = env('AWS_REGION', default='us-east-1')
 AWS_SES_REGION_ENDPOINT = env('AWS_SES_REGION_ENDPOINT', default='email.us-east-1.amazonaws.com')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='no-reply@atlanta24communitymedia.com')
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# EMAIL_BACKEND = 'ch24app.custom_smtp_backend.DebugSMTPEmailBackend'
+# EMAIL_HOST = 'email-smtp.us-east-1.amazonaws.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+# EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 
 logger.info(f'TMPDIR: {TMPDIR}')
 print(f'TMPDIR: {TMPDIR}')
@@ -136,19 +141,32 @@ LOGGING = {
             'backupCount': 5,
         },
         'email_file': {
-            'level': 'INFO',
+            'level': 'DEBUG',  # Now capturing DEBUG messages
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, 'logs', 'email.log'),
             'maxBytes': 5 * 1024 * 1024,  # 5 MB
             'backupCount': 5,
-        }
+        },
+        'botocore_file': {
+            'level': 'DEBUG',  # Now capturing DEBUG messages
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, 'logs', 'botocore.log'),
+            'maxBytes': 5 * 1024 * 1024,  # 5 MB
+            'backupCount': 5,
+        },
     },
     'loggers': {
         '': {  # Root logger
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': False,
+        },
+        'console_debug': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
         'django': {
             'handlers': ['console', 'file'],
@@ -177,19 +195,19 @@ LOGGING = {
         },
         # New logger for botocore
         'botocore': {
-            'handlers': ['console_debug', 'file'],
+            'handlers': ['console_debug', 'botocore_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         # New logger for django_ses
         'django_ses': {
-            'handlers': ['console_debug', 'file'],
+            'handlers': ['console_debug', 'email_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'django.core.mail': {  # Email-specific logger
             'handlers': ['console', 'email_file'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         }
     }
@@ -215,6 +233,11 @@ if APPLICATION_ENV == 'production':
                 'class': 'logging.StreamHandler',
                 'formatter': 'verbose',
             },
+            'console_debug': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+            },
             'file': {
                 'level': 'INFO',
                 'class': 'logging.handlers.RotatingFileHandler',
@@ -232,10 +255,18 @@ if APPLICATION_ENV == 'production':
                 'backupCount': 5,
             },
             'email_file': {
-                'level': 'INFO',
+                'level': 'DEBUG',
                 'class': 'logging.handlers.RotatingFileHandler',
                 'formatter': 'standard',
                 'filename': '/mnt/data/logs/email.log',
+                'maxBytes': 5 * 1024 * 1024,  # 5 MB
+                'backupCount': 5,
+            },
+            'botocore_file': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'formatter': 'standard',
+                'filename': '/mnt/data/logs/botocore.log',
                 'maxBytes': 5 * 1024 * 1024,  # 5 MB
                 'backupCount': 5,
             }
@@ -258,7 +289,7 @@ if APPLICATION_ENV == 'production':
             },
             'django.db.backends': {
                 'handlers': ['console', 'file'],
-                'level': 'ERROR',
+                'level': 'INFO',
                 'propagate': False,
             },
             'urllib3': {
@@ -273,7 +304,12 @@ if APPLICATION_ENV == 'production':
             },
             'django.core.mail': {  # Email-specific logger
                 'handlers': ['console', 'email_file'],
-                'level': 'INFO',
+                'level': 'DEBUG',
+                'propagate': False,
+            },
+            'botocore': {
+                'handlers': ['console_debug', 'botocore_file'],
+                'level': 'DEBUG',
                 'propagate': False,
             }
         }

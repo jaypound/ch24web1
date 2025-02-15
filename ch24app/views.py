@@ -1486,17 +1486,31 @@ def export_and_copy_to_s3(request, schedule_date):
             'message': f'Error processing request: {str(e)}'
         }, status=500)
     
+
+import http.client as http_client
+import logging
+import boto3
 from django.http import HttpResponse
 from django.core.mail import send_mail
 
+# Enable low-level HTTP debug logging for the underlying HTTP connection.
+http_client.HTTPConnection.debuglevel = 1
+
+# Configure logging to show debug output.
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('botocore').setLevel(logging.DEBUG)
+logging.getLogger('urllib3').setLevel(logging.DEBUG)
+logging.getLogger('django_ses').setLevel(logging.DEBUG)
+
 def test_email(request):
     logger = logging.getLogger('django.core.mail')
-    logger.info("Test email sent")
-    send_mail(
-        'Test Email from Django and SES',
-        'This is a test email.',
+    logger.info("Sending test email with detailed HTTP debug logging...")
+    result = send_mail(
+       'Test Email from Django and SES',
+        'This is a test email to see the full protocol exchange details.',
         'no-reply@atlanta24communitymedia.com',
         ['jpound@AtlantaGa.Gov'],
         fail_silently=False
     )
+    logger.info("Emails sent: %s", result)
     return HttpResponse("Test email sent!")
