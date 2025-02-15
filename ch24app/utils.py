@@ -431,22 +431,32 @@ def schedule_episode(episode: Episode, schedule_date, current_dt, slot_name: str
 
 def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
     logger = logging.getLogger('ch24app.scheduling')
+
+    """Enhanced scheduling function with structured slot-based scheduling and limits
     
-    """Enhanced scheduling function with structured slot-based scheduling and limits"""
+    Args:
+        schedule_date: The date to schedule content for
+        creator_id: Optional creator ID to filter content by
+        all_ready: If True, override ready_for_air check (requires creator_id)
+    """
     
     logger.info(f"******************* Starting scheduling for date: {schedule_date} Creator: {creator_id} All Ready: {all_ready} *******************")
 
-    # Build base query
-    if all_ready:
-        base_query = Episode.objects.all()
-    else:
-        base_query = Episode.objects.filter(ready_for_air=True)
+    # Safety check - all_ready requires creator_id
+    if all_ready and not creator_id:
+        logger.warning("all_ready=True requires creator_id. Exiting.")
+        return
 
+    # Build base query with proper ready_for_air enforcement
+    base_query = Episode.objects.all()
+    
     if creator_id:
         base_query = base_query.filter(program__creator_id=creator_id)
-    elif not all_ready:
-        logger.warning("Neither creator_id nor all_ready specified. Exiting.")
-        return
+        if not all_ready:  # Only check ready_for_air if not explicitly overridden
+            base_query = base_query.filter(ready_for_air=True)
+    else:
+        # No creator_id, must enforce ready_for_air
+        base_query = base_query.filter(ready_for_air=True)
 
     # Validate available content
     available_content = base_query.count()
