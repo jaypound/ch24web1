@@ -1490,6 +1490,8 @@ from django.http import HttpResponse
 from django.core.mail import send_mail
 
 def test_email(request):
+    logger = logging.getLogger('django.core.mail')
+    logger.info("Test email sent")
     send_mail(
         'Test Email from Django and SES',
         'This is a test email.',

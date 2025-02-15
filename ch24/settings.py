@@ -134,6 +134,14 @@ LOGGING = {
             'filename': os.path.join(BASE_DIR, 'logs', 'scheduling.log'),
             'maxBytes': 5 * 1024 * 1024,  # 5 MB
             'backupCount': 5,
+        },
+        'email_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, 'logs', 'email.log'),
+            'maxBytes': 5 * 1024 * 1024,  # 5 MB
+            'backupCount': 5,
         }
     },
     'loggers': {
@@ -179,6 +187,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'django.core.mail': {  # Email-specific logger
+            'handlers': ['console', 'email_file'],
+            'level': 'INFO',
+            'propagate': False,
+        }
     }
 }
 
@@ -217,6 +230,14 @@ if APPLICATION_ENV == 'production':
                 'filename': '/mnt/data/logs/scheduling.log',
                 'maxBytes': 5 * 1024 * 1024,  # 5 MB
                 'backupCount': 5,
+            },
+            'email_file': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'formatter': 'standard',
+                'filename': '/mnt/data/logs/email.log',
+                'maxBytes': 5 * 1024 * 1024,  # 5 MB
+                'backupCount': 5,
             }
         },
         'loggers': {
@@ -249,6 +270,11 @@ if APPLICATION_ENV == 'production':
                 'handlers': ['console', 'scheduling_file'],
                 'level': 'INFO',
                 'propagate': False,
+            },
+            'django.core.mail': {  # Email-specific logger
+                'handlers': ['console', 'email_file'],
+                'level': 'INFO',
+                'propagate': False,
             }
         }
     }
@@ -268,6 +294,7 @@ INSTALLED_APPS = [
     'creators',
     'django_otp',
     'django_otp.plugins.otp_totp',
+    'django_ses',
 ]
 
 MIDDLEWARE = [
