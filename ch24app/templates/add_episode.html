@@ -14,7 +14,7 @@
             <!-- Upload Media Button -->
             <form method="post" action="{% url 'upload_episode' episode.custom_id %}" class="me-2">
                 {% csrf_token %}
-                <input type="submit" value="Upload Media" class="btn btn-secondary">
+                <input type="submit" value="Upload Media" class="btn btn-primary">
             </form>
             <!-- Add Another Episode Button -->
             <a href="{% url 'add-episode' %}" class="btn btn-primary me-2">Add Another Episode</a>
