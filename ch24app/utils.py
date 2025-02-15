@@ -369,6 +369,8 @@ def get_content_type(duration_seconds: int) -> ContentType:
     
 
 def schedule_episode(episode: Episode, schedule_date, current_dt, slot_name: str):
+    logger = logging.getLogger('ch24app.scheduling')
+    
     """Schedule a single episode with logging"""
 
     # start_dt is the same as current_dt (already a datetime)
@@ -428,9 +430,11 @@ def schedule_episode(episode: Episode, schedule_date, current_dt, slot_name: str
 
 
 def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
+    logger = logging.getLogger('ch24app.scheduling')
+    
     """Enhanced scheduling function with structured slot-based scheduling and limits"""
     
-    logger.info(f"******************* Starting scheduling for date: {schedule_date} *******************")
+    logger.info(f"******************* Starting scheduling for date: {schedule_date} Creator: {creator_id} All Ready: {all_ready} *******************")
 
     # Build base query
     if all_ready:
