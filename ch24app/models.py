@@ -85,6 +85,10 @@ class Creator(models.Model):
             self.custom_id = str(uuid.uuid4())
         super().save(*args, **kwargs)
 
+        if self.created_by.email != self.email:
+            self.created_by.email = self.email
+            self.created_by.save(update_fields=['email'])
+
     def __str__(self):
         return f"{self.channel_name}"
         # return f"{self.first_name} {self.last_name}"
