@@ -102,6 +102,7 @@ urlpatterns = [
 
     path('accounts/login/', RedirectView.as_view(url='/creators/login_user', permanent=False), name='login'),
     
+    re_path(r'^\.well-known/acme-challenge/(?P<token>[\w-]+)$', acme_challenge_view),
 
 ]
 
