@@ -1514,3 +1514,20 @@ def test_email(request):
     )
     logger.info("Emails sent: %s", result)
     return HttpResponse("Test email sent!")
+
+import os
+from django.conf import settings
+from django.http import HttpResponse, Http404
+
+def acme_challenge_view(request, token):
+    # Define the directory where your challenge files are stored.
+    # You could also put these files in a specific directory like
+    # os.path.join(settings.BASE_DIR, 'acme-challenge')
+    challenge_dir = os.path.join(settings.BASE_DIR, 'acme-challenge')
+    file_path = os.path.join(challenge_dir, token)
+    
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as f:
+            return HttpResponse(f.read(), content_type='text/plain')
+    else:
+        raise Http404("ACME challenge file not found.")
