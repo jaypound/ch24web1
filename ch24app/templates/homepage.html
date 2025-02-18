@@ -74,17 +74,20 @@
       <div class="px-4 py-3 my-4 text-center">
         <h1 class="display-5 fw-bold text-body-emphasis">Atlanta 24 Community Media</h1>
         <br/>
-
-        {% if show_stream %}
-        <!-- ************ BEGIN VIDEO SECTION ************ -->
-        <div class="mb-4"> 
-            <!-- The video element -->
-            <video id="liveVideo" controls poster="">
-                <!-- poster="" can be used if you have a splash image -->
-            </video>
+        <div class="video-container">
+          <video id="liveVideo" controls poster="">
+            {% if show_stream %}
+            <!-- ************ BEGIN VIDEO SECTION ************ -->
+            <div class="mb-4"> 
+                <!-- The video element -->
+                <video id="liveVideo" controls poster="">
+                    <!-- poster="" can be used if you have a splash image -->
+                </video>
+            </div>
+            <!-- ************ END VIDEO SECTION ************ -->
+            {% endif %}
+          </video>
         </div>
-        <!-- ************ END VIDEO SECTION ************ -->
-        {% endif %}
         
         <div class="col-lg-9 mx-auto">
           <!-- Descriptive paragraph beneath the video -->
