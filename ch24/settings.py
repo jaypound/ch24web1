@@ -54,6 +54,11 @@ for item in os.environ:
     print(f'{item}: {os.environ[item]}')
 # SECURITY WARNING: don't run with debug turned on in production!
 
+# Email notification settings
+SUPPORT_NOTIFICATION_EMAILS = [
+    'jpound@AtlantaGa.Gov',
+]
+
 ALLOWED_HOSTS = ['127.0.0.1', 
                 '18.116.97.242',
                 '3.88.237.43', 

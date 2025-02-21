@@ -503,6 +503,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from .forms import SupportTicketForm, SupportTicketStatusForm, TicketResponseForm
 from .models import SupportTicket, TicketResponse
+from .notifications import send_ticket_notification
 
 @login_required
 def submit_ticket(request):
@@ -511,20 +512,28 @@ def submit_ticket(request):
         if form.is_valid():
             ticket = form.save(commit=False)
             if request.user.is_authenticated:
-                creator = Creator.objects.filter(created_by=request.user).first()
-                if creator:
-                    ticket.creator = creator
-                ticket.created_by = request.user  # Assign 'created_by'
-                print(f"request.user: {request.user}")  # Debugging statement
-                print(f"ticket.created_by: {ticket.created_by}")  # Debugging statement
-            else:
-                print("User is not authenticated.")
+                selected_creator = form.cleaned_data.get('creator')
+                if selected_creator:
+                    ticket.creator = selected_creator
+                else:
+                    user_creator = Creator.objects.filter(created_by=request.user).first()
+                    if user_creator:
+                        ticket.creator = user_creator
+                ticket.created_by = request.user
             ticket.save()
+            
+            # Send notification email
+            try:
+                send_ticket_notification(ticket)
+            except Exception as e:
+                # Log the error but don't prevent ticket creation
+                logger = logging.getLogger('django.request')
+                logger.error(f'Failed to send ticket notification email: {str(e)}')
+            
             return redirect('ticket_submitted', ticket_no=ticket.ticket_no)
     else:
         form = SupportTicketForm(user=request.user)
     return render(request, 'support/submit_ticket.html', {'form': form})
-
 
 def ticket_submitted(request, ticket_no):
     ticket = get_object_or_404(SupportTicket, ticket_no=ticket_no)
@@ -791,111 +800,6 @@ def export_playlist(schedule_date):
     return response
 
 
-
-# @login_required
-# @user_passes_test(lambda u: u.is_staff)
-# def export_playlist(schedule_date):
-#     """Export playlist with correct timezone handling"""
-#     # schedule_date is a string if coming from the URL pattern;
-#     # parse it to a proper date if necessary.
-#     if isinstance(schedule_date, str):
-#         schedule_date = datetime.strptime(schedule_date, '%Y-%m-%d').date()
-
-#     buffer = io.StringIO()
-#     writer = csv.writer(buffer)
-
-#     utc = pytz.UTC
-#     local_tz = pytz.timezone('America/New_York')
-
-#     writer.writerow([
-#         'Schedule Date',
-#         'Start Time (UTC)',
-#         'Start Time (Local)',
-#         'Title',
-#         'Duration',
-#         'Rating',
-#         'Genre',
-#         'Creator'
-#     ])
-
-#     schedule = ScheduledEpisode.objects.filter(
-#         schedule_date=schedule_date
-#     ).order_by('start_time')
-
-#     for episode in schedule:
-#         utc_datetime = episode.start_time.astimezone(utc)
-#         local_datetime = utc_datetime.astimezone(local_tz)
-#         writer.writerow([
-#             schedule_date.strftime('%Y-%m-%d'),
-#             utc_datetime.strftime('%H:%M:%S'),
-#             local_datetime.strftime('%H:%M:%S'),
-#             episode.title,
-#             episode.duration_timecode,
-#             episode.ai_age_rating,
-#             episode.ai_genre,
-#             episode.creator.channel_name
-#         ])
-
-#     buffer.seek(0)
-#     response = HttpResponse(buffer, content_type='text/csv')
-#     response['Content-Disposition'] = f'attachment; filename="playlist_{schedule_date}.csv"'
-
-#     return response
-
-
-# # import datetime
-# # import io
-# # import csv
-# # import pytz
-# # from django.http import HttpResponse
-
-
-# def export_playlist(schedule_date):
-#     """Export playlist with correct timezone handling"""
-#     buffer = io.StringIO()
-    
-#     # Use semicolon delimiter without quoting
-#     writer = csv.writer(buffer, delimiter=';', quoting=csv.QUOTE_NONE, escapechar='\\')
-    
-#     # Convert date to datetime at midnight if it's a date object
-#     if isinstance(schedule_date, datetime.date):
-#         local_tz = pytz.timezone('America/New_York')
-#         schedule_date = datetime.datetime.combine(schedule_date, datetime.time.min)
-#         schedule_date = local_tz.localize(schedule_date)
-    
-#     schedule = ScheduledEpisode.objects.filter(
-#         schedule_date=schedule_date
-#     ).order_by('start_time')
-    
-#     for episode in schedule:
-#         # Convert duration timecode to seconds
-#         duration_seconds = convert_timecode_to_seconds(episode.duration_timecode)
-        
-#         # Construct filepath using custom_id and file_name
-#         filepath = f'Z:\\{episode.custom_id}\\{episode.file_name}'
-        
-#         # Format: filepath;start_time;duration;;title
-#         writer.writerow([
-#             f'"{filepath}"',  # Wrap filepath in quotes
-#             f'{0.00000:,.5f}',  # Start time in seconds with 5 decimal places
-#             f'{duration_seconds:,.5f}',  # Duration in seconds with 5 decimal places
-#             '',  # Empty field before title
-#             episode.title
-#         ])
-    
-#     buffer.seek(0)
-    
-#     # Use the schedule_date which is now a datetime for filename
-#     filename = schedule_date.strftime('%Y_%m_%d_%H_%M_%S.txt')
-    
-#     response = HttpResponse(buffer, content_type='text/plain')
-#     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-#     return response
-
-# def convert_timecode_to_seconds(timecode):
-#     """Convert HH:MM:SS timecode to seconds with millisecond precision"""
-#     hours, minutes, seconds = map(float, timecode.split(':'))
-#     return hours * 3600 + minutes * 60 + seconds
 
 # views.py
 from django.shortcuts import render, redirect

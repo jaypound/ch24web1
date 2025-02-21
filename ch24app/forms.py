@@ -238,9 +238,26 @@ class EpisodeMediaInfoForm(ModelForm):
 
 
 class SupportTicketForm(forms.ModelForm):
+    # Only allow selection from creators associated with the current user.
+    creator = forms.ModelChoiceField(
+        queryset=Creator.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = SupportTicket
-        fields = ['name', 'contact_info', 'category', 'subject', 'description', 'urgency', 'program', 'episode']
+        fields = [
+            'name',
+            'contact_info',
+            'creator',
+            'category',
+            'subject',
+            'description',
+            'urgency',
+            'program',
+            'episode'
+        ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}),
             'contact_info': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact Info'}),
@@ -256,10 +273,24 @@ class SupportTicketForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super(SupportTicketForm, self).__init__(*args, **kwargs)
         if user and user.is_authenticated:
-            creator = Creator.objects.filter(created_by=user).first()
-            if creator:
-                self.fields['name'].initial = f"{creator.first_name} {creator.last_name}"
-                self.fields['contact_info'].initial = creator.email
+            # Only allow programs created by the current user.
+            self.fields['program'].queryset = Program.objects.filter(created_by=user)
+            
+            # Only allow episodes belonging to the user's programs.
+            allowed_programs = self.fields['program'].queryset
+            self.fields['episode'].queryset = Episode.objects.filter(program__in=allowed_programs)
+            
+            # Limit creator choices to those associated with the current user.
+            self.fields['creator'].queryset = Creator.objects.filter(created_by=user)
+            
+            # Optionally, prefill name and contact info from the user's creator if available.
+            user_creator = self.fields['creator'].queryset.first()
+            if user_creator:
+                self.fields['name'].initial = f"{user_creator.first_name} {user_creator.last_name}"
+                self.fields['contact_info'].initial = user_creator.email
+                # Optionally auto-select the creator if there's only one.
+                if self.fields['creator'].queryset.count() == 1:
+                    self.fields['creator'].initial = user_creator
             else:
                 self.fields['contact_info'].initial = user.email
 

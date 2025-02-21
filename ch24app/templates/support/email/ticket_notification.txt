@@ -1,0 +1,17 @@
+"""
+New Support Ticket #{{ ticket.ticket_no }}
+
+Subject: {{ ticket.subject }}
+Category: {{ category }}
+Urgency: {{ urgency }}
+Submitted by: {{ created_by }}
+Creator: {{ creator_info }}
+Program: {{ program }}
+Episode: {{ episode }}
+Contact Info: {{ ticket.contact_info }}
+
+Description:
+{{ ticket.description }}
+
+Please log in to the admin panel to respond to this ticket.
+"""

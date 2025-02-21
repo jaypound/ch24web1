@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .ticket-info { margin: 20px 0; }
+        .label { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>New Support Ticket #{{ ticket.ticket_no }}</h2>
+    
+    <div class="ticket-info">
+        <p><span class="label">Subject:</span> {{ ticket.subject }}</p>
+        <p><span class="label">Category:</span> {{ category }}</p>
+        <p><span class="label">Urgency:</span> {{ urgency }}</p>
+        <p><span class="label">Submitted by:</span> {{ created_by }}</p>
+        <p><span class="label">Creator:</span> {{ creator_info }}</p>
+        <p><span class="label">Program:</span> {{ program }}</p>
+        <p><span class="label">Episode:</span> {{ episode }}</p>
+        <p><span class="label">Contact Info:</span> {{ ticket.contact_info }}</p>
+    </div>
+
+    <div class="ticket-description">
+        <h3>Description:</h3>
+        <p>{{ ticket.description }}</p>
+    </div>
+
+    <p>Please log in to the admin panel to respond to this ticket.</p>
+</body>
+</html>
