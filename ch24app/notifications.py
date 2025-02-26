@@ -18,9 +18,9 @@ def send_ticket_notification(ticket):
         'ticket': ticket,
         'category': dict(ticket.TICKET_CATEGORIES).get(ticket.category, ''),
         'urgency': dict(ticket.URGENCY_CHOICES).get(ticket.urgency, ''),
-        'created_by': ticket.name,  # Use the name field from the ticket
-        'creator_info': f"{ticket.creator.channel_name} ({ticket.creator.first_name} {ticket.creator.last_name})" if ticket.creator else 'N/A',
-        'program': ticket.program.program_name if ticket.program else 'N/A',
+        'created_by': ticket.created_by.get_full_name() if ticket.created_by else 'Anonymous',
+        'creator_info': ticket.creator.first_name + " " + ticket.creator.last_name if ticket.creator else 'N/A',
+        'program': ticket.program.title if ticket.program else 'N/A',
         'episode': ticket.episode.title if ticket.episode else 'N/A'
     }
     

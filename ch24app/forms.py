@@ -421,3 +421,25 @@ class CreatorEmailPasswordResetForm(PasswordResetForm):
             user = creator.created_by
             if user and user.is_active:
                 yield user
+
+# forms.py
+from django import forms
+from .models import Program, TIME_SLOTS_CHOICES
+
+class ProgramOverrideForm(forms.ModelForm):
+    # Add an empty option to the choices
+    TIME_SLOTS_WITH_NULL = [('', '---------')] + list(TIME_SLOTS_CHOICES)
+    
+    override_time_slots = forms.ChoiceField(
+        choices=TIME_SLOTS_WITH_NULL,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    class Meta:
+        model = Program
+        fields = ['override_age_rating', 'override_time_slots', 'override_day_of_week']
+        widgets = {
+            'override_age_rating': forms.Select(attrs={'class': 'form-control'}),
+            'override_day_of_week': forms.Select(attrs={'class': 'form-control'}),
+        }

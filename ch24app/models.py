@@ -58,6 +58,16 @@ GENRE_CHOICES = [
     ('Shortform', 'Shortform'),
 ]
 
+DAY_OF_WEEK_CHOICES = [
+    ('MON', 'Monday'),
+    ('TUE', 'Tuesday'),
+    ('WED', 'Wednesday'),
+    ('THU', 'Thursday'),
+    ('FRI', 'Friday'),
+    ('SAT', 'Saturday'),
+    ('SUN', 'Sunday'),
+]
+
 
 # Create your models here.class Creator()
 class Creator(models.Model):
@@ -119,11 +129,29 @@ class Program(models.Model):
     time_slots_requested = models.CharField(
         'Time Slots Requested',
         max_length=255,
+        choices=TIME_SLOTS_CHOICES,
         blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    override_age_rating = models.CharField(
+        'Override Age Rating',
+        max_length=10,
+        choices=AGE_RATING_CHOICES,
+        blank=True
+    )
+    override_time_slots = models.CharField(
+        'Override Time Slots Requested',
+        max_length=255,
+        blank=True
+    )
+    override_day_of_week = models.CharField(
+        'Override Day of Week',
+        max_length=3,  # Adjusted to fit abbreviated day values (e.g., 'MON')
+        choices=DAY_OF_WEEK_CHOICES,
+        blank=True
+    )
 
     def save(self, *args, **kwargs):
         # Assign a unique ID if not already set

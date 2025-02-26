@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Available Programs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <!-- Filters Sidebar -->
+    <div class="col-md-3">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h5>Filters</h5>
+        </div>
+        <div class="card-body">
+          <form method="get" id="filterForm">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="search" class="form-label">Program Name</label>
+              <input type="text" class="form-control" id="search" name="search" value="{{ current_filters.search }}">
+            </div>
+            <div class="mb-3">
+              <label for="creator" class="form-label">Creator</label>
+              <select class="form-select" id="creator" name="creator">
+                <option value="">All Creators</option>
+                {% for creator in creators %}
+                  <option value="{{ creator.custom_id }}"
+                    {% if creator.custom_id == current_filters.creator %}selected{% endif %}>
+                    {{ creator.channel_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="genre" class="form-label">Genre</label>
+              <select class="form-select" id="genre" name="genre">
+                <option value="">All Genres</option>
+                {% for code, label in GENRE_CHOICES %}
+                  <option value="{{ code }}" {% if code == current_filters.genre %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+            <a href="{% url 'available_programs' %}" class="btn btn-outline-secondary w-100 mt-2">Clear Filters</a>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Programs List -->
+    <div class="col-md-9">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5>Available Programs</h5>
+          <span class="badge bg-primary">{{ programs_with_forms|length }} Items</span>
+        </div>
+        <div class="card-body">
+          {% if programs_with_forms %}
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Program Name</th>
+                    <th>Creator</th>
+                    <th>Genre</th>
+                    <th>Override Age Rating</th>
+                    <th>Override Time Slots</th>
+                    <th>Override Day of Week</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for program, form in programs_with_forms %}
+                    <!-- 
+                      Wrap each row in a <form> for simplicity. 
+                      This lets the user update all override fields in one go.
+                    -->
+                    <form method="post" action="{% url 'available_programs' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="program_id" value="{{ program.custom_id }}">
+                      <tr>
+                        <td>{{ program.program_name }}</td>
+                        <td>{{ program.creator.channel_name }}</td>
+                        <td>{{ program.genre }}</td>
+                        <!-- Show the form fields directly in the table cells -->
+                        <td>{{ form.override_age_rating }}</td>
+                        <td>{{ form.override_time_slots }}</td>
+                        <td>{{ form.override_day_of_week }}</td>
+                        <td>
+                          <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                        </td>
+                      </tr>
+                    </form>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="alert alert-info">No programs available matching the current filters.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit filter form on changes
+document.querySelectorAll('#filterForm select, #filterForm input').forEach(elem => {
+  elem.addEventListener('change', () => {
+    document.getElementById('filterForm').submit();
+  });
+});
+</script>
+{% endblock %}

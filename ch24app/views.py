@@ -1435,3 +1435,67 @@ def acme_challenge_view(request, token):
             return HttpResponse(f.read(), content_type='text/plain')
     else:
         raise Http404("ACME challenge file not found.")
+
+# views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Program, Creator, TIME_SLOTS_CHOICES  # Add TIME_SLOTS_CHOICES import
+from .forms import ProgramOverrideForm
+from .models import GENRE_CHOICES  # if defined in models or import from your constants
+
+def is_admin(user):
+    return user.is_staff or user.is_superuser
+
+@login_required
+@user_passes_test(is_admin)
+def available_programs(request):
+    # Get filter parameters from GET
+    search = request.GET.get('search', '')
+    creator_filter = request.GET.get('creator', '')
+    genre_filter = request.GET.get('genre', '')
+
+    # Start with all programs
+    programs = Program.objects.all()
+
+    # Apply filters
+    if search:
+        programs = programs.filter(program_name__icontains=search)
+    if creator_filter:
+        programs = programs.filter(creator__custom_id=creator_filter)
+    if genre_filter:
+        programs = programs.filter(genre=genre_filter)
+
+    # Handle update submissions
+    if request.method == 'POST':
+        program_id = request.POST.get('program_id')
+        program = get_object_or_404(Program, custom_id=program_id)
+        form = ProgramOverrideForm(request.POST, instance=program)
+        if form.is_valid():
+            form.save()
+            # Optionally add a success message here
+            return redirect('available_programs')
+
+    # Build a list of tuples: each program with its own override form instance
+    programs_with_forms = [
+        (program, ProgramOverrideForm(instance=program))
+        for program in programs
+    ]
+    
+    # Debug - print each form's time_slots field
+    # for program, form in programs_with_forms:
+    #     print(f"Program: {program.program_name}")
+    #     print(f"Form time_slots field: {form.fields['override_time_slots']}")
+    #     print(f"Form time_slots field type: {type(form.fields['override_time_slots'])}")
+    #     print(f"Form time_slots dir: {dir(form.fields['override_time_slots'])}")
+    
+    context = {
+        'programs_with_forms': programs_with_forms,
+        'creators': Creator.objects.all(),  
+        'GENRE_CHOICES': GENRE_CHOICES,
+        'TIME_SLOTS_CHOICES': TIME_SLOTS_CHOICES,  # Add this line
+        'current_filters': {
+            'search': search,
+            'creator': creator_filter,
+            'genre': genre_filter,
+        },
+    }
+    return render(request, 'available_programs.html', context)

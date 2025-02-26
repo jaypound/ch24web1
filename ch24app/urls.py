@@ -52,6 +52,8 @@ urlpatterns = [
     ),
     path('playlist/create/', views.playlist_create, name='playlist_create'),
     path('content/available/', AvailableContentView.as_view(), name='available_content'),
+    path('content/available/programs/', views.available_programs, name='available_programs'),
+
     # path('content/available/update/', 
     #      AvailableContentView.as_view(action='update_episode'), 
     #      name='update_episode'),
