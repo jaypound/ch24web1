@@ -516,7 +516,9 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
             # Try to schedule a bumper
             logger.info("Attempting to schedule bumper content...")
 
-            bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot)
+            # bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot)
+            bumper = get_suitable_content(base_query, slot_name, ContentType.BUMPER, remaining_in_slot, current_dt)
+
             if bumper:
                 logger.info(f"Scheduling bumper: {bumper.title} (Duration: {bumper.duration_seconds}s)")
 
@@ -533,7 +535,9 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
 
             
             # Try LONGFORM
-            longform = get_suitable_content(base_query, slot_name, ContentType.LONGFORM, remaining_in_slot)
+            # longform = get_suitable_content(base_query, slot_name, ContentType.LONGFORM, remaining_in_slot)
+            longform = get_suitable_content(base_query, slot_name, ContentType.LONGFORM, remaining_in_slot, current_dt)
+
             logger.info(f"Found longform content: {longform.title if longform else None}")
             
             if longform and validate_episode(longform):
@@ -550,7 +554,9 @@ def schedule_episodes(schedule_date, creator_id=None, all_ready=False):
             # Try SHORTFORM after LONGFORM
             if previous_type == ContentType.LONGFORM:
                 logger.info("Previous content was LONGFORM, attempting to schedule SHORTFORM...")
-                shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
+                # shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot)
+                shortform = get_suitable_content(base_query, slot_name, ContentType.SHORTFORM, remaining_in_slot, current_dt)
+
                 logger.info(f"Found shortform candidate: {shortform.title if shortform else None}")
                 logger.info(f"Shortform rating: {shortform.ai_age_rating if shortform else None}")
                 
