@@ -322,14 +322,20 @@ TIME_SLOTS = {
     },
     'early_morning': {
         'start': '05:00:00',
-        'end': '09:00:00',
+        'end': '08:00:00',
+        'seconds': 10800,
+        'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
+    },
+    'morning': {
+        'start': '08:00:00',
+        'end': '12:00:00',
         'seconds': 14400,
         'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
     },
-    'daytime': {
-        'start': '09:00:00',
+    'afternoon': {
+        'start': '12:00:00',
         'end': '15:00:00',  # 3 PM
-        'seconds': 21600,
+        'seconds': 10800,
         'ratings': ['TV-Y', 'TV-Y7', 'TV-G']
     },
     'after_school': {

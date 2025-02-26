@@ -8,13 +8,14 @@ from datetime import datetime
 # models.pyß
 
 TIME_SLOTS_CHOICES = [
-    ('overnight', 'Overnight (2 AM - 6 AM)'),
-    ('early_morning', 'Early Morning (6 AM - 9 AM)'),
-    ('daytime', 'Daytime (9 AM - 3 PM)'),
+    ('overnight', 'Overnight (12 AM - 5 AM)'),
+    ('early_morning', 'Early Morning (5 AM - 8 AM)'),
+    ('morning', 'Morning (8 AM - 12 PM)'),
+    ('afternoon', 'Afternoon (12 PM - 3 PM)'),
     ('after_school', 'After School (3 PM - 6 PM)'),
     ('early_evening', 'Early Evening (6 PM - 8 PM)'),
     ('prime_time', 'Prime Time (8 PM - 11 PM)'),
-    ('late_night', 'Late Night (11 PM - 2 AM)'),
+    ('late_night', 'Late Night (11 PM - 12 AM)'),
 ]
 
 AGE_RATING_CHOICES = [
