@@ -680,12 +680,17 @@ def get_suitable_content(query, slot_name: str, content_type: ContentType, remai
       - If a program has override_age_rating set, the episode's ai_age_rating must match that override.
       - If a program has override_day_of_week set, the current day must match that override.
     """
+    logger = logging.getLogger('ch24app.scheduling')
     # Determine the current day of week in 3-letter uppercase format (e.g., 'MON', 'TUE', etc.)
     day_of_week = current_dt.strftime('%a').upper()
-    
-    # Use the default ratings for this slot as defined in your TIME_SLOTS dictionary.
     default_ratings = TIME_SLOTS[slot_name]['ratings']
-
+    
+    logger.debug(
+        f"[get_suitable_content] Called with slot_name={slot_name}, content_type={content_type}, "
+        f"remaining_time={remaining_time}, current_dt={current_dt}"
+    )
+    logger.debug(f"[get_suitable_content] Computed day_of_week={day_of_week}. Default ratings for slot: {default_ratings}")
+    
     # Set up duration filters based on content type and available remaining time.
     if content_type == ContentType.BUMPER:
         duration_filter = {'duration_seconds__lte': min(remaining_time, 15)}
@@ -693,29 +698,44 @@ def get_suitable_content(query, slot_name: str, content_type: ContentType, remai
         duration_filter = {'duration_seconds__gt': 15, 'duration_seconds__lte': min(900, remaining_time)}
     else:  # LONGFORM
         duration_filter = {'duration_seconds__gt': 900}
+    logger.debug(f"[get_suitable_content] Duration filter: {duration_filter}")
 
     # Build the query filters:
-    # 1. For override_time_slots: allow episodes whose program either doesn't override the slot (blank)
-    #    or whose override matches the current slot.
-    # 2. For override_age_rating: allow episodes whose program either doesn't override age rating
-    #    or whose override matches the episode's ai_age_rating.
-    # 3. For override_day_of_week: allow episodes whose program either doesn't override day
-    #    or whose override matches the current day.
+    # Override time slots: Only allow episodes whose program either doesn't override (blank) or matches the current slot.
+    override_time_filter = Q(program__override_time_slots='') | Q(program__override_time_slots=slot_name)
+    # Override age rating: Only allow episodes whose program either doesn't override or whose ai_age_rating matches the override.
+    override_age_filter = Q(program__override_age_rating='') | Q(ai_age_rating=F('program__override_age_rating'))
+    # Override day of week: Only allow episodes whose program either doesn't override or matches the current day.
+    override_day_filter = Q(program__override_day_of_week='') | Q(program__override_day_of_week=day_of_week)
+    
+    logger.debug(f"[get_suitable_content] Override time filter: {override_time_filter}")
+    logger.debug(f"[get_suitable_content] Override age filter: {override_age_filter}")
+    logger.debug(f"[get_suitable_content] Override day filter: {override_day_filter}")
+
     qs = query.filter(
-        Q(program__override_time_slots='') | Q(program__override_time_slots=slot_name),
-        Q(program__override_age_rating='') | Q(ai_age_rating=F('program__override_age_rating')),
-        Q(program__override_day_of_week='') | Q(program__override_day_of_week=day_of_week),
+        override_time_filter,
+        override_age_filter,
+        override_day_filter,
         ai_age_rating__in=default_ratings,
         **duration_filter
     )
-
-    return qs.order_by(
+    
+    count = qs.count()
+    logger.debug(f"[get_suitable_content] Number of episodes after applying override filters: {count}")
+    
+    result = qs.order_by(
         'priority_score',             # Prioritize less-scheduled content
         '-audience_engagement_score', # Then by engagement score
         'schedule_count',             # Then by frequency
         'last_scheduled'              # Then by recency
     ).first()
-
+    
+    if result:
+        logger.debug(f"[get_suitable_content] Selected episode: {result.title} with ai_age_rating: {result.ai_age_rating}")
+    else:
+        logger.debug("[get_suitable_content] No suitable episode found.")
+    
+    return result
 
 
 
