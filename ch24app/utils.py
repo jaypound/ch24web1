@@ -633,11 +633,48 @@ def _add_time(time, delta):
     return new_datetime.time()
 
 
-def get_suitable_content(query, slot_name: str, content_type: ContentType, remaining_time: int) -> Episode:
-    """Get appropriate content for the current slot and time"""
-    ratings = TIME_SLOTS[slot_name]['ratings']
+# def get_suitable_content(query, slot_name: str, content_type: ContentType, remaining_time: int) -> Episode:
+#     """Get appropriate content for the current slot and time"""
+#     ratings = TIME_SLOTS[slot_name]['ratings']
 
-    # Filter by duration and remaining time
+#     # Filter by duration and remaining time
+#     if content_type == ContentType.BUMPER:
+#         duration_filter = {'duration_seconds__lte': min(remaining_time, 15)}
+#     elif content_type == ContentType.SHORTFORM:
+#         duration_filter = {'duration_seconds__gt': 15, 'duration_seconds__lte': min(900, remaining_time)}
+#     else:  # LONGFORM
+#         duration_filter = {'duration_seconds__gt': 900}
+
+#     # Query the database for content that matches the criteria
+#     return query.filter(
+#         ai_age_rating__in=ratings,
+#         **duration_filter
+#     ).order_by(
+#         'priority_score',             # Prioritize less-scheduled content
+#         '-audience_engagement_score', # Then by engagement score
+#         'schedule_count',             # Then by frequency
+#         'last_scheduled'              # Then by recency
+#     ).first()
+
+from django.db.models import Q, F
+from datetime import datetime
+
+def get_suitable_content(query, slot_name: str, content_type: ContentType, remaining_time: int, current_dt: datetime) -> Episode:
+    """
+    Get appropriate content for the current slot and time, taking into account program override settings.
+    
+    Overrides:
+      - If a program has override_time_slots set, only episodes from that program scheduled in that slot are eligible.
+      - If a program has override_age_rating set, the episode's ai_age_rating must match that override.
+      - If a program has override_day_of_week set, the current day must match that override.
+    """
+    # Determine the current day of week in 3-letter uppercase format (e.g., 'MON', 'TUE', etc.)
+    day_of_week = current_dt.strftime('%a').upper()
+    
+    # Use the default ratings for this slot as defined in your TIME_SLOTS dictionary.
+    default_ratings = TIME_SLOTS[slot_name]['ratings']
+
+    # Set up duration filters based on content type and available remaining time.
     if content_type == ContentType.BUMPER:
         duration_filter = {'duration_seconds__lte': min(remaining_time, 15)}
     elif content_type == ContentType.SHORTFORM:
@@ -645,11 +682,22 @@ def get_suitable_content(query, slot_name: str, content_type: ContentType, remai
     else:  # LONGFORM
         duration_filter = {'duration_seconds__gt': 900}
 
-    # Query the database for content that matches the criteria
-    return query.filter(
-        ai_age_rating__in=ratings,
+    # Build the query filters:
+    # 1. For override_time_slots: allow episodes whose program either doesn't override the slot (blank)
+    #    or whose override matches the current slot.
+    # 2. For override_age_rating: allow episodes whose program either doesn't override age rating
+    #    or whose override matches the episode's ai_age_rating.
+    # 3. For override_day_of_week: allow episodes whose program either doesn't override day
+    #    or whose override matches the current day.
+    qs = query.filter(
+        Q(program__override_time_slots='') | Q(program__override_time_slots=slot_name),
+        Q(program__override_age_rating='') | Q(ai_age_rating=F('program__override_age_rating')),
+        Q(program__override_day_of_week='') | Q(program__override_day_of_week=day_of_week),
+        ai_age_rating__in=default_ratings,
         **duration_filter
-    ).order_by(
+    )
+
+    return qs.order_by(
         'priority_score',             # Prioritize less-scheduled content
         '-audience_engagement_score', # Then by engagement score
         'schedule_count',             # Then by frequency
