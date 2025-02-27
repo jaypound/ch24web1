@@ -673,55 +673,62 @@ from datetime import datetime
 
 def get_suitable_content(query, slot_name: str, content_type: ContentType, remaining_time: int, current_dt: datetime) -> Episode:
     """
-    Get appropriate content for the current slot and time, taking into account program override settings.
-    
-    Overrides:
-      - If a program has override_time_slots set, only episodes from that program scheduled in that slot are eligible.
-      - If a program has override_age_rating set, the episode's ai_age_rating must match that override.
-      - If a program has override_day_of_week set, the current day must match that override.
+    Get appropriate content for the current slot and time.
+
+    New behavior:
+      - For episodes whose program has no override settings (neither override_time_slots nor override_age_rating),
+        filter by the default slot ratings (from TIME_SLOTS[slot_name]['ratings']).
+      - For episodes whose program has an override_time_slots (and/or override_age_rating) set,
+        ignore the default age rating filter and require that the program's override_time_slots equals the current slot.
+      - In all cases, if a program has an override_day_of_week set, the current day must match.
     """
     logger = logging.getLogger('ch24app.scheduling')
-    # Determine the current day of week in 3-letter uppercase format (e.g., 'MON', 'TUE', etc.)
+    # Compute the current day (e.g., 'MON', 'TUE', etc.)
     day_of_week = current_dt.strftime('%a').upper()
-    default_ratings = TIME_SLOTS[slot_name]['ratings']
     
-    logger.debug(
-        f"[get_suitable_content] Called with slot_name={slot_name}, content_type={content_type}, "
-        f"remaining_time={remaining_time}, current_dt={current_dt}"
-    )
-    logger.debug(f"[get_suitable_content] Computed day_of_week={day_of_week}. Default ratings for slot: {default_ratings}")
-    
-    # Set up duration filters based on content type and available remaining time.
+    # Duration filter remains the same.
     if content_type == ContentType.BUMPER:
         duration_filter = {'duration_seconds__lte': min(remaining_time, 15)}
     elif content_type == ContentType.SHORTFORM:
         duration_filter = {'duration_seconds__gt': 15, 'duration_seconds__lte': min(900, remaining_time)}
     else:  # LONGFORM
         duration_filter = {'duration_seconds__gt': 900}
-    logger.debug(f"[get_suitable_content] Duration filter: {duration_filter}")
-
-    # Build the query filters:
-    # Override time slots: Only allow episodes whose program either doesn't override (blank) or matches the current slot.
-    override_time_filter = Q(program__override_time_slots='') | Q(program__override_time_slots=slot_name)
-    # Override age rating: Only allow episodes whose program either doesn't override or whose ai_age_rating matches the override.
-    override_age_filter = Q(program__override_age_rating='') | Q(ai_age_rating=F('program__override_age_rating'))
-    # Override day of week: Only allow episodes whose program either doesn't override or matches the current day.
-    override_day_filter = Q(program__override_day_of_week='') | Q(program__override_day_of_week=day_of_week)
     
-    logger.debug(f"[get_suitable_content] Override time filter: {override_time_filter}")
-    logger.debug(f"[get_suitable_content] Override age filter: {override_age_filter}")
-    logger.debug(f"[get_suitable_content] Override day filter: {override_day_filter}")
-
+    logger.debug(f"[get_suitable_content] slot_name={slot_name}, content_type={content_type}, remaining_time={remaining_time}, current_dt={current_dt}")
+    logger.debug(f"[get_suitable_content] Computed day_of_week={day_of_week} and duration_filter: {duration_filter}")
+    
+    # Get default ratings for the current slot.
+    default_ratings = TIME_SLOTS[slot_name]['ratings']
+    logger.debug(f"[get_suitable_content] Default ratings for slot '{slot_name}': {default_ratings}")
+    
+    # Build filters in two parts:
+    #
+    # 1. Normal episodes: No override settings; enforce default age ratings.
+    normal_filter = (
+        Q(program__override_time_slots='') &
+        Q(program__override_age_rating='') &
+        Q(ai_age_rating__in=default_ratings)
+    )
+    
+    # 2. Override episodes: If override_time_slots is set, then we ignore the default ratings,
+    #    and require that the override exactly matches the current slot.
+    override_filter = (
+        ~Q(program__override_time_slots='') &  Q(program__override_time_slots=slot_name)
+    )
+    
+    # Additionally, enforce the day override: if set, the current day must match.
+    day_filter = Q(program__override_day_of_week='') | Q(program__override_day_of_week=day_of_week)
+    
+    # Combine the filters: an episode qualifies if it is either a normal episode or an override episode,
+    # and in all cases the day filter and duration filter apply.
     qs = query.filter(
-        override_time_filter,
-        override_age_filter,
-        override_day_filter,
-        ai_age_rating__in=default_ratings,
+        (normal_filter | override_filter),
+        day_filter,
         **duration_filter
     )
     
     count = qs.count()
-    logger.debug(f"[get_suitable_content] Number of episodes after applying override filters: {count}")
+    logger.debug(f"[get_suitable_content] Number of episodes after filtering: {count}")
     
     result = qs.order_by(
         'priority_score',             # Prioritize less-scheduled content
