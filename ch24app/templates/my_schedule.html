@@ -21,14 +21,30 @@
             {% endif %}
             
             <form method="GET" class="mt-4">
-                <div class="mb-4">
-                    <label for="schedule_date" class="form-label">Select Date:</label>
-                    <input type="date" 
-                           class="form-control" 
-                           id="schedule_date" 
-                           name="schedule_date" 
-                           required
-                           value="{{ selected_date }}">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="schedule_date" class="form-label">Select Date:</label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="schedule_date" 
+                               name="schedule_date" 
+                               required
+                               value="{{ selected_date }}">
+                    </div>
+                    
+                    {% if creators.count > 1 %}
+                    <div class="col-md-6">
+                        <label for="creator" class="form-label">Select Creator:</label>
+                        <select class="form-select" id="creator" name="creator">
+                            <option value="">All My Creators</option>
+                            {% for creator in creators %}
+                                <option value="{{ creator.custom_id }}" {% if selected_creator_id == creator.custom_id %}selected{% endif %}>
+                                    {{ creator.channel_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
                 </div>
             </form>
             
@@ -46,6 +62,9 @@
                                     <th>Duration</th>
                                     <th>Rating</th>
                                     <th>Genre</th>
+                                    {% if creators.count > 1 %}
+                                    <th>Creator</th>
+                                    {% endif %}
                                     <th>Program</th>
                                 </tr>
                             </thead>
@@ -59,6 +78,9 @@
                                         <td>{{ episode.duration_timecode }}</td>
                                         <td>{{ episode.ai_age_rating }}</td>
                                         <td>{{ episode.ai_genre }}</td>
+                                        {% if creators.count > 1 %}
+                                        <td>{{ episode.creator.channel_name }}</td>
+                                        {% endif %}
                                         <td>{{ episode.program.program_name }}</td>
                                     </tr>
                                 {% endfor %}
@@ -80,6 +102,12 @@
 document.getElementById('schedule_date').addEventListener('change', function() {
     this.form.submit();
 });
+
+{% if creators.count > 1 %}
+document.getElementById('creator').addEventListener('change', function() {
+    this.form.submit();
+});
+{% endif %}
 </script>
 {% endblock %}
 

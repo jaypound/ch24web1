@@ -1379,14 +1379,13 @@ def available_programs(request):
 def my_schedule(request):
     logger.debug("Entered my_schedule view for user: %s", request.user.username)
 
-    # Get the creator associated with the logged-in user
-    try:
-        # Use created_by instead of user
-        creator = Creator.objects.get(created_by=request.user)
-    except Creator.DoesNotExist:
-        logger.warning("No creator found for user: %s", request.user.username)
-        messages.error(request, "You don't have a creator profile.")
-        return render(request, 'my_schedule.html', {'scheduled_episodes': []})
+    # Get all creators associated with the logged-in user
+    creators = Creator.objects.filter(created_by=request.user)
+    
+    if not creators.exists():
+        logger.warning("No creators found for user: %s", request.user.username)
+        messages.error(request, "You don't have any creator profiles.")
+        return render(request, 'my_schedule.html', {'scheduled_episodes': [], 'creators': []})
     
     # Get the selected date from the request or use today's date
     selected_date_str = request.GET.get('schedule_date')
@@ -1402,21 +1401,37 @@ def my_schedule(request):
     
     logger.debug("Selected date for schedule: %s", selected_date)
 
-    # Query the schedule for the logged-in creator using the selected date
+    # Get a specific creator if provided in the request
+    selected_creator_id = request.GET.get('creator')
+    
+    # If a specific creator is selected, filter by that creator
+    if selected_creator_id:
+        try:
+            selected_creator = creators.get(custom_id=selected_creator_id)
+            creator_filter = [selected_creator]
+        except (Creator.DoesNotExist, ValueError):
+            # If the selected creator doesn't exist or isn't valid, use all creators
+            creator_filter = creators
+    else:
+        # Use all creators if none is specifically selected
+        creator_filter = creators
+
+    # Query the schedule for the creator(s) using the selected date
     scheduled_episodes = ScheduledEpisode.objects.filter(
         schedule_date=selected_date,
-        creator=creator  # Filter by the logged-in user's creator
+        creator__in=creator_filter  # Filter by the user's creators
     ).select_related('episode', 'program', 'creator').order_by('start_time')
 
     context = {
         'scheduled_episodes': scheduled_episodes,
         'selected_date': selected_date.strftime('%Y-%m-%d'),
+        'creators': creators,
+        'selected_creator_id': selected_creator_id
     }
 
     logger.debug(
-        "Rendering my_schedule.html with %s scheduled episodes for creator %s on date: %s",
+        "Rendering my_schedule.html with %s scheduled episodes for date: %s",
         scheduled_episodes.count(),
-        creator.channel_name,
         selected_date
     )
 
