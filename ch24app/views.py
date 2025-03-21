@@ -841,6 +841,15 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     context_object_name = 'episodes'
     paginate_by = 20
 
+    def get(self, request, *args, **kwargs):
+        # strip trailing whitespace from ?page=...
+        if 'page' in request.GET:
+            page_number = request.GET['page'].strip()
+            # Rebuild GET with a cleaned page param.
+            request.GET = request.GET.copy()
+            request.GET['page'] = page_number
+        return super().get(request, *args, **kwargs)
+
     def test_func(self):
         return self.request.user.is_staff
 
@@ -942,6 +951,21 @@ class AvailableContentView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             ('true', 'Ready for Air'),
             ('false', 'Not Ready'),
         ]
+
+        # The object_list is in context['object_list'] by default.
+        # Also 'paginator' and 'page_obj' are in the context if pagination is used.
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        
+        # If you wanted to handle the out-of-range case
+        # and simply show the last page:
+        logger.info(f"Page number: {page_obj.number}, Paginator pages: {paginator.num_pages}")
+
+        if page_obj.number > paginator.num_pages:
+            context['page_obj'] = paginator.page(paginator.num_pages)
+            context['object_list'] = context['page_obj'].object_list
+            logger.info(f"Adjusted page number to {page_obj.number}, object_list: {len(context['object_list'])}")
+
         return context
 
 
