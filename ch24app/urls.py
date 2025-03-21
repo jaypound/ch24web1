@@ -60,6 +60,7 @@ urlpatterns = [
     path('delete-episode/<str:episode_id>/', views.delete_episode, name='delete-episode'),
     path('delete-program/<str:program_id>/', views.delete_program, name='delete-program'),
     path('export-to-s3/<str:schedule_date>/', views.export_and_copy_to_s3, name='export_to_s3'),
+    path('my_schedule/', views.my_schedule, name='my-schedule'),
     # path('env/', views.environment, name='environment_variables'),
     # path(
     #     'password_reset/',

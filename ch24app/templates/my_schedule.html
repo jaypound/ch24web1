@@ -1,0 +1,86 @@
+<!-- templates/my_schedule.html -->
+{% extends "base.html" %}
+{% block title %}My Schedule{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="shadow p-4 mb-5 bg-body rounded">
+        <h1>My Schedule</h1>
+        
+        {% if not user.is_authenticated %}
+            <div class="alert alert-warning" role="alert">
+                You must be logged in to view your schedule.
+            </div>
+        {% else %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="GET" class="mt-4">
+                <div class="mb-4">
+                    <label for="schedule_date" class="form-label">Select Date:</label>
+                    <input type="date" 
+                           class="form-control" 
+                           id="schedule_date" 
+                           name="schedule_date" 
+                           required
+                           value="{{ selected_date }}">
+                </div>
+            </form>
+            
+            {% if scheduled_episodes %}
+                <div class="mt-4">
+                    <h3>Your Schedule ({{ scheduled_episodes.0.schedule_date|date:"Y-m-d" }})</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Title</th>
+                                    <th>Episode</th>
+                                    <th>Duration</th>
+                                    <th>Rating</th>
+                                    <th>Genre</th>
+                                    <th>Program</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for episode in scheduled_episodes %}
+                                    <tr>
+                                        <td>{{ episode.start_time|date:"Y-m-d H:i:s" }}</td>
+                                        <td>{{ episode.end_time|date:"Y-m-d H:i:s" }}</td>
+                                        <td>{{ episode.title }}</td>
+                                        <td>{{ episode.episode_number }}</td>
+                                        <td>{{ episode.duration_timecode }}</td>
+                                        <td>{{ episode.ai_age_rating }}</td>
+                                        <td>{{ episode.ai_genre }}</td>
+                                        <td>{{ episode.program.program_name }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="mt-4 alert alert-info">
+                    No schedule exists for your content on the selected date.
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('schedule_date').addEventListener('change', function() {
+    this.form.submit();
+});
+</script>
+{% endblock %}
+
+{% endblock %}
