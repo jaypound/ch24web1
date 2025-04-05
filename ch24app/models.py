@@ -127,12 +127,13 @@ class Program(models.Model):
         choices=AGE_RATING_CHOICES,
         blank=True
     )
-    time_slots_requested = models.CharField(
-        'Time Slots Requested',
-        max_length=255,
-        choices=TIME_SLOTS_CHOICES,
-        blank=True
-    )
+    # time_slots_requested = models.CharField(
+    #     'Time Slots Requested',
+    #     max_length=255,
+    #     choices=TIME_SLOTS_CHOICES,
+    #     blank=True
+    # )
+    time_slots_requested = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)

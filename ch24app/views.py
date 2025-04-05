@@ -121,10 +121,58 @@ from .models import Creator
 
 from django.urls import reverse
 
+# def add_program(request):
+#     submitted = False
+#     if request.method == 'POST':
+#         form = ProgramForm(request.POST, user=request.user)
+#         if form.is_valid():
+#             instance = form.save(commit=False)
+#             instance.created_by = request.user
+#             instance.save()
+#             return HttpResponseRedirect(f'{reverse("add-program")}?submitted=True')
+#     else:
+#         initial_data = {}
+#         last_creator = Creator.objects.filter(created_by=request.user).order_by('-created_at').first()
+#         if not last_creator:
+#             messages.error(request, "You need to add a Channel before adding programs.")
+#             creator_form = CreatorForm(user=request.user)
+#             submitted = False
+#             return render(request, 'add_creator.html', {'form': creator_form, 'submitted': submitted})        
+
+#         if last_creator:
+#             initial_data['creator'] = last_creator  # Pre-fill the 'program' field
+
+#         form = ProgramForm(user=request.user, initial=initial_data)
+#         if 'submitted' in request.GET:
+#             submitted = True
+#     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
+
 def add_program(request):
     submitted = False
     if request.method == 'POST':
-        form = ProgramForm(request.POST, user=request.user)
+        # Debugging
+        print("Original POST data:", request.POST)
+        print("time_slots_requested in POST:", request.POST.getlist('time_slots_requested'))
+        # Get the POST data
+        post_data = request.POST.copy()
+        
+        # Check if time_slots_requested is in the POST data and is a string that looks like a list
+        if 'time_slots_requested' in post_data and post_data['time_slots_requested'].startswith('['):
+            # Convert the string representation of a list to an actual list
+            import ast
+            try:
+                # Safely evaluate the string as a Python literal
+                time_slots_list = ast.literal_eval(post_data['time_slots_requested'])
+                # Replace the string with multiple values
+                post_data.setlist('time_slots_requested', time_slots_list)
+            except (ValueError, SyntaxError):
+                # If there's an error parsing, just continue with the original data
+                pass
+                
+        form = ProgramForm(post_data, user=request.user)
+        # form = ProgramForm(request.POST, user=request.user)
+        print("Form errors:", form.errors)
+        
         if form.is_valid():
             instance = form.save(commit=False)
             instance.created_by = request.user
@@ -140,12 +188,13 @@ def add_program(request):
             return render(request, 'add_creator.html', {'form': creator_form, 'submitted': submitted})        
 
         if last_creator:
-            initial_data['creator'] = last_creator  # Pre-fill the 'program' field
+            initial_data['creator'] = last_creator  # Pre-fill the 'creator' field
 
         form = ProgramForm(user=request.user, initial=initial_data)
         if 'submitted' in request.GET:
             submitted = True
     return render(request, 'add_program.html', {'form': form, 'submitted': submitted})
+
 
 
 def no_creator_found(request):
