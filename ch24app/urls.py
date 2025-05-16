@@ -9,7 +9,8 @@ from .views import test_email
 from django.views.generic.base import RedirectView
 from django.urls import re_path
 from .views import acme_challenge_view
-
+from .views import ContentReportView
+from .api_views import episode_details_api
 
 urlpatterns = [
     path('', views.home, name="home"),
@@ -106,6 +107,11 @@ urlpatterns = [
     path('accounts/login/', RedirectView.as_view(url='/creators/login_user', permanent=False), name='login'),
     
     re_path(r'^\.well-known/acme-challenge/(?P<token>[\w-]+)$', acme_challenge_view),
+
+    path('content-report/', ContentReportView.as_view(), name='content_report'),
+
+    # API endpoint for episode details
+    path('api/episodes/<str:episode_id>/details/', episode_details_api, name='episode_details_api'),
 
 ]
 

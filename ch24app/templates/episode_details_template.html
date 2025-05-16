@@ -1,0 +1,114 @@
+<!-- This template shows the structure of the episode details that will be inserted 
+     into the modal dynamically via JavaScript -->
+
+     <div class="episode-details-container">
+        <!-- Header section with basic info -->
+        <div class="episode-details-header mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4 class="mb-1">${episodeData.title}</h4>
+                    <p class="mb-0 text-muted">
+                        Episode ${episodeData.episode_number} • ${episodeData.program.program_name} • 
+                        ${new Date(episodeData.created_at).toLocaleDateString()} • 
+                        ${episodeData.duration_timecode}
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <span class="badge bg-primary fs-6">${episodeData.ai_age_rating}</span>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            Scheduled ${episodeData.schedule_count} times
+                            ${episodeData.last_scheduled ? ' • Last: ' + new Date(episodeData.last_scheduled).toLocaleDateString() : ''}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="row">
+            <!-- Left column with creator and program info -->
+            <div class="col-md-5">
+                <div class="episode-details-section">
+                    <h6>Creator Information</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <th style="width: 120px;">Channel Name</th>
+                            <td>${episodeData.program.creator.channel_name}</td>
+                        </tr>
+                        <tr>
+                            <th>Creator</th>
+                            <td>${episodeData.program.creator.first_name} ${episodeData.program.creator.last_name}</td>
+                        </tr>
+                        <tr>
+                            <th>Program</th>
+                            <td>${episodeData.program.program_name}</td>
+                        </tr>
+                    </table>
+                </div>
+    
+                <div class="episode-details-section">
+                    <h6>Episode Metadata</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <th style="width: 120px;">Episode #</th>
+                            <td>${episodeData.episode_number}</td>
+                        </tr>
+                        <tr>
+                            <th>Uploaded</th>
+                            <td>${new Date(episodeData.created_at).toLocaleString()}</td>
+                        </tr>
+                        <tr>
+                            <th>Duration</th>
+                            <td>${episodeData.duration_timecode}</td>
+                        </tr>
+                        <tr>
+                            <th>Schedule Count</th>
+                            <td>${episodeData.schedule_count}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Scheduled</th>
+                            <td>${episodeData.last_scheduled ? new Date(episodeData.last_scheduled).toLocaleString() : 'Never'}</td>
+                        </tr>
+                    </table>
+                </div>
+    
+                <div class="episode-details-section">
+                    <h6>Topics</h6>
+                    <div>
+                        ${episodeData.ai_topics && episodeData.ai_topics.length > 0 
+                            ? episodeData.ai_topics.map(topic => 
+                                `<span class="badge bg-secondary topic-badge me-1 mb-1">${topic}</span>`).join('') 
+                            : '<span class="text-muted">No topics available</span>'}
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Right column with description and summary -->
+            <div class="col-md-7">
+                <div class="episode-details-section">
+                    <h6>Description</h6>
+                    <p class="mb-0">${episodeData.description || '<span class="text-muted">No description available</span>'}</p>
+                </div>
+    
+                <div class="episode-details-section">
+                    <h6>AI Summary</h6>
+                    <p class="mb-0">${episodeData.ai_summary || '<span class="text-muted">No AI summary available</span>'}</p>
+                </div>
+    
+                <div class="episode-details-section">
+                    <h6>Actions</h6>
+                    <div class="d-flex gap-2">
+                        <a href="/episode-analysis/${episodeData.custom_id}" class="btn btn-primary">
+                            <i class="bi bi-graph-up"></i> View Analysis
+                        </a>
+                        <a href="/view-episode/${episodeData.custom_id}" class="btn btn-primary">
+                            <i class="bi bi-play-circle"></i> Preview
+                        </a>
+                        <a href="/update-analysis/${episodeData.custom_id}" class="btn btn-primary">
+                            <i class="bi bi-arrow-repeat"></i> Update Analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

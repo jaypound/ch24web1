@@ -1485,3 +1485,104 @@ def my_schedule(request):
     )
 
     return render(request, 'my_schedule.html', context)
+
+from django.shortcuts import render
+from django.views.generic import ListView
+from django.db.models import Q
+from datetime import datetime
+from .models import Episode, Creator, Program
+
+class ContentReportView(ListView):
+    model = Episode
+    template_name = 'content_report.html'
+    context_object_name = 'episodes'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Episode.objects.select_related('program', 'program__creator').all()
+        
+        # Handle search filters
+        channel_name = self.request.GET.get('channel_name', '')
+        program_name = self.request.GET.get('program_name', '')
+        start_date = self.request.GET.get('start_date', '')
+        end_date = self.request.GET.get('end_date', '')
+        search_query = self.request.GET.get('search', '')
+        
+        # Apply filters
+        if channel_name:
+            queryset = queryset.filter(program__creator__channel_name__icontains=channel_name)
+        
+        if program_name:
+            queryset = queryset.filter(program__program_name__icontains=program_name)
+        
+        if start_date and end_date:
+            try:
+                start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+                end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+                queryset = queryset.filter(created_at__range=(start_date_obj, end_date_obj))
+            except ValueError:
+                pass
+        elif start_date:
+            try:
+                start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+                queryset = queryset.filter(created_at__gte=start_date_obj)
+            except ValueError:
+                pass
+        elif end_date:
+            try:
+                end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+                queryset = queryset.filter(created_at__lte=end_date_obj)
+            except ValueError:
+                pass
+                
+        # General search across multiple fields
+        if search_query:
+            queryset = queryset.filter(
+                Q(program__creator__channel_name__icontains=search_query) |
+                Q(program__program_name__icontains=search_query) |
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(ai_summary__icontains=search_query) |
+                Q(ai_topics__contains=[search_query])
+            )
+        
+        # Default sorting by most recent
+        sort_by = self.request.GET.get('sort', '-created_at')
+        return queryset.order_by(sort_by)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Add creators and programs for filter dropdowns
+        context['creators'] = Creator.objects.all()
+        context['programs'] = Program.objects.all()
+        
+        # Add current filter values for form
+        context['current_filters'] = {
+            'channel_name': self.request.GET.get('channel_name', ''),
+            'program_name': self.request.GET.get('program_name', ''),
+            'start_date': self.request.GET.get('start_date', ''),
+            'end_date': self.request.GET.get('end_date', ''),
+            'search': self.request.GET.get('search', ''),
+            'sort': self.request.GET.get('sort', '-created_at')
+        }
+        
+        # Add sort options
+        context['sort_options'] = [
+            ('-created_at', 'Newest First'),
+            ('created_at', 'Oldest First'),
+            ('program__creator__channel_name', 'Channel Name (A-Z)'),
+            ('-program__creator__channel_name', 'Channel Name (Z-A)'),
+            ('program__program_name', 'Program Name (A-Z)'),
+            ('-program__program_name', 'Program Name (Z-A)'),
+            ('episode_number', 'Episode Number (Ascending)'),
+            ('-episode_number', 'Episode Number (Descending)'),
+            ('title', 'Title (A-Z)'),
+            ('-title', 'Title (Z-A)'),
+            ('schedule_count', 'Schedule Count (Ascending)'),
+            ('-schedule_count', 'Schedule Count (Descending)'),
+            ('last_scheduled', 'Last Scheduled (Ascending)'),
+            ('-last_scheduled', 'Last Scheduled (Descending)'),
+        ]
+        
+        return context

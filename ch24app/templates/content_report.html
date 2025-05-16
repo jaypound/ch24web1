@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Content Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-md-3 col-lg-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Search & Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" id="filterForm">
+                        {% csrf_token %}
+
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="search" 
+                                   name="search"
+                                   placeholder="Search across all fields"
+                                   value="{{ current_filters.search }}">
+                        </div>
+
+                        <!-- Channel Name Filter -->
+                        <div class="mb-3">
+                            <label for="channel_name" class="form-label">Channel Name</label>
+                            <select class="form-select" id="channel_name" name="channel_name">
+                                <option value="">All Channels</option>
+                                {% for creator in creators %}
+                                    <option value="{{ creator.channel_name }}"
+                                            {% if current_filters.channel_name == creator.channel_name %}selected{% endif %}>
+                                        {{ creator.channel_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Program Name Filter -->
+                        <div class="mb-3">
+                            <label for="program_name" class="form-label">Program Name</label>
+                            <select class="form-select" id="program_name" name="program_name">
+                                <option value="">All Programs</option>
+                                {% for program in programs %}
+                                    <option value="{{ program.program_name }}"
+                                            {% if current_filters.program_name == program.program_name %}selected{% endif %}>
+                                        {{ program.program_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Date Range Filters -->
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="start_date" 
+                                   name="start_date"
+                                   value="{{ current_filters.start_date }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="end_date" 
+                                   name="end_date"
+                                   value="{{ current_filters.end_date }}">
+                        </div>
+                        
+                        <!-- Sort -->
+                        <div class="mb-3">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select class="form-select" id="sort" name="sort">
+                                {% for code, name in sort_options %}
+                                    <option value="{{ code }}"
+                                            {% if code == current_filters.sort %}selected{% endif %}>
+                                        {{ name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                        <a href="{% url 'content_report' %}" class="btn btn-outline-secondary w-100 mt-2">Clear Filters</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content List -->
+        <div class="col-md-9 col-lg-10">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Content Report</h5>
+                    <span class="badge bg-primary">{{ page_obj.paginator.count }} Items</span>
+                </div>
+                <div class="card-body">
+                    {% if episodes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Channel Name</th>
+                                        <th>Creator</th>
+                                        <th>Program</th>
+                                        <th>Episode Number</th>
+                                        <th>Title</th>
+                                        <th>Date Uploaded</th>
+                                        <th>Age Rating</th>
+                                        <th>Duration</th>
+                                        <th>Schedule Count</th>
+                                        <th>Last Scheduled</th>
+                                        <!-- <th>Actions</th> -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for episode in episodes %}
+                                        <tr>
+                                            <td>{{ episode.program.creator.channel_name }}</td>
+                                            <td>{{ episode.program.creator.first_name }} {{ episode.program.creator.last_name }}</td>
+                                            <td>{{ episode.program.program_name }}</td>
+                                            <td>{{ episode.episode_number }}</td>
+                                            <td>{{ episode.title }}</td>
+                                            <td>{{ episode.created_at|date:"M d, Y" }}</td>
+                                            <td>{{ episode.ai_age_rating }}</td>
+                                            <td>{{ episode.duration_timecode }}</td>
+                                            <td>{{ episode.schedule_count }}</td>
+                                            <td>{% if episode.last_scheduled %}{{ episode.last_scheduled|date:"M d, Y" }}{% else %}Never{% endif %}</td>
+                                            <!-- <td>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="actionDropdown-{{ episode.custom_id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        Actions
+                                                    </button>
+                                                    <ul class="dropdown-menu" aria-labelledby="actionDropdown-{{ episode.custom_id }}">
+                                                        <li><a class="dropdown-item view-details" href="#" data-episode-id="{{ episode.custom_id }}">View Details</a></li>
+                                                        <li><a class="dropdown-item" href="{% url 'episode_analysis' episode.custom_id %}">Analysis</a></li>
+                                                        <li><a class="dropdown-item" href="{% url 'view_episode' episode.custom_id %}">Preview</a></li>
+                                                        <li><a class="dropdown-item" href="{% url 'update-analysis' episode.custom_id %}">Update</a></li>
+                                                    </ul>
+                                                </div>
+                                            </td> -->
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">No content available matching the current filters.</div>
+                    {% endif %}
+                    
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                        <nav aria-label="Page navigation" class="mt-3">
+                            <ul class="pagination justify-content-center">
+                                <!-- Previous Page -->
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" 
+                                        href="?page={{ page_obj.previous_page_number }}
+                                            {% for key, value in request.GET.items %}
+                                                {% if key != 'page' %}
+                                                    &{{ key }}={{ value }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        " aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                <!-- Page Number Links -->
+                                {% if paginator.num_pages <= 7 %}
+                                    {% for num in paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active" aria-current="page">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" 
+                                                    href="?page={{ num }}
+                                                        {% for key, value in request.GET.items %}
+                                                            {% if key != 'page' %}
+                                                                &{{ key }}={{ value }}
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    ">{{ num }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <!-- First page -->
+                                    {% if page_obj.number > 3 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1
+                                                {% for key, value in request.GET.items %}
+                                                    {% if key != 'page' %}
+                                                        &{{ key }}={{ value }}
+                                                    {% endif %}
+                                                {% endfor %}">1</a>
+                                        </li>
+                                        {% if page_obj.number > 4 %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endif %}
+                                    
+                                    <!-- Current page and surroundings -->
+                                    {% for num in paginator.page_range %}
+                                        {% if num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                                            {% if page_obj.number == num %}
+                                                <li class="page-item active" aria-current="page">
+                                                    <span class="page-link">{{ num }}</span>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page={{ num }}
+                                                        {% for key, value in request.GET.items %}
+                                                            {% if key != 'page' %}
+                                                                &{{ key }}={{ value }}
+                                                            {% endif %}
+                                                        {% endfor %}">{{ num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <!-- Last page -->
+                                    {% if page_obj.number < paginator.num_pages|add:"-2" %}
+                                        {% if page_obj.number < paginator.num_pages|add:"-3" %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ paginator.num_pages }}
+                                                {% for key, value in request.GET.items %}
+                                                    {% if key != 'page' %}
+                                                        &{{ key }}={{ value }}
+                                                    {% endif %}
+                                                {% endfor %}">{{ paginator.num_pages }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endif %}
+
+                                <!-- Next Page -->
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" 
+                                        href="?page={{ page_obj.next_page_number }}
+                                            {% for key, value in request.GET.items %}
+                                                {% if key != 'page' %}
+                                                    &{{ key }}={{ value }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        " aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Episode Details -->
+<div class="modal fade" id="episodeDetailsModal" tabindex="-1" aria-labelledby="episodeDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="episodeDetailsModalLabel">Episode Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="episodeDetailsContent">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-submit form when select filters change
+    document.querySelectorAll('#filterForm select').forEach(select => {
+        select.addEventListener('change', () => {
+            document.getElementById('filterForm').submit();
+        });
+    });
+
+    // Debounced search input
+    let searchTimeout;
+    document.getElementById('search').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            document.getElementById('filterForm').submit();
+        }, 500);
+    });
+
+    // Date picker auto-submit
+    document.querySelectorAll('#start_date, #end_date').forEach(dateField => {
+        dateField.addEventListener('change', () => {
+            document.getElementById('filterForm').submit();
+        });
+    });
+
+    // Episode details modal handler
+    document.querySelectorAll('.view-details').forEach(link => {
+        link.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const episodeId = this.dataset.episodeId;
+            const modal = new bootstrap.Modal(document.getElementById('episodeDetailsModal'));
+            modal.show();
+            
+            try {
+                // This would be replaced with your actual endpoint for fetching episode details
+                const response = await fetch(`/api/episodes/${episodeId}/details/`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch episode details');
+                }
+                
+                const episodeData = await response.json();
+                
+                // Format and display the episode details
+                document.getElementById('episodeDetailsContent').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Basic Information</h6>
+                            <table class="table">
+                                <tr>
+                                    <th>Channel Name</th>
+                                    <td>${episodeData.program.creator.channel_name}</td>
+                                </tr>
+                                <tr>
+                                    <th>Creator</th>
+                                    <td>${episodeData.program.creator.first_name} ${episodeData.program.creator.last_name}</td>
+                                </tr>
+                                <tr>
+                                    <th>Program</th>
+                                    <td>${episodeData.program.program_name}</td>
+                                </tr>
+                                <tr>
+                                    <th>Episode Number</th>
+                                    <td>${episodeData.episode_number}</td>
+                                </tr>
+                                <tr>
+                                    <th>Title</th>
+                                    <td>${episodeData.title}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date Uploaded</th>
+                                    <td>${new Date(episodeData.created_at).toLocaleDateString()}</td>
+                                </tr>
+                                <tr>
+                                    <th>Duration</th>
+                                    <td>${episodeData.duration_timecode}</td>
+                                </tr>
+                                <tr>
+                                    <th>Schedule Count</th>
+                                    <td>${episodeData.schedule_count}</td>
+                                </tr>
+                                <tr>
+                                    <th>Last Scheduled</th>
+                                    <td>${episodeData.last_scheduled ? new Date(episodeData.last_scheduled).toLocaleDateString() : 'Never'}</td>
+                                </tr>
+                                <tr>
+                                    <th>Age Rating</th>
+                                    <td>${episodeData.ai_age_rating}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Content Information</h6>
+                            <div class="mb-3">
+                                <strong>Description:</strong>
+                                <p>${episodeData.description}</p>
+                            </div>
+                            <div class="mb-3">
+                                <strong>AI Summary:</strong>
+                                <p>${episodeData.ai_summary}</p>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Topics:</strong>
+                                <div>
+                                    ${episodeData.ai_topics.map(topic => `<span class="badge bg-secondary me-1">${topic}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                document.getElementById('episodeDetailsContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error loading episode details: ${error.message}
+                    </div>
+                `;
+            }
+        });
+    });
+    
+    // Placeholder for the actual API implementation
+    // You'll need to create this endpoint in your Django views
+    // This JavaScript assumes you'll have a RESTful API endpoint for episode details
+</script>
+<script src="{% static 'ch24app/js/content_report.js' %}"></script>
+{% endblock %}
