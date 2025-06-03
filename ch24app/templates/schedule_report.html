@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Content Report{% endblock %}
+{% block title %}Programming Schedule Report{% endblock %}
 
 {% block content %}
 <div class="container-fluid mt-4">
@@ -54,6 +54,19 @@
                             </select>
                         </div>
 
+                        <!-- Program Status Filter -->
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Program Status</label>
+                            <select class="form-select" id="status" name="status">
+                                {% for code, name in status_options %}
+                                    <option value="{{ code }}"
+                                            {% if code == current_filters.status %}selected{% endif %}>
+                                        {{ name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
                         <!-- Date Range Filters -->
                         <div class="mb-3">
                             <label for="start_date" class="form-label">Start Date</label>
@@ -87,17 +100,17 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
-                        <a href="{% url 'content_report' %}" class="btn btn-outline-secondary w-100 mt-2">Clear Filters</a>
+                        <a href="{% url 'schedule_report' %}" class="btn btn-outline-secondary w-100 mt-2">Clear Filters</a>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Content List -->
+        <!-- Schedule List -->
         <div class="col-md-9 col-lg-10">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Content Report</h5>
+                    <h5 class="mb-0">Programming Schedule Report</h5>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-primary">{{ page_obj.paginator.count }} Items</span>
                         <!-- Export Buttons -->
@@ -105,71 +118,64 @@
                             <a href="?export=csv{% for key, value in request.GET.items %}{% if key != 'export' and key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                                class="btn btn-outline-success btn-sm" 
                                title="Export to CSV">
-                                <i class="fas fa-file-csv"></i> CSV
+                                📄 CSV
                             </a>
                             <a href="?export=excel{% for key, value in request.GET.items %}{% if key != 'export' and key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                                class="btn btn-outline-success btn-sm" 
                                title="Export to Excel">
-                                <i class="fas fa-file-excel"></i> Excel
+                                📊 Excel
                             </a>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    {% if episodes %}
+                    {% if scheduled_episodes %}
                         <div class="table-responsive">
                             <table class="table table-hover table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Channel Name</th>
-                                        <th>Creator</th>
-                                        <th>Program</th>
-                                        <th>Episode Number</th>
-                                        <th>Title</th>
-                                        <th>Date Uploaded</th>
-                                        <th>Age Rating</th>
+                                        <th>Air Date</th>
+                                        <th>Air Time</th>
+                                        <th>Program Name</th>
+                                        <th>Episode #</th>
+                                        <th>Episode Title</th>
+                                        <th>Producer Name</th>
+                                        <th>Channel</th>
                                         <th>Duration</th>
-                                        <th>Schedule Count</th>
-                                        <th>Last Scheduled</th>
-                                        <!-- <th>Actions</th> -->
+                                        <th>Status</th>
+                                        <th>Age Rating</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for episode in episodes %}
-                                        <!-- Only display episodes with valid duration -->
-                                        {% if episode.duration_timecode and episode.duration_timecode != 'None' and episode.duration_timecode != '' %}
+                                    {% for scheduled_episode in scheduled_episodes %}
                                         <tr>
-                                            <td>{{ episode.program.creator.channel_name }}</td>
-                                            <td>{{ episode.program.creator.first_name }} {{ episode.program.creator.last_name }}</td>
-                                            <td>{{ episode.program.program_name }}</td>
-                                            <td>{{ episode.episode_number }}</td>
-                                            <td>{{ episode.title }}</td>
-                                            <td>{{ episode.created_at|date:"M d, Y" }}</td>
-                                            <td>{{ episode.ai_age_rating }}</td>
-                                            <td>{{ episode.duration_timecode }}</td>
-                                            <td>{{ episode.schedule_count }}</td>
-                                            <td>{% if episode.last_scheduled %}{{ episode.last_scheduled|date:"M d, Y" }}{% else %}Never{% endif %}</td>
-                                            <!-- <td>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="actionDropdown-{{ episode.custom_id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        Actions
-                                                    </button>
-                                                    <ul class="dropdown-menu" aria-labelledby="actionDropdown-{{ episode.custom_id }}">
-                                                        <li><a class="dropdown-item view-details" href="#" data-episode-id="{{ episode.custom_id }}">View Details</a></li>
-                                                        <li><a class="dropdown-item" href="{% url 'episode_analysis' episode.custom_id %}">Analysis</a></li>
-                                                        <li><a class="dropdown-item" href="{% url 'view_episode' episode.custom_id %}">Preview</a></li>
-                                                        <li><a class="dropdown-item" href="{% url 'update-analysis' episode.custom_id %}">Update</a></li>
-                                                    </ul>
-                                                </div>
-                                            </td> -->
+                                            <td>{{ scheduled_episode.schedule_date|date:"M d, Y" }}</td>
+                                            <td>{{ scheduled_episode.start_time|time:"g:i A" }}</td>
+                                            <td>{{ scheduled_episode.program.program_name }}</td>
+                                            <td>{{ scheduled_episode.episode_number }}</td>
+                                            <td>{{ scheduled_episode.title }}</td>
+                                            <td>{{ scheduled_episode.creator.first_name }} {{ scheduled_episode.creator.last_name }}</td>
+                                            <td>{{ scheduled_episode.creator.channel_name }}</td>
+                                            <td>{{ scheduled_episode.duration_timecode }}</td>
+                                            <td>
+                                                {% with status=get_program_status|default:"get_program_status" %}
+                                                    {% if status == "New" %}
+                                                        <span class="badge bg-success">New</span>
+                                                    {% elif status == "Repeat" %}
+                                                        <span class="badge bg-info">Repeat</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Unknown</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </td>
+                                            <td>{{ scheduled_episode.ai_age_rating }}</td>
                                         </tr>
-                                        {% endif %}
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     {% else %}
-                        <div class="alert alert-info">No content available matching the current filters.</div>
+                        <div class="alert alert-info">No scheduled content available matching the current filters.</div>
                     {% endif %}
                     
                     <!-- Pagination -->
@@ -292,28 +298,6 @@
         </div>
     </div>
 </div>
-
-<!-- Modal for Episode Details -->
-<div class="modal fade" id="episodeDetailsModal" tabindex="-1" aria-labelledby="episodeDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="episodeDetailsModalLabel">Episode Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="episodeDetailsContent">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -340,105 +324,5 @@
             document.getElementById('filterForm').submit();
         });
     });
-
-    // Episode details modal handler
-    document.querySelectorAll('.view-details').forEach(link => {
-        link.addEventListener('click', async function(e) {
-            e.preventDefault();
-            const episodeId = this.dataset.episodeId;
-            const modal = new bootstrap.Modal(document.getElementById('episodeDetailsModal'));
-            modal.show();
-            
-            try {
-                // This would be replaced with your actual endpoint for fetching episode details
-                const response = await fetch(`/api/episodes/${episodeId}/details/`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch episode details');
-                }
-                
-                const episodeData = await response.json();
-                
-                // Format and display the episode details
-                document.getElementById('episodeDetailsContent').innerHTML = `
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Basic Information</h6>
-                            <table class="table">
-                                <tr>
-                                    <th>Channel Name</th>
-                                    <td>${episodeData.program.creator.channel_name}</td>
-                                </tr>
-                                <tr>
-                                    <th>Creator</th>
-                                    <td>${episodeData.program.creator.first_name} ${episodeData.program.creator.last_name}</td>
-                                </tr>
-                                <tr>
-                                    <th>Program</th>
-                                    <td>${episodeData.program.program_name}</td>
-                                </tr>
-                                <tr>
-                                    <th>Episode Number</th>
-                                    <td>${episodeData.episode_number}</td>
-                                </tr>
-                                <tr>
-                                    <th>Title</th>
-                                    <td>${episodeData.title}</td>
-                                </tr>
-                                <tr>
-                                    <th>Date Uploaded</th>
-                                    <td>${new Date(episodeData.created_at).toLocaleDateString()}</td>
-                                </tr>
-                                <tr>
-                                    <th>Duration</th>
-                                    <td>${episodeData.duration_timecode}</td>
-                                </tr>
-                                <tr>
-                                    <th>Schedule Count</th>
-                                    <td>${episodeData.schedule_count}</td>
-                                </tr>
-                                <tr>
-                                    <th>Last Scheduled</th>
-                                    <td>${episodeData.last_scheduled ? new Date(episodeData.last_scheduled).toLocaleDateString() : 'Never'}</td>
-                                </tr>
-                                <tr>
-                                    <th>Age Rating</th>
-                                    <td>${episodeData.ai_age_rating}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Content Information</h6>
-                            <div class="mb-3">
-                                <strong>Description:</strong>
-                                <p>${episodeData.description}</p>
-                            </div>
-                            <div class="mb-3">
-                                <strong>AI Summary:</strong>
-                                <p>${episodeData.ai_summary}</p>
-                            </div>
-                            <div class="mb-3">
-                                <strong>Topics:</strong>
-                                <div>
-                                    ${episodeData.ai_topics.map(topic => `<span class="badge bg-secondary me-1">${topic}</span>`).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-            } catch (error) {
-                document.getElementById('episodeDetailsContent').innerHTML = `
-                    <div class="alert alert-danger">
-                        Error loading episode details: ${error.message}
-                    </div>
-                `;
-            }
-        });
-    });
-    
-    // Placeholder for the actual API implementation
-    // You'll need to create this endpoint in your Django views
-    // This JavaScript assumes you'll have a RESTful API endpoint for episode details
 </script>
-<script src="{% static 'ch24app/js/content_report.js' %}"></script>
 {% endblock %}

@@ -1486,10 +1486,122 @@ def my_schedule(request):
 
     return render(request, 'my_schedule.html', context)
 
+# from django.shortcuts import render
+# from django.views.generic import ListView
+# from django.db.models import Q
+# from datetime import datetime
+# from .models import Episode, Creator, Program
+
+# class ContentReportView(ListView):
+#     model = Episode
+#     template_name = 'content_report.html'
+#     context_object_name = 'episodes'
+#     paginate_by = 20
+
+#     def get_queryset(self):
+#         # queryset = Episode.objects.select_related('program', 'program__creator').all()
+#         queryset = Episode.objects.select_related('program', 'program__creator').exclude(
+#             Q(duration_timecode__isnull=True) |
+#             Q(duration_timecode__exact='') |
+#             Q(duration_timecode__exact='None') |
+#             Q(duration_timecode__exact='null')
+#         )
+        
+#         # Handle search filters
+#         channel_name = self.request.GET.get('channel_name', '')
+#         program_name = self.request.GET.get('program_name', '')
+#         start_date = self.request.GET.get('start_date', '')
+#         end_date = self.request.GET.get('end_date', '')
+#         search_query = self.request.GET.get('search', '')
+        
+#         # Apply filters
+#         if channel_name:
+#             queryset = queryset.filter(program__creator__channel_name__icontains=channel_name)
+        
+#         if program_name:
+#             queryset = queryset.filter(program__program_name__icontains=program_name)
+        
+#         if start_date and end_date:
+#             try:
+#                 start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+#                 end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+#                 queryset = queryset.filter(created_at__range=(start_date_obj, end_date_obj))
+#             except ValueError:
+#                 pass
+#         elif start_date:
+#             try:
+#                 start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+#                 queryset = queryset.filter(created_at__gte=start_date_obj)
+#             except ValueError:
+#                 pass
+#         elif end_date:
+#             try:
+#                 end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+#                 queryset = queryset.filter(created_at__lte=end_date_obj)
+#             except ValueError:
+#                 pass
+                
+#         # General search across multiple fields
+#         if search_query:
+#             queryset = queryset.filter(
+#                 Q(program__creator__channel_name__icontains=search_query) |
+#                 Q(program__program_name__icontains=search_query) |
+#                 Q(title__icontains=search_query) |
+#                 Q(description__icontains=search_query) |
+#                 Q(ai_summary__icontains=search_query) |
+#                 Q(ai_topics__contains=[search_query])
+#             )
+        
+#         # Default sorting by most recent
+#         sort_by = self.request.GET.get('sort', '-created_at')
+#         return queryset.order_by(sort_by)
+    
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+        
+#         # Add creators and programs for filter dropdowns
+#         context['creators'] = Creator.objects.all()
+#         context['programs'] = Program.objects.all()
+        
+#         # Add current filter values for form
+#         context['current_filters'] = {
+#             'channel_name': self.request.GET.get('channel_name', ''),
+#             'program_name': self.request.GET.get('program_name', ''),
+#             'start_date': self.request.GET.get('start_date', ''),
+#             'end_date': self.request.GET.get('end_date', ''),
+#             'search': self.request.GET.get('search', ''),
+#             'sort': self.request.GET.get('sort', '-created_at')
+#         }
+        
+#         # Add sort options
+#         context['sort_options'] = [
+#             ('-created_at', 'Newest First'),
+#             ('created_at', 'Oldest First'),
+#             ('program__creator__channel_name', 'Channel Name (A-Z)'),
+#             ('-program__creator__channel_name', 'Channel Name (Z-A)'),
+#             ('program__program_name', 'Program Name (A-Z)'),
+#             ('-program__program_name', 'Program Name (Z-A)'),
+#             ('episode_number', 'Episode Number (Ascending)'),
+#             ('-episode_number', 'Episode Number (Descending)'),
+#             ('title', 'Title (A-Z)'),
+#             ('-title', 'Title (Z-A)'),
+#             ('schedule_count', 'Schedule Count (Ascending)'),
+#             ('-schedule_count', 'Schedule Count (Descending)'),
+#             ('last_scheduled', 'Last Scheduled (Ascending)'),
+#             ('-last_scheduled', 'Last Scheduled (Descending)'),
+#         ]
+        
+#         return context
+
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.db.models import Q
+from django.http import HttpResponse
 from datetime import datetime
+import csv
+import openpyxl
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
 from .models import Episode, Creator, Program
 
 class ContentReportView(ListView):
@@ -1499,7 +1611,13 @@ class ContentReportView(ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = Episode.objects.select_related('program', 'program__creator').all()
+        # Start with episodes that have valid duration - exclude None, empty, and 'None' string values
+        queryset = Episode.objects.select_related('program', 'program__creator').exclude(
+            Q(duration_timecode__isnull=True) |
+            Q(duration_timecode__exact='') |
+            Q(duration_timecode__exact='None') |
+            Q(duration_timecode__exact='null')
+        )
         
         # Handle search filters
         channel_name = self.request.GET.get('channel_name', '')
@@ -1549,6 +1667,142 @@ class ContentReportView(ListView):
         # Default sorting by most recent
         sort_by = self.request.GET.get('sort', '-created_at')
         return queryset.order_by(sort_by)
+
+    def get(self, request, *args, **kwargs):
+        # Check if this is an export request
+        export_format = request.GET.get('export')
+        if export_format in ['csv', 'excel']:
+            return self.export_data(export_format)
+        
+        # Otherwise, return normal ListView response
+        return super().get(request, *args, **kwargs)
+
+    def export_data(self, format_type):
+        # Get the filtered queryset (same as get_queryset but without pagination)
+        queryset = self.get_queryset()
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        if format_type == 'csv':
+            return self.export_csv(queryset, timestamp)
+        elif format_type == 'excel':
+            return self.export_excel(queryset, timestamp)
+
+    def export_csv(self, queryset, timestamp):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="content_report_{timestamp}.csv"'
+        
+        writer = csv.writer(response)
+        
+        # Write header row
+        writer.writerow([
+            'Channel Name',
+            'Creator First Name',
+            'Creator Last Name',
+            'Program Name',
+            'Episode Number',
+            'Title',
+            'Description',
+            'Date Uploaded',
+            'Age Rating',
+            'Duration',
+            'Schedule Count',
+            'Last Scheduled',
+            'AI Summary',
+            'AI Topics'
+        ])
+        
+        # Write data rows
+        for episode in queryset:
+            writer.writerow([
+                episode.program.creator.channel_name,
+                episode.program.creator.first_name,
+                episode.program.creator.last_name,
+                episode.program.program_name,
+                episode.episode_number,
+                episode.title,
+                episode.description,
+                episode.created_at.strftime('%Y-%m-%d') if episode.created_at else '',
+                episode.ai_age_rating,
+                episode.duration_timecode,
+                episode.schedule_count,
+                episode.last_scheduled.strftime('%Y-%m-%d') if episode.last_scheduled else 'Never',
+                episode.ai_summary,
+                ', '.join(episode.ai_topics) if episode.ai_topics else ''
+            ])
+        
+        return response
+
+    def export_excel(self, queryset, timestamp):
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="content_report_{timestamp}.xlsx"'
+        
+        workbook = openpyxl.Workbook()
+        worksheet = workbook.active
+        worksheet.title = 'Content Report'
+        
+        # Define headers
+        headers = [
+            'Channel Name',
+            'Creator First Name',
+            'Creator Last Name',
+            'Program Name',
+            'Episode Number',
+            'Title',
+            'Description',
+            'Date Uploaded',
+            'Age Rating',
+            'Duration',
+            'Schedule Count',
+            'Last Scheduled',
+            'AI Summary',
+            'AI Topics'
+        ]
+        
+        # Write headers with styling
+        header_font = Font(bold=True, color='FFFFFF')
+        header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = worksheet.cell(row=1, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+        
+        # Write data rows
+        for row_num, episode in enumerate(queryset, 2):
+            worksheet.cell(row=row_num, column=1, value=episode.program.creator.channel_name)
+            worksheet.cell(row=row_num, column=2, value=episode.program.creator.first_name)
+            worksheet.cell(row=row_num, column=3, value=episode.program.creator.last_name)
+            worksheet.cell(row=row_num, column=4, value=episode.program.program_name)
+            worksheet.cell(row=row_num, column=5, value=episode.episode_number)
+            worksheet.cell(row=row_num, column=6, value=episode.title)
+            worksheet.cell(row=row_num, column=7, value=episode.description)
+            worksheet.cell(row=row_num, column=8, value=episode.created_at.strftime('%Y-%m-%d') if episode.created_at else '')
+            worksheet.cell(row=row_num, column=9, value=episode.ai_age_rating)
+            worksheet.cell(row=row_num, column=10, value=episode.duration_timecode)
+            worksheet.cell(row=row_num, column=11, value=episode.schedule_count)
+            worksheet.cell(row=row_num, column=12, value=episode.last_scheduled.strftime('%Y-%m-%d') if episode.last_scheduled else 'Never')
+            worksheet.cell(row=row_num, column=13, value=episode.ai_summary)
+            worksheet.cell(row=row_num, column=14, value=', '.join(episode.ai_topics) if episode.ai_topics else '')
+        
+        # Auto-adjust column widths
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = get_column_letter(column[0].column)
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)  # Cap at 50 characters
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        workbook.save(response)
+        return response
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1584,5 +1838,287 @@ class ContentReportView(ListView):
             ('last_scheduled', 'Last Scheduled (Ascending)'),
             ('-last_scheduled', 'Last Scheduled (Descending)'),
         ]
+        
+        return context
+
+from django.shortcuts import render
+from django.views.generic import ListView
+from django.db.models import Q, Min
+from django.http import HttpResponse
+from datetime import datetime, timedelta
+import csv
+import openpyxl
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
+from .models import ScheduledEpisode, Creator, Program
+
+class ScheduleReportView(ListView):
+    model = ScheduledEpisode
+    template_name = 'schedule_report.html'
+    context_object_name = 'scheduled_episodes'
+    paginate_by = 20
+
+    def get_queryset(self):
+        # Start with scheduled episodes, select related data to avoid N+1 queries
+        queryset = ScheduledEpisode.objects.select_related(
+            'episode', 'program', 'creator'
+        ).all()
+        
+        # Handle search filters
+        channel_name = self.request.GET.get('channel_name', '')
+        program_name = self.request.GET.get('program_name', '')
+        start_date = self.request.GET.get('start_date', '')
+        end_date = self.request.GET.get('end_date', '')
+        search_query = self.request.GET.get('search', '')
+        status_filter = self.request.GET.get('status', '')
+        
+        # Apply filters
+        if channel_name:
+            queryset = queryset.filter(creator__channel_name__icontains=channel_name)
+        
+        if program_name:
+            queryset = queryset.filter(program__program_name__icontains=program_name)
+        
+        if start_date and end_date:
+            try:
+                start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(schedule_date__range=(start_date_obj, end_date_obj))
+            except ValueError:
+                pass
+        elif start_date:
+            try:
+                start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(schedule_date__gte=start_date_obj)
+            except ValueError:
+                pass
+        elif end_date:
+            try:
+                end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(schedule_date__lte=end_date_obj)
+            except ValueError:
+                pass
+        
+        # Status filter (New/Repeat)
+        if status_filter:
+            if status_filter == 'new':
+                # Filter for episodes that are being aired for the first time
+                queryset = queryset.filter(
+                    Q(episode__schedule_count=1) | Q(episode__schedule_count__isnull=True)
+                )
+            elif status_filter == 'repeat':
+                # Filter for episodes that have been aired before
+                queryset = queryset.filter(episode__schedule_count__gt=1)
+                
+        # General search across multiple fields
+        if search_query:
+            queryset = queryset.filter(
+                Q(creator__channel_name__icontains=search_query) |
+                Q(program__program_name__icontains=search_query) |
+                Q(title__icontains=search_query) |
+                Q(episode__description__icontains=search_query) |
+                Q(ai_topics__contains=[search_query])
+            )
+        
+        # Default sorting by schedule date and time
+        sort_by = self.request.GET.get('sort', 'schedule_date')
+        return queryset.order_by(sort_by, 'start_time')
+
+    def get_program_status(self, scheduled_episode):
+        """
+        Determine if a program is 'New' or 'Repeat' based on:
+        1. Episode schedule count
+        2. First time this episode was scheduled
+        """
+        if not scheduled_episode.episode:
+            return 'Unknown'
+        
+        # Check if this is the first time this episode is being scheduled
+        if scheduled_episode.episode.schedule_count == 1 or scheduled_episode.episode.schedule_count is None:
+            return 'New'
+        elif scheduled_episode.episode.schedule_count > 1:
+            return 'Repeat'
+        else:
+            # Alternative check: Look at first scheduled date vs current schedule date
+            first_scheduled = ScheduledEpisode.objects.filter(
+                episode=scheduled_episode.episode
+            ).aggregate(first_date=Min('schedule_date'))['first_date']
+            
+            if first_scheduled and first_scheduled == scheduled_episode.schedule_date:
+                return 'New'
+            else:
+                return 'Repeat'
+
+    def get(self, request, *args, **kwargs):
+        # Check if this is an export request
+        export_format = request.GET.get('export')
+        if export_format in ['csv', 'excel']:
+            return self.export_data(export_format)
+        
+        # Otherwise, return normal ListView response
+        return super().get(request, *args, **kwargs)
+
+    def export_data(self, format_type):
+        # Get the filtered queryset (same as get_queryset but without pagination)
+        queryset = self.get_queryset()
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        if format_type == 'csv':
+            return self.export_csv(queryset, timestamp)
+        elif format_type == 'excel':
+            return self.export_excel(queryset, timestamp)
+
+    def export_csv(self, queryset, timestamp):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="schedule_report_{timestamp}.csv"'
+        
+        writer = csv.writer(response)
+        
+        # Write header row
+        writer.writerow([
+            'Air Date',
+            'Air Time',
+            'Program Name',
+            'Episode Number',
+            'Episode Title',
+            'Producer Name',
+            'Channel Name',
+            'Duration',
+            'Program Status',
+            'Age Rating',
+            'Genre',
+            'Topics'
+        ])
+        
+        # Write data rows
+        for scheduled_episode in queryset:
+            writer.writerow([
+                scheduled_episode.schedule_date.strftime('%Y-%m-%d') if scheduled_episode.schedule_date else '',
+                scheduled_episode.start_time.strftime('%H:%M:%S') if scheduled_episode.start_time else '',
+                scheduled_episode.program.program_name,
+                scheduled_episode.episode_number,
+                scheduled_episode.title,
+                f"{scheduled_episode.creator.first_name} {scheduled_episode.creator.last_name}",
+                scheduled_episode.creator.channel_name,
+                scheduled_episode.duration_timecode or '',
+                self.get_program_status(scheduled_episode),
+                scheduled_episode.ai_age_rating or '',
+                scheduled_episode.ai_genre or '',
+                ', '.join(scheduled_episode.ai_topics) if scheduled_episode.ai_topics else ''
+            ])
+        
+        return response
+
+    def export_excel(self, queryset, timestamp):
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="schedule_report_{timestamp}.xlsx"'
+        
+        workbook = openpyxl.Workbook()
+        worksheet = workbook.active
+        worksheet.title = 'Schedule Report'
+        
+        # Define headers
+        headers = [
+            'Air Date',
+            'Air Time',
+            'Program Name',
+            'Episode Number',
+            'Episode Title',
+            'Producer Name',
+            'Channel Name',
+            'Duration',
+            'Program Status',
+            'Age Rating',
+            'Genre',
+            'Topics'
+        ]
+        
+        # Write headers with styling
+        header_font = Font(bold=True, color='FFFFFF')
+        header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = worksheet.cell(row=1, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+        
+        # Write data rows
+        for row_num, scheduled_episode in enumerate(queryset, 2):
+            worksheet.cell(row=row_num, column=1, value=scheduled_episode.schedule_date.strftime('%Y-%m-%d') if scheduled_episode.schedule_date else '')
+            worksheet.cell(row=row_num, column=2, value=scheduled_episode.start_time.strftime('%H:%M:%S') if scheduled_episode.start_time else '')
+            worksheet.cell(row=row_num, column=3, value=scheduled_episode.program.program_name)
+            worksheet.cell(row=row_num, column=4, value=scheduled_episode.episode_number)
+            worksheet.cell(row=row_num, column=5, value=scheduled_episode.title)
+            worksheet.cell(row=row_num, column=6, value=f"{scheduled_episode.creator.first_name} {scheduled_episode.creator.last_name}")
+            worksheet.cell(row=row_num, column=7, value=scheduled_episode.creator.channel_name)
+            worksheet.cell(row=row_num, column=8, value=scheduled_episode.duration_timecode or '')
+            worksheet.cell(row=row_num, column=9, value=self.get_program_status(scheduled_episode))
+            worksheet.cell(row=row_num, column=10, value=scheduled_episode.ai_age_rating or '')
+            worksheet.cell(row=row_num, column=11, value=scheduled_episode.ai_genre or '')
+            worksheet.cell(row=row_num, column=12, value=', '.join(scheduled_episode.ai_topics) if scheduled_episode.ai_topics else '')
+        
+        # Auto-adjust column widths
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = get_column_letter(column[0].column)
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)  # Cap at 50 characters
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        workbook.save(response)
+        return response
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Add creators and programs for filter dropdowns
+        context['creators'] = Creator.objects.all()
+        context['programs'] = Program.objects.all()
+        
+        # Add current filter values for form
+        context['current_filters'] = {
+            'channel_name': self.request.GET.get('channel_name', ''),
+            'program_name': self.request.GET.get('program_name', ''),
+            'start_date': self.request.GET.get('start_date', ''),
+            'end_date': self.request.GET.get('end_date', ''),
+            'search': self.request.GET.get('search', ''),
+            'status': self.request.GET.get('status', ''),
+            'sort': self.request.GET.get('sort', 'schedule_date')
+        }
+        
+        # Add sort options
+        context['sort_options'] = [
+            ('schedule_date', 'Air Date (Earliest First)'),
+            ('-schedule_date', 'Air Date (Latest First)'),
+            ('start_time', 'Air Time (Earliest First)'),
+            ('-start_time', 'Air Time (Latest First)'),
+            ('creator__channel_name', 'Channel Name (A-Z)'),
+            ('-creator__channel_name', 'Channel Name (Z-A)'),
+            ('program__program_name', 'Program Name (A-Z)'),
+            ('-program__program_name', 'Program Name (Z-A)'),
+            ('episode_number', 'Episode Number (Ascending)'),
+            ('-episode_number', 'Episode Number (Descending)'),
+            ('title', 'Title (A-Z)'),
+            ('-title', 'Title (Z-A)'),
+        ]
+        
+        # Add status options for filter
+        context['status_options'] = [
+            ('', 'All Status'),
+            ('new', 'New'),
+            ('repeat', 'Repeat'),
+        ]
+        
+        # Add method to determine program status for template
+        context['get_program_status'] = self.get_program_status
         
         return context

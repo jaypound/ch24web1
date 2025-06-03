@@ -11,6 +11,7 @@ from django.urls import re_path
 from .views import acme_challenge_view
 from .views import ContentReportView
 from .api_views import episode_details_api
+from .views import ScheduleReportView
 
 urlpatterns = [
     path('', views.home, name="home"),
@@ -112,6 +113,8 @@ urlpatterns = [
 
     # API endpoint for episode details
     path('api/episodes/<str:episode_id>/details/', episode_details_api, name='episode_details_api'),
+
+    path('schedule-report/', ScheduleReportView.as_view(), name='schedule_report'),
 
 ]
 

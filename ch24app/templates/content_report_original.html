@@ -98,22 +98,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Content Report</h5>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-primary">{{ page_obj.paginator.count }} Items</span>
-                        <!-- Export Buttons -->
-                        <div class="btn-group" role="group" aria-label="Export options">
-                            <a href="?export=csv{% for key, value in request.GET.items %}{% if key != 'export' and key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
-                               class="btn btn-outline-success btn-sm" 
-                               title="Export to CSV">
-                                <i class="fas fa-file-csv"></i> CSV
-                            </a>
-                            <a href="?export=excel{% for key, value in request.GET.items %}{% if key != 'export' and key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
-                               class="btn btn-outline-success btn-sm" 
-                               title="Export to Excel">
-                                <i class="fas fa-file-excel"></i> Excel
-                            </a>
-                        </div>
-                    </div>
+                    <span class="badge bg-primary">{{ page_obj.paginator.count }} Items</span>
                 </div>
                 <div class="card-body">
                     {% if episodes %}
@@ -136,8 +121,6 @@
                                 </thead>
                                 <tbody>
                                     {% for episode in episodes %}
-                                        <!-- Only display episodes with valid duration -->
-                                        {% if episode.duration_timecode and episode.duration_timecode != 'None' and episode.duration_timecode != '' %}
                                         <tr>
                                             <td>{{ episode.program.creator.channel_name }}</td>
                                             <td>{{ episode.program.creator.first_name }} {{ episode.program.creator.last_name }}</td>
@@ -163,7 +146,6 @@
                                                 </div>
                                             </td> -->
                                         </tr>
-                                        {% endif %}
                                     {% endfor %}
                                 </tbody>
                             </table>
