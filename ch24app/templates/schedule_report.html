@@ -158,10 +158,12 @@
                                             <td>{{ scheduled_episode.creator.channel_name }}</td>
                                             <td>{{ scheduled_episode.duration_timecode }}</td>
                                             <td>
-                                                {% if scheduled_episode.episode.schedule_count == 1 or scheduled_episode.episode.schedule_count == None %}
-                                                    <span class="badge bg-success">New</span>
-                                                {% elif scheduled_episode.episode.schedule_count > 1 %}
-                                                    <span class="badge bg-info">Repeat</span>
+                                                {% if scheduled_episode.first_scheduled_date %}
+                                                    {% if scheduled_episode.schedule_date == scheduled_episode.first_scheduled_date %}
+                                                        <span class="badge bg-success">New</span>
+                                                    {% else %}
+                                                        <span class="badge bg-info">Repeat</span>
+                                                    {% endif %}
                                                 {% else %}
                                                     <span class="badge bg-secondary">Unknown</span>
                                                 {% endif %}
