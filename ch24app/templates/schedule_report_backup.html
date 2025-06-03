@@ -115,12 +115,12 @@
                         <span class="badge bg-primary">{{ page_obj.paginator.count }} Items</span>
                         <!-- Export Buttons -->
                         <div class="btn-group" role="group" aria-label="Export options">
-                            <a href="?export=csv{% for key, value in request.GET.items %}{% if key != 'export' and key != 'page' and value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" 
+                            <a href="?export=csv{% for key, value in request.GET.items %}{% if key != 'export' and key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                                class="btn btn-outline-success btn-sm" 
                                title="Export to CSV">
                                 📄 CSV
                             </a>
-                            <a href="?export=excel{% for key, value in request.GET.items %}{% if key != 'export' and key != 'page' and value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" 
+                            <a href="?export=excel{% for key, value in request.GET.items %}{% if key != 'export' and key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                                class="btn btn-outline-success btn-sm" 
                                title="Export to Excel">
                                 📊 Excel
@@ -158,13 +158,15 @@
                                             <td>{{ scheduled_episode.creator.channel_name }}</td>
                                             <td>{{ scheduled_episode.duration_timecode }}</td>
                                             <td>
-                                                {% if scheduled_episode.episode.schedule_count == 1 or scheduled_episode.episode.schedule_count == None %}
-                                                    <span class="badge bg-success">New</span>
-                                                {% elif scheduled_episode.episode.schedule_count > 1 %}
-                                                    <span class="badge bg-info">Repeat</span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary">Unknown</span>
-                                                {% endif %}
+                                                {% with status=get_program_status|default:"get_program_status" %}
+                                                    {% if status == "New" %}
+                                                        <span class="badge bg-success">New</span>
+                                                    {% elif status == "Repeat" %}
+                                                        <span class="badge bg-info">Repeat</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Unknown</span>
+                                                    {% endif %}
+                                                {% endwith %}
                                             </td>
                                             <td>{{ scheduled_episode.ai_age_rating }}</td>
                                         </tr>
@@ -184,7 +186,13 @@
                                 {% if page_obj.has_previous %}
                                     <li class="page-item">
                                         <a class="page-link" 
-                                        href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" aria-label="Previous">
+                                        href="?page={{ page_obj.previous_page_number }}
+                                            {% for key, value in request.GET.items %}
+                                                {% if key != 'page' %}
+                                                    &{{ key }}={{ value }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        " aria-label="Previous">
                                             <span aria-hidden="true">&laquo;</span>
                                         </a>
                                     </li>
@@ -200,7 +208,13 @@
                                         {% else %}
                                             <li class="page-item">
                                                 <a class="page-link" 
-                                                    href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}
+                                                    href="?page={{ num }}
+                                                        {% for key, value in request.GET.items %}
+                                                            {% if key != 'page' %}
+                                                                &{{ key }}={{ value }}
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    ">{{ num }}
                                                 </a>
                                             </li>
                                         {% endif %}
@@ -209,7 +223,12 @@
                                     <!-- First page -->
                                     {% if page_obj.number > 3 %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">1</a>
+                                            <a class="page-link" href="?page=1
+                                                {% for key, value in request.GET.items %}
+                                                    {% if key != 'page' %}
+                                                        &{{ key }}={{ value }}
+                                                    {% endif %}
+                                                {% endfor %}">1</a>
                                         </li>
                                         {% if page_obj.number > 4 %}
                                             <li class="page-item disabled">
@@ -227,7 +246,12 @@
                                                 </li>
                                             {% else %}
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                                    <a class="page-link" href="?page={{ num }}
+                                                        {% for key, value in request.GET.items %}
+                                                            {% if key != 'page' %}
+                                                                &{{ key }}={{ value }}
+                                                            {% endif %}
+                                                        {% endfor %}">{{ num }}</a>
                                                 </li>
                                             {% endif %}
                                         {% endif %}
@@ -241,7 +265,12 @@
                                             </li>
                                         {% endif %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page={{ paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ paginator.num_pages }}</a>
+                                            <a class="page-link" href="?page={{ paginator.num_pages }}
+                                                {% for key, value in request.GET.items %}
+                                                    {% if key != 'page' %}
+                                                        &{{ key }}={{ value }}
+                                                    {% endif %}
+                                                {% endfor %}">{{ paginator.num_pages }}</a>
                                         </li>
                                     {% endif %}
                                 {% endif %}
@@ -250,7 +279,13 @@
                                 {% if page_obj.has_next %}
                                     <li class="page-item">
                                         <a class="page-link" 
-                                        href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" aria-label="Next">
+                                        href="?page={{ page_obj.next_page_number }}
+                                            {% for key, value in request.GET.items %}
+                                                {% if key != 'page' %}
+                                                    &{{ key }}={{ value }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        " aria-label="Next">
                                             <span aria-hidden="true">&raquo;</span>
                                         </a>
                                     </li>
