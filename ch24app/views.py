@@ -1864,13 +1864,13 @@ class ScheduleReportView(ListView):
             'episode', 'program', 'creator'
         ).all()
         
-        # Handle search filters
-        channel_name = self.request.GET.get('channel_name', '')
-        program_name = self.request.GET.get('program_name', '')
-        start_date = self.request.GET.get('start_date', '')
-        end_date = self.request.GET.get('end_date', '')
-        search_query = self.request.GET.get('search', '')
-        status_filter = self.request.GET.get('status', '')
+        # Handle search filters - strip whitespace from all inputs
+        channel_name = self.request.GET.get('channel_name', '').strip()
+        program_name = self.request.GET.get('program_name', '').strip()
+        start_date = self.request.GET.get('start_date', '').strip()
+        end_date = self.request.GET.get('end_date', '').strip()
+        search_query = self.request.GET.get('search', '').strip()
+        status_filter = self.request.GET.get('status', '').strip()
         
         # Apply filters
         if channel_name:
@@ -1884,31 +1884,54 @@ class ScheduleReportView(ListView):
                 start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
                 end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
                 queryset = queryset.filter(schedule_date__range=(start_date_obj, end_date_obj))
-            except ValueError:
+            except ValueError as e:
                 pass
         elif start_date:
             try:
                 start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
                 queryset = queryset.filter(schedule_date__gte=start_date_obj)
-            except ValueError:
+            except ValueError as e:
                 pass
         elif end_date:
             try:
                 end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
                 queryset = queryset.filter(schedule_date__lte=end_date_obj)
-            except ValueError:
+            except ValueError as e:
                 pass
         
         # Status filter (New/Repeat)
         if status_filter:
             if status_filter == 'new':
-                # Filter for episodes that are being aired for the first time
-                queryset = queryset.filter(
-                    Q(episode__schedule_count=1) | Q(episode__schedule_count__isnull=True)
+                # Filter for episodes scheduled on their first day
+                # Use a subquery to find episodes where schedule_date = min(schedule_date) for that episode
+                from django.db.models import Subquery, OuterRef
+                
+                first_schedule_dates = ScheduledEpisode.objects.filter(
+                    episode=OuterRef('episode')
+                ).aggregate(first_date=Min('schedule_date'))['first_date']
+                
+                # For now, let's use a simpler raw SQL approach or annotation
+                queryset = queryset.extra(
+                    where=["""
+                        schedule_date = (
+                            SELECT MIN(se2.schedule_date) 
+                            FROM ch24app_scheduledepisode se2 
+                            WHERE se2.episode_id = ch24app_scheduledepisode.episode_id
+                        )
+                    """]
                 )
+                
             elif status_filter == 'repeat':
-                # Filter for episodes that have been aired before
-                queryset = queryset.filter(episode__schedule_count__gt=1)
+                # Filter for episodes NOT on their first scheduled day
+                queryset = queryset.extra(
+                    where=["""
+                        schedule_date > (
+                            SELECT MIN(se2.schedule_date) 
+                            FROM ch24app_scheduledepisode se2 
+                            WHERE se2.episode_id = ch24app_scheduledepisode.episode_id
+                        )
+                    """]
+                )
                 
         # General search across multiple fields
         if search_query:
@@ -1927,50 +1950,49 @@ class ScheduleReportView(ListView):
     def get_program_status(self, scheduled_episode):
         """
         Determine if a program is 'New' or 'Repeat' based on:
-        1. Episode schedule count
-        2. First time this episode was scheduled
+        Whether this is the first DATE this episode was ever scheduled
         """
         if not scheduled_episode.episode:
             return 'Unknown'
         
-        # Check if this is the first time this episode is being scheduled
-        if scheduled_episode.episode.schedule_count == 1 or scheduled_episode.episode.schedule_count is None:
-            return 'New'
-        elif scheduled_episode.episode.schedule_count > 1:
-            return 'Repeat'
-        else:
-            # Alternative check: Look at first scheduled date vs current schedule date
-            first_scheduled = ScheduledEpisode.objects.filter(
-                episode=scheduled_episode.episode
-            ).aggregate(first_date=Min('schedule_date'))['first_date']
-            
-            if first_scheduled and first_scheduled == scheduled_episode.schedule_date:
+        # Find the earliest date this episode was scheduled
+        first_scheduled_date = ScheduledEpisode.objects.filter(
+            episode=scheduled_episode.episode
+        ).aggregate(
+            first_date=Min('schedule_date')
+        )['first_date']
+        
+        if first_scheduled_date:
+            # If this scheduled episode's date matches the first scheduled date, it's "New"
+            if scheduled_episode.schedule_date == first_scheduled_date:
                 return 'New'
             else:
                 return 'Repeat'
+        
+        # Fallback: if no scheduled date found, check if episode has been scheduled at all
+        if scheduled_episode.episode.schedule_count is None or scheduled_episode.episode.schedule_count == 0:
+            return 'New'
+        
+        return 'Unknown'
 
     def get(self, request, *args, **kwargs):
         # Check if this is an export request
         export_format = request.GET.get('export')
-        if export_format in ['csv', 'excel']:
-            return self.export_data(export_format)
+        if export_format == 'csv':
+            return self.export_csv()
+        elif export_format == 'excel':
+            return self.export_excel()
         
         # Otherwise, return normal ListView response
         return super().get(request, *args, **kwargs)
 
-    def export_data(self, format_type):
+    def export_csv(self):
         # Get the filtered queryset (same as get_queryset but without pagination)
         queryset = self.get_queryset()
         
         # Generate filename with timestamp
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         
-        if format_type == 'csv':
-            return self.export_csv(queryset, timestamp)
-        elif format_type == 'excel':
-            return self.export_excel(queryset, timestamp)
-
-    def export_csv(self, queryset, timestamp):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = f'attachment; filename="schedule_report_{timestamp}.csv"'
         
@@ -2011,7 +2033,13 @@ class ScheduleReportView(ListView):
         
         return response
 
-    def export_excel(self, queryset, timestamp):
+    def export_excel(self):
+        # Get the filtered queryset (same as get_queryset but without pagination)
+        queryset = self.get_queryset()
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
@@ -2084,15 +2112,15 @@ class ScheduleReportView(ListView):
         context['creators'] = Creator.objects.all()
         context['programs'] = Program.objects.all()
         
-        # Add current filter values for form
+        # Add current filter values for form - strip whitespace
         context['current_filters'] = {
-            'channel_name': self.request.GET.get('channel_name', ''),
-            'program_name': self.request.GET.get('program_name', ''),
-            'start_date': self.request.GET.get('start_date', ''),
-            'end_date': self.request.GET.get('end_date', ''),
-            'search': self.request.GET.get('search', ''),
-            'status': self.request.GET.get('status', ''),
-            'sort': self.request.GET.get('sort', 'schedule_date')
+            'channel_name': self.request.GET.get('channel_name', '').strip(),
+            'program_name': self.request.GET.get('program_name', '').strip(),
+            'start_date': self.request.GET.get('start_date', '').strip(),
+            'end_date': self.request.GET.get('end_date', '').strip(),
+            'search': self.request.GET.get('search', '').strip(),
+            'status': self.request.GET.get('status', '').strip(),
+            'sort': self.request.GET.get('sort', 'schedule_date').strip()
         }
         
         # Add sort options
