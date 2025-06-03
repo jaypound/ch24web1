@@ -1859,10 +1859,22 @@ class ScheduleReportView(ListView):
     paginate_by = 20
 
     def get_queryset(self):
+        from django.db.models import Window, F
+        from django.db.models.functions import FirstValue
+        
         # Start with scheduled episodes, select related data to avoid N+1 queries
         queryset = ScheduledEpisode.objects.select_related(
             'episode', 'program', 'creator'
         ).all()
+        
+        # Annotate with first scheduled date for each episode
+        queryset = queryset.annotate(
+            first_scheduled_date=Window(
+                expression=FirstValue('schedule_date'),
+                partition_by=[F('episode')],
+                order_by=F('schedule_date').asc()
+            )
+        )
         
         # Handle search filters - strip whitespace from all inputs
         channel_name = self.request.GET.get('channel_name', '').strip()
@@ -1899,39 +1911,15 @@ class ScheduleReportView(ListView):
             except ValueError as e:
                 pass
         
-        # Status filter (New/Repeat)
+        # Status filter (New/Repeat) - now using the annotation
         if status_filter:
             if status_filter == 'new':
-                # Filter for episodes scheduled on their first day
-                # Use a subquery to find episodes where schedule_date = min(schedule_date) for that episode
-                from django.db.models import Subquery, OuterRef
-                
-                first_schedule_dates = ScheduledEpisode.objects.filter(
-                    episode=OuterRef('episode')
-                ).aggregate(first_date=Min('schedule_date'))['first_date']
-                
-                # For now, let's use a simpler raw SQL approach or annotation
-                queryset = queryset.extra(
-                    where=["""
-                        schedule_date = (
-                            SELECT MIN(se2.schedule_date) 
-                            FROM ch24app_scheduledepisode se2 
-                            WHERE se2.episode_id = ch24app_scheduledepisode.episode_id
-                        )
-                    """]
-                )
+                # Filter for episodes where schedule_date equals first_scheduled_date
+                queryset = queryset.filter(schedule_date=F('first_scheduled_date'))
                 
             elif status_filter == 'repeat':
-                # Filter for episodes NOT on their first scheduled day
-                queryset = queryset.extra(
-                    where=["""
-                        schedule_date > (
-                            SELECT MIN(se2.schedule_date) 
-                            FROM ch24app_scheduledepisode se2 
-                            WHERE se2.episode_id = ch24app_scheduledepisode.episode_id
-                        )
-                    """]
-                )
+                # Filter for episodes where schedule_date is after first_scheduled_date
+                queryset = queryset.filter(schedule_date__gt=F('first_scheduled_date'))
                 
         # General search across multiple fields
         if search_query:
@@ -1955,7 +1943,14 @@ class ScheduleReportView(ListView):
         if not scheduled_episode.episode:
             return 'Unknown'
         
-        # Find the earliest date this episode was scheduled
+        # Check if we have the annotation from get_queryset
+        if hasattr(scheduled_episode, 'first_scheduled_date'):
+            if scheduled_episode.schedule_date == scheduled_episode.first_scheduled_date:
+                return 'New'
+            else:
+                return 'Repeat'
+        
+        # Fallback: Find the earliest date this episode was scheduled
         first_scheduled_date = ScheduledEpisode.objects.filter(
             episode=scheduled_episode.episode
         ).aggregate(
@@ -1969,7 +1964,7 @@ class ScheduleReportView(ListView):
             else:
                 return 'Repeat'
         
-        # Fallback: if no scheduled date found, check if episode has been scheduled at all
+        # Final fallback: if no scheduled date found, check if episode has been scheduled at all
         if scheduled_episode.episode.schedule_count is None or scheduled_episode.episode.schedule_count == 0:
             return 'New'
         
